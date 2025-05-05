@@ -10,7 +10,7 @@ interface CartItem {
   id: string;
   product_id: string;
   quantity: number;
-  product?: Product | any; // Allow any to handle Supabase error types
+  products?: Product | null;
 }
 
 interface UseCartOptions {
