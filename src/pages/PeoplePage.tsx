@@ -1,86 +1,77 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
-
-// Mock users data
-const users = [
-  {
-    id: "1",
-    name: "Emma Watson",
-    username: "@emmaw",
-    avatar: "/placeholder.svg",
-    bio: "Digital artist and designer",
-    isFollowing: false,
-  },
-  {
-    id: "2",
-    name: "John Smith",
-    username: "@johnsmith",
-    avatar: "/placeholder.svg",
-    bio: "Professional photographer and educator",
-    isFollowing: true,
-  },
-  {
-    id: "3",
-    name: "Sarah Johnson",
-    username: "@sarahj",
-    avatar: "/placeholder.svg",
-    bio: "UX designer and front-end developer",
-    isFollowing: false,
-  },
-  {
-    id: "4",
-    name: "Michael Chen",
-    username: "@mikechen",
-    avatar: "/placeholder.svg",
-    bio: "Content creator and marketing expert",
-    isFollowing: false,
-  },
-  {
-    id: "5",
-    name: "Aisha Patel",
-    username: "@aishap",
-    avatar: "/placeholder.svg",
-    bio: "Freelance illustrator and course creator",
-    isFollowing: true,
-  },
-  {
-    id: "6",
-    name: "Robert Williams",
-    username: "@robwill",
-    avatar: "/placeholder.svg",
-    bio: "Entrepreneur and business consultant",
-    isFollowing: false,
-  },
-];
+import { Search, Loader2 } from "lucide-react";
+import { useUsers } from "@/hooks/use-users";
+import { useFollow } from "@/hooks/use-follow";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const PeoplePage = () => {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [followState, setFollowState] = React.useState<Record<string, boolean>>(
-    users.reduce((acc, user) => ({ ...acc, [user.id]: user.isFollowing }), {})
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const navigate = useNavigate();
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.bio.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { data: users, isLoading, error } = useUsers(debouncedSearch);
+  const { follow, unfollow, isLoading: followLoading } = useFollow();
 
-  const handleFollow = (userId: string) => {
-    setFollowState({
-      ...followState,
-      [userId]: !followState[userId],
-    });
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Check auth on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+  const handleFollow = (userId: string, isFollowing: boolean) => {
+    if (isFollowing) {
+      unfollow(userId);
+    } else {
+      follow(userId);
+    }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container max-w-4xl mx-auto py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+          <p className="text-sm text-gray-500">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-4xl mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">People</h1>
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded">
+          Failed to load users. Please try again later.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container max-w-4xl mx-auto">
+    <div className="container max-w-4xl mx-auto py-8">
       <h1 className="text-2xl font-bold mb-6">People</h1>
       
       <div className="relative mb-6">
@@ -94,32 +85,48 @@ const PeoplePage = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredUsers.map((user) => (
-          <Card key={user.id} className="overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <Link to={`/profile/${user.id}`} className="flex items-center space-x-3">
-                  <Avatar className="h-12 w-12">
-                    <img src={user.avatar} alt={user.name} />
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.username}</p>
-                    <p className="text-sm text-gray-700 mt-1">{user.bio}</p>
-                  </div>
-                </Link>
-                <Button
-                  variant={followState[user.id] ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => handleFollow(user.id)}
-                  className={followState[user.id] ? "" : "bg-artijam-purple hover:bg-artijam-purple-dark"}
-                >
-                  {followState[user.id] ? "Following" : "Follow"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {users && users.length > 0 ? (
+          users.map((user) => (
+            <Card key={user.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <Link to={`/profile/${user.id}`} className="flex items-center space-x-3">
+                    <Avatar className="h-12 w-12">
+                      <img src={user.avatar} alt={user.name} />
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user.name || user.username}</p>
+                      <p className="text-sm text-gray-500">{user.username}</p>
+                      <p className="text-sm text-gray-700 mt-1">{user.bio}</p>
+                    </div>
+                  </Link>
+                  {!user.isCurrentUser && (
+                    <Button
+                      variant={user.isFollowing ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleFollow(user.id, user.isFollowing)}
+                      disabled={followLoading}
+                      className={user.isFollowing ? "" : "bg-artijam-purple hover:bg-artijam-purple-dark"}
+                    >
+                      {followLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        user.isFollowing ? "Following" : "Follow"
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-1 md:col-span-2 bg-white p-8 rounded-lg shadow text-center">
+            <h3 className="text-lg font-medium mb-2">No Users Found</h3>
+            <p className="text-gray-500">
+              {debouncedSearch ? "No users match your search criteria." : "No users found."}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

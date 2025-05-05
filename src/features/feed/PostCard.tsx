@@ -6,6 +6,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Share2, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLike } from "@/hooks/use-like";
+import { format } from "date-fns";
 
 interface PostCardProps {
   post: {
@@ -27,14 +29,20 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const [liked, setLiked] = React.useState(post.liked);
   const [likeCount, setLikeCount] = React.useState(post.likes);
+  const { like, unlike, isLoading } = useLike();
 
   const handleLike = () => {
+    if (isLoading) return;
+    
     if (liked) {
-      setLikeCount(likeCount - 1);
+      unlike(post.id);
+      setLiked(false);
+      setLikeCount(prev => prev - 1);
     } else {
-      setLikeCount(likeCount + 1);
+      like(post.id);
+      setLiked(true);
+      setLikeCount(prev => prev + 1);
     }
-    setLiked(!liked);
   };
 
   return (
@@ -82,6 +90,7 @@ const PostCard = ({ post }: PostCardProps) => {
           size="sm"
           className="flex items-center space-x-1"
           onClick={handleLike}
+          disabled={isLoading}
         >
           <Heart
             size={18}
@@ -89,14 +98,16 @@ const PostCard = ({ post }: PostCardProps) => {
           />
           <span>{likeCount}</span>
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center space-x-1"
-        >
-          <MessageSquare size={18} className="text-gray-500" />
-          <span>{post.comments}</span>
-        </Button>
+        <Link to={`/post/${post.id}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center space-x-1"
+          >
+            <MessageSquare size={18} className="text-gray-500" />
+            <span>{post.comments}</span>
+          </Button>
+        </Link>
         <Button
           variant="ghost"
           size="sm"

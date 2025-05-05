@@ -1,68 +1,69 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import CreatePostButton from "@/features/feed/CreatePostButton";
 import PostCard from "@/features/feed/PostCard";
 import SuggestedUsers from "@/features/feed/SuggestedUsers";
 import TrendingTopics from "@/features/feed/TrendingTopics";
-
-// Mock posts data
-const mockPosts = [
-  {
-    id: "1",
-    author: {
-      id: "user1",
-      name: "Jane Doe",
-      avatar: "/placeholder.svg",
-    },
-    content:
-      "Just finished my latest digital art project! What do you think? #digitalart #creativity",
-    image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=800&q=80",
-    likes: 24,
-    comments: 5,
-    createdAt: "2h ago",
-    liked: false,
-  },
-  {
-    id: "2",
-    author: {
-      id: "user2",
-      name: "Alex Johnson",
-      avatar: "/placeholder.svg",
-    },
-    content:
-      "Excited to announce my new course on web development basics! Sign up with early bird pricing today. #webdev #learning",
-    likes: 42,
-    comments: 11,
-    createdAt: "4h ago",
-    liked: true,
-  },
-  {
-    id: "3",
-    author: {
-      id: "user3",
-      name: "Sam Rodriguez",
-      avatar: "/placeholder.svg",
-    },
-    content:
-      "Looking for collaborators on a new creative project. DM me if interested! #collaboration #creatives",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80",
-    likes: 18,
-    comments: 7,
-    createdAt: "6h ago",
-    liked: false,
-  },
-];
+import { usePosts } from "@/hooks/use-posts";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const { data: posts, isLoading, error } = usePosts();
+
+  // Check authentication status
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-7xl mx-auto py-8 flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+          <p className="text-sm text-gray-500">Loading feed...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-7xl mx-auto py-8 flex flex-col items-center justify-center min-h-[60vh]">
+        <h3 className="text-xl font-semibold text-red-500 mb-4">Failed to load posts</h3>
+        <p className="text-gray-600 mb-6">There was an error loading your feed</p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="container max-w-7xl mx-auto">
+    <div className="container max-w-7xl mx-auto py-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <CreatePostButton />
           
-          {mockPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+          {posts && posts.length > 0 ? (
+            posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))
+          ) : (
+            <div className="bg-white rounded-md p-8 text-center shadow">
+              <h3 className="text-lg font-medium mb-2">No Posts Yet</h3>
+              <p className="text-gray-500 mb-6">Be the first to share something with the community!</p>
+              <Button onClick={() => navigate("/post")}>Create a Post</Button>
+            </div>
+          )}
         </div>
         
         <div className="hidden lg:block space-y-4">

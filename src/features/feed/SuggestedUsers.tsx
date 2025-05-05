@@ -1,40 +1,109 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
-// Mock suggested users data
-const suggestedUsers = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    username: "@sarahj",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "2",
-    name: "Michael Chen",
-    username: "@mikechen",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "3",
-    name: "Aisha Patel",
-    username: "@aishap",
-    avatar: "/placeholder.svg",
-  },
-];
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useFollow } from "@/hooks/use-follow";
 
 const SuggestedUsers = () => {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { follow, unfollow, isLoading: followLoading } = useFollow();
+  const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const fetchSuggestedUsers = async () => {
+      try {
+        // Get current user
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session?.user) return;
+        
+        const currentUserId = sessionData.session.user.id;
+        
+        // Get users that the current user is not following
+        const { data } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            username,
+            full_name,
+            avatar_url,
+            followers!following_id (follower_id)
+          `)
+          .neq('id', currentUserId)
+          .limit(3);
+          
+        if (data) {
+          // Filter out users the current user is already following
+          const suggestedUsers = data.filter(user => {
+            const isFollowing = user.followers.some(
+              (follow: {follower_id: string}) => follow.follower_id === currentUserId
+            );
+            return !isFollowing;
+          }).map(user => ({
+            id: user.id,
+            name: user.full_name || user.username || 'Anonymous',
+            username: user.username ? `@${user.username}` : '',
+            avatar: user.avatar_url || '/placeholder.svg',
+            isFollowing: false
+          }));
+          
+          setUsers(suggestedUsers);
+          
+          // Initialize follow states
+          const initialFollowStates: Record<string, boolean> = {};
+          suggestedUsers.forEach(user => {
+            initialFollowStates[user.id] = false;
+          });
+          setFollowStates(initialFollowStates);
+        }
+      } catch (error) {
+        console.error("Error fetching suggested users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSuggestedUsers();
+  }, []);
+
+  const handleFollow = (userId: string) => {
+    if (followStates[userId]) {
+      unfollow(userId);
+      setFollowStates(prev => ({ ...prev, [userId]: false }));
+    } else {
+      follow(userId);
+      setFollowStates(prev => ({ ...prev, [userId]: true }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">People you may know</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-artijam-purple" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (users.length === 0) {
+    return null; // Don't show the component if there are no suggestions
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">People you may know</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {suggestedUsers.map((user) => (
+        {users.map((user) => (
           <div key={user.id} className="flex items-center justify-between">
             <Link to={`/profile/${user.id}`} className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
@@ -45,13 +114,18 @@ const SuggestedUsers = () => {
                 <p className="text-xs text-gray-500">{user.username}</p>
               </div>
             </Link>
-            <Button size="sm" variant="outline">
-              Follow
+            <Button 
+              size="sm" 
+              variant={followStates[user.id] ? "outline" : "default"}
+              onClick={() => handleFollow(user.id)}
+              disabled={followLoading}
+            >
+              {followStates[user.id] ? "Following" : "Follow"}
             </Button>
           </div>
         ))}
-        <Button variant="ghost" size="sm" className="w-full text-artijam-purple">
-          See More
+        <Button variant="ghost" size="sm" className="w-full text-artijam-purple" asChild>
+          <Link to="/people">See More</Link>
         </Button>
       </CardContent>
     </Card>

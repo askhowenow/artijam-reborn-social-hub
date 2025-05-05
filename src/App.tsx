@@ -16,8 +16,20 @@ import PeoplePage from "@/pages/PeoplePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import AdminPage from "@/pages/AdminPage";
+import ProfilePage from "@/pages/ProfilePage";
+import CreatePostPage from "@/pages/CreatePostPage";
+import PostDetailPage from "@/pages/PostDetailPage";
+import ProfileEditPage from "@/pages/ProfileEditPage";
+import SearchPage from "@/pages/SearchPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -81,7 +93,12 @@ const App = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/admin" element={<AdminPage />} />
-              {/* More routes will be added as needed */}
+              <Route path="/profile/:userId" element={<ProfilePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/edit" element={<ProfileEditPage />} />
+              <Route path="/post/create" element={<CreatePostPage />} />
+              <Route path="/post/:postId" element={<PostDetailPage />} />
+              <Route path="/search" element={<SearchPage />} />
             </Route>
 
             {/* 404 Page */}
