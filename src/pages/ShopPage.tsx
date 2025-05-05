@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useProducts } from '@/hooks/use-products';
@@ -22,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, ArrowRight, Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNavigate } from 'react-router-dom';
+import { ClientSecurityHeaders } from '@/middleware/security';
 
 const categoryFilters = [
   'All',
@@ -74,6 +74,7 @@ const ShopPage = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="TikTokShop - Creative Marketplace" />
         <meta name="twitter:description" content="Discover and shop unique creative items from independent artists and makers." />
+        <ClientSecurityHeaders />
       </Helmet>
 
       <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">

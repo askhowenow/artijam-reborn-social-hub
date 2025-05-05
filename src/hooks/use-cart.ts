@@ -428,14 +428,19 @@ export function useCart(options?: UseCartOptions) {
   // Calculate cart totals
   const cartCount = cartData?.items?.reduce((count, item) => count + item.quantity, 0) || 0;
   
-  // Fix TypeScript errors by safely accessing the price property
+  // Fix TypeScript errors by properly handling null and undefined values
   const cartTotal = cartData?.items?.reduce((total, item) => {
-    // Check if products exists and has a price property
-    if (item.products && typeof item.products === 'object' && 
-        'price' in item.products && 
+    // Skip calculation if products is null or undefined
+    if (!item.products) {
+      return total;
+    }
+    
+    // Check if products has a price property of type number
+    if (typeof item.products === 'object' && 'price' in item.products && 
         typeof item.products.price === 'number') {
       return total + (item.products.price * item.quantity);
     }
+    
     return total;
   }, 0) || 0;
 
