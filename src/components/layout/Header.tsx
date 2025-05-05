@@ -5,15 +5,25 @@ import { Bell, Plus, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "./Logo";
 
 const Header = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const supabaseConfigured = isSupabaseConfigured();
 
   const handleSignOut = async () => {
+    if (!supabaseConfigured) {
+      toast({
+        title: "Configuration Error",
+        description: "Supabase environment variables are not configured. Authentication features are disabled.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       await supabase.auth.signOut();
       toast({

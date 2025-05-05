@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -23,21 +23,37 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if Supabase is configured
+    const supabaseConfigured = isSupabaseConfigured();
+    
+    if (!supabaseConfigured) {
+      console.warn("Supabase environment variables are not configured. Authentication will not work properly.");
+      setIsLoggedIn(false);
+      setLoading(false);
+      return;
+    }
+
     // Check for active session on component mount
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsLoggedIn(!!data.session);
-      setLoading(false);
-
-      // Set up auth state change listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        setIsLoggedIn(!!session);
-      });
-
-      // Cleanup subscription
-      return () => {
-        subscription.unsubscribe();
-      };
+      try {
+        const { data } = await supabase.auth.getSession();
+        setIsLoggedIn(!!data.session);
+        
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          setIsLoggedIn(!!session);
+        });
+        
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkSession();
