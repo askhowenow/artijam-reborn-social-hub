@@ -5,6 +5,7 @@ import { Bell, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Logo from "./Logo";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -13,9 +14,7 @@ const Header = () => {
     <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:pl-64 md:pr-8">
         {isMobile && (
-          <Link to="/" className="text-xl font-bold text-artijam-purple">
-            Artijam
-          </Link>
+          <Logo size="sm" />
         )}
 
         <div className="flex-1 md:flex md:justify-center">

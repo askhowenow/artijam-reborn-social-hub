@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -8,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
+import Logo from "./Logo";
 
 const mainNavLinks = [
   { path: "/", label: "Home", icon: Home },
@@ -40,9 +40,7 @@ const SideNavigation = () => {
   return (
     <aside className="hidden md:flex flex-col h-screen w-64 border-r border-gray-200 bg-white overflow-y-auto fixed left-0 top-0 z-10">
       <div className="p-4 border-b border-gray-200">
-        <Link to="/" className="flex items-center">
-          <span className="text-xl font-bold text-artijam-purple">Artijam</span>
-        </Link>
+        <Logo size="md" />
       </div>
 
       <div className="p-4">
