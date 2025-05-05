@@ -6,10 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
+import GuestLayout from "@/components/layout/GuestLayout";
 import { supabase } from "@/integrations/supabase/client";
 
 // Pages
-import HomePage from "@/pages/HomePage";
+import ShopPage from "@/pages/ShopPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import PeoplePage from "@/pages/PeoplePage";
@@ -24,8 +25,8 @@ import SearchPage from "@/pages/SearchPage";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
 import ProductFormPage from "./pages/ProductFormPage";
-import ShopPage from "./pages/ShopPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import HomePage from "./pages/HomePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,20 +83,27 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes - Available to everyone */}
+            <Route element={<GuestLayout />}>
+              {/* Shop as the main landing page */}
+              <Route path="/" element={<ShopPage />} />
+              <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
+            </Route>
+
             {/* Auth Routes */}
             <Route
               path="/login"
-              element={isLoggedIn ? <Navigate to="/" /> : <LoginPage />}
+              element={isLoggedIn ? <Navigate to="/dashboard" /> : <LoginPage />}
             />
             <Route
               path="/register"
-              element={isLoggedIn ? <Navigate to="/" /> : <RegisterPage />}
+              element={isLoggedIn ? <Navigate to="/dashboard" /> : <RegisterPage />}
             />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
             {/* Protected Routes */}
             <Route element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" />}>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/dashboard" element={<HomePage />} />
               <Route path="/profile/:userId?" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<ProfileEditPage />} />
               <Route path="/people" element={<PeoplePage />} />
@@ -104,9 +112,8 @@ const App = () => {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin" element={<AdminPage />} />
               
-              {/* Shop Routes */}
+              {/* Shop Routes - Protected versions */}
               <Route path="/shop" element={<ShopPage />} />
-              <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
               
               {/* Vendor Routes */}
               <Route path="/vendor/profile" element={<VendorProfilePage />} />

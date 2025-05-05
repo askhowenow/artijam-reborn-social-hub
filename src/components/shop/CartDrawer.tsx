@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart } from '@/hooks/use-cart';
-import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, LogIn } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
@@ -71,7 +71,7 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
               <p className="text-gray-500">Your cart is empty</p>
               <SheetClose asChild>
                 <Button 
-                  onClick={() => navigate('/shop')} 
+                  onClick={() => navigate('/')} 
                   variant="link" 
                   className="mt-2"
                 >
@@ -102,7 +102,7 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                       {item.product?.name}
                     </p>
                     <p className="text-sm text-gray-500">
-                      ${item.product?.price.toFixed(2)}
+                      ${typeof item.product?.price === 'number' ? item.product.price.toFixed(2) : '0.00'}
                     </p>
                     
                     <div className="flex items-center mt-2">
@@ -182,12 +182,22 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                   </Button>
                 </SheetClose>
                 
-                <Button 
-                  onClick={handleCheckout} 
-                  className="w-full"
-                >
-                  {isAuthenticated ? 'Checkout' : 'Sign in to Checkout'}
-                </Button>
+                {isAuthenticated ? (
+                  <Button 
+                    onClick={handleCheckout} 
+                    className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
+                  >
+                    Checkout
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => navigate('/login')} 
+                    className="w-full"
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Sign in to Checkout
+                  </Button>
+                )}
               </SheetFooter>
             </div>
           </div>
