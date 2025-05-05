@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -23,16 +23,6 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if Supabase is configured
-    const supabaseConfigured = isSupabaseConfigured();
-    
-    if (!supabaseConfigured) {
-      console.warn("Supabase environment variables are not configured. Authentication will not work properly.");
-      setIsLoggedIn(false);
-      setLoading(false);
-      return;
-    }
-
     // Check for active session on component mount
     const checkSession = async () => {
       try {

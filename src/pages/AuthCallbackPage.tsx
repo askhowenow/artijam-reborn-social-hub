@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const AuthCallbackPage = () => {
@@ -10,16 +10,6 @@ const AuthCallbackPage = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      if (!isSupabaseConfigured()) {
-        toast({
-          title: "Configuration Error",
-          description: "Supabase environment variables are not configured. Please set them up to enable authentication.",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-      
       const { error } = await supabase.auth.getSession();
       
       if (error) {

@@ -1,30 +1,17 @@
 
-import { createClient } from '@supabase/supabase-js';
+// This file is deprecated. Use the client from @/integrations/supabase/client instead
+import { supabase } from "@/integrations/supabase/client";
 
-// Default to empty strings if environment variables are not available
-// This allows the app to at least load without crashing
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-url.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
-
-// Create a placeholder Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Re-export for backward compatibility
+export { supabase };
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return (
-    import.meta.env.VITE_SUPABASE_URL &&
-    import.meta.env.VITE_SUPABASE_ANON_KEY &&
-    import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder-url.supabase.co'
-  );
+  return true; // We're now using the proper client from integrations directory
 };
 
 // Helper function to get the current user
 export const getCurrentUser = async () => {
-  if (!isSupabaseConfigured()) {
-    console.warn('Supabase is not properly configured. Authentication features will not work.');
-    return null;
-  }
-  
   try {
     const { data } = await supabase.auth.getSession();
     return data?.session?.user;
@@ -36,11 +23,6 @@ export const getCurrentUser = async () => {
 
 // Helper function to get the current user's profile
 export const getUserProfile = async (userId: string) => {
-  if (!isSupabaseConfigured()) {
-    console.warn('Supabase is not properly configured. User profile features will not work.');
-    return null;
-  }
-  
   try {
     const { data, error } = await supabase
       .from('profiles')

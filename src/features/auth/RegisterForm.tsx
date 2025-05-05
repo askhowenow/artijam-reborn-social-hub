@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Facebook, Mail, Twitter } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Facebook, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -16,26 +16,17 @@ interface RegisterFormProps {
 }
 
 const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
+  const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const supabaseConfigured = isSupabaseConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!supabaseConfigured) {
-      toast({
-        title: "Configuration Error",
-        description: "Supabase environment variables are not configured. Please set them up to enable authentication.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!fullName || !email || !password) {
+    if (!username || !fullName || !email || !password) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -62,6 +53,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         password,
         options: {
           data: {
+            username,
             full_name: fullName,
           },
         },
@@ -74,20 +66,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         title: "Success",
         description: "Your account has been created. Please check your email for verification.",
       });
-      
-      // Create a profile entry in the profiles table
-      if (data.user) {
-        const { error: profileError } = await supabase.from('profiles').insert([
-          { 
-            id: data.user.id,
-            full_name: fullName,
-            email: email,
-            created_at: new Date().toISOString()
-          }
-        ]);
-
-        if (profileError) console.error("Error creating profile:", profileError);
-      }
       
       onSuccess();
     } catch (error: any) {
@@ -102,15 +80,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   };
 
   const handleSocialSignUp = async (provider: 'google' | 'facebook') => {
-    if (!supabaseConfigured) {
-      toast({
-        title: "Configuration Error",
-        description: "Supabase environment variables are not configured. Please set them up to enable authentication.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -138,17 +107,18 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {!supabaseConfigured && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Configuration Error</AlertTitle>
-            <AlertDescription>
-              Supabase environment variables are not set. Authentication features are disabled.
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="johndoe"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input
@@ -158,7 +128,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              disabled={!supabaseConfigured}
             />
           </div>
           <div className="space-y-2">
@@ -170,7 +139,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={!supabaseConfigured}
             />
           </div>
           <div className="space-y-2">
@@ -182,7 +150,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              disabled={!supabaseConfigured}
             />
             <p className="text-xs text-gray-500">
               Password must be at least 6 characters long
@@ -191,7 +158,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
           <Button
             type="submit"
             className="w-full bg-artijam-purple hover:bg-artijam-purple-dark"
-            disabled={isSubmitting || !supabaseConfigured}
+            disabled={isSubmitting}
           >
             {isSubmitting ? "Creating account..." : "Sign Up"}
           </Button>
@@ -217,7 +184,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             variant="outline"
             onClick={() => handleSocialSignUp('google')}
             type="button"
-            disabled={!supabaseConfigured}
           >
             <Mail className="mr-2 h-4 w-4" />
             Google
@@ -226,7 +192,6 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             variant="outline"
             onClick={() => handleSocialSignUp('facebook')}
             type="button"
-            disabled={!supabaseConfigured}
           >
             <Facebook className="mr-2 h-4 w-4" />
             Facebook
