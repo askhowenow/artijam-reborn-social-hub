@@ -15,6 +15,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import PeoplePage from "@/pages/PeoplePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
+import AdminPage from "@/pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => {
             <Route element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/people" element={<PeoplePage />} />
+              <Route path="/admin" element={<AdminPage />} />
               {/* More routes will be added as needed */}
             </Route>
 

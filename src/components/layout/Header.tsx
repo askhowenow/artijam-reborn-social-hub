@@ -1,28 +1,22 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
-import { Bell, Plus, Search, LogOut } from "lucide-react";
+import { Bell, Plus, Search, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "./Logo";
+import { useUserRole } from "@/hooks/use-user-role";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const supabaseConfigured = isSupabaseConfigured();
+  const { isAdmin } = useUserRole();
 
   const handleSignOut = async () => {
-    if (!supabaseConfigured) {
-      toast({
-        title: "Configuration Error",
-        description: "Supabase environment variables are not configured. Authentication features are disabled.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
       await supabase.auth.signOut();
       toast({
@@ -60,6 +54,16 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-3">
+          {isAdmin() && (
+            <Link to="/admin">
+              <Button variant="outline" size="icon" className="rounded-full relative">
+                <Shield size={18} className="text-artijam-purple" />
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-artijam-purple text-white text-[10px]">
+                  A
+                </Badge>
+              </Button>
+            </Link>
+          )}
           <Link to="/post">
             <Button variant="outline" size="icon" className="rounded-full">
               <Plus size={18} />
