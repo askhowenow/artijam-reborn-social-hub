@@ -52,11 +52,7 @@ export function useVendorProfile(userId?: string) {
     meta: {
       onError: (error: Error) => {
         console.error('Failed to fetch vendor profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load vendor profile. Please try again later.',
-          variant: 'destructive',
-        });
+        toast.error('Failed to load vendor profile. Please try again later.');
       }
     }
   });
@@ -82,19 +78,12 @@ export function useVendorProfile(userId?: string) {
     },
     meta: {
       onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Vendor profile created successfully.',
-        });
+        toast.success('Vendor profile created successfully.');
         queryClient.invalidateQueries({ queryKey: ['vendorProfile'] });
       },
       onError: (error: Error) => {
         console.error('Failed to create vendor profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to create vendor profile. Please try again.',
-          variant: 'destructive',
-        });
+        toast.error('Failed to create vendor profile. Please try again.');
       }
     }
   });
@@ -121,19 +110,12 @@ export function useVendorProfile(userId?: string) {
     },
     meta: {
       onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Vendor profile updated successfully.',
-        });
+        toast.success('Vendor profile updated successfully.');
         queryClient.invalidateQueries({ queryKey: ['vendorProfile'] });
       },
       onError: (error: Error) => {
         console.error('Failed to update vendor profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to update vendor profile. Please try again.',
-          variant: 'destructive',
-        });
+        toast.error('Failed to update vendor profile. Please try again.');
       }
     }
   });
