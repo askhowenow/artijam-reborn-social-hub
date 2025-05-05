@@ -48,13 +48,15 @@ export function useUsers(searchQuery = '') {
   return useQuery({
     queryKey: ['users', searchQuery],
     queryFn: fetchUsers,
-    onError: (error) => {
-      console.error('Failed to fetch users:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load users. Please try again later.',
-        variant: 'destructive',
-      });
-    },
+    meta: {
+      onError: (error: Error) => {
+        console.error('Failed to fetch users:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load users. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    }
   });
 }

@@ -15,7 +15,7 @@ export const isSupabaseConfigured = () => {
 export const getCurrentUser = async () => {
   try {
     const { data } = await supabase.auth.getSession();
-    return data?.session?.user;
+    return data?.session?.user ?? null;
   } catch (error) {
     console.error('Error fetching current user:', error);
     return null;

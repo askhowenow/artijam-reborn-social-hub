@@ -1,8 +1,8 @@
 
-import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getCurrentUser } from '@/lib/supabase';
 
 export function usePosts() {
   const fetchPosts = async () => {
@@ -21,6 +21,10 @@ export function usePosts() {
       throw error;
     }
 
+    // Get current user to check if posts are liked
+    const currentUser = await getCurrentUser();
+    const currentUserId = currentUser?.id;
+
     // Transform data to include counts and format for the UI
     return data.map((post) => {
       const likesCount = post.likes ? post.likes.length : 0;
@@ -38,7 +42,7 @@ export function usePosts() {
         },
         likes: likesCount,
         comments: commentsCount,
-        liked: post.likes ? post.likes.some(like => like.user_id === supabase.auth.getSession()?.user?.id) : false,
+        liked: post.likes ? post.likes.some(like => like.user_id === currentUserId) : false,
       };
     });
   };
@@ -46,13 +50,15 @@ export function usePosts() {
   return useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
-    onError: (error) => {
-      console.error('Failed to fetch posts:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load posts. Please try again later.',
-        variant: 'destructive',
-      });
-    },
+    meta: {
+      onError: (error: Error) => {
+        console.error('Failed to fetch posts:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load posts. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    }
   });
 }

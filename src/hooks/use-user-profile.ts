@@ -21,8 +21,8 @@ export function useUserProfile(userId?: string) {
       .from('profiles')
       .select(`
         *,
-        followers:followers!following_id (count),
-        following:followers!follower_id (count)
+        followers:followers!following_id (follower_id),
+        following:followers!follower_id (following_id)
       `)
       .eq('id', profileId)
       .single();
@@ -47,6 +47,10 @@ export function useUserProfile(userId?: string) {
       isFollowing = !!followData;
     }
     
+    // Calculate follower and following counts
+    const followersCount = Array.isArray(data.followers) ? data.followers.length : 0;
+    const followingCount = Array.isArray(data.following) ? data.following.length : 0;
+    
     return {
       id: data.id,
       username: data.username,
@@ -54,8 +58,8 @@ export function useUserProfile(userId?: string) {
       avatar: data.avatar_url || '/placeholder.svg',
       bio: data.bio || '',
       website: data.website || '',
-      followersCount: data.followers ? data.followers.count : 0,
-      followingCount: data.following ? data.following.count : 0,
+      followersCount: followersCount,
+      followingCount: followingCount,
       isFollowing,
       isCurrentUser: currentUser ? currentUser.id === profileId : false,
     };
@@ -64,13 +68,15 @@ export function useUserProfile(userId?: string) {
   return useQuery({
     queryKey: ['userProfile', userId],
     queryFn: fetchUserProfile,
-    onError: (error) => {
-      console.error('Failed to fetch profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load user profile. Please try again later.',
-        variant: 'destructive',
-      });
-    },
+    meta: {
+      onError: (error: Error) => {
+        console.error('Failed to fetch profile:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load user profile. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    }
   });
 }

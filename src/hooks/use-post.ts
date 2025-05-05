@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getCurrentUser } from '@/lib/supabase';
 
 export function usePost(postId: string) {
   const fetchPost = async () => {
@@ -28,6 +29,10 @@ export function usePost(postId: string) {
       throw error;
     }
     
+    // Get current user to check if post is liked
+    const currentUser = await getCurrentUser();
+    const currentUserId = currentUser?.id;
+    
     // Format post data
     return {
       id: data.id,
@@ -50,7 +55,7 @@ export function usePost(postId: string) {
           avatar: comment.profiles.avatar_url || '/placeholder.svg',
         }
       })) : [],
-      liked: data.likes ? data.likes.some(like => like.user_id === supabase.auth.getSession()?.user?.id) : false,
+      liked: data.likes ? data.likes.some(like => like.user_id === currentUserId) : false,
     };
   };
 
@@ -58,13 +63,15 @@ export function usePost(postId: string) {
     queryKey: ['post', postId],
     queryFn: fetchPost,
     enabled: !!postId,
-    onError: (error) => {
-      console.error('Failed to fetch post:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load post details. Please try again later.',
-        variant: 'destructive',
-      });
-    },
+    meta: {
+      onError: (error: Error) => {
+        console.error('Failed to fetch post:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load post details. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    }
   });
 }
