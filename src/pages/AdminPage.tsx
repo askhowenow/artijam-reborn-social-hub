@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Shield, Users, MessageSquare, Flag, Trash2, CheckCircle, Loader2 } from "lucide-react";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -27,6 +26,10 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type Database } from "@/integrations/supabase/types";
+
+// Adding app_role type to match database enum
+type AppRole = Database['public']['Enums']['app_role'];
 
 const AdminPage = () => {
   const { isAdmin, isLoading: roleLoading } = useUserRole();
@@ -256,7 +259,7 @@ const AdminPage = () => {
   };
   
   const updateRolesMutation = useMutation({
-    mutationFn: async ({ userId, roles }: { userId: string, roles: string[] }) => {
+    mutationFn: async ({ userId, roles }: { userId: string, roles: AppRole[] }) => {
       // First delete all existing roles
       await supabase
         .from('user_roles')
@@ -266,10 +269,10 @@ const AdminPage = () => {
       // If no roles to add, we're done
       if (roles.length === 0) return;
       
-      // Add new roles
+      // Add new roles - fix the type issue here
       const rolesToInsert = roles.map(role => ({
         user_id: userId,
-        role,
+        role: role as AppRole, // Ensure role is typed correctly
       }));
       
       const { error } = await supabase
@@ -300,7 +303,8 @@ const AdminPage = () => {
     if (selectedUser) {
       updateRolesMutation.mutate({
         userId: selectedUser.id,
-        roles: selectedRoles,
+        // Cast selected roles to AppRole type to ensure type safety
+        roles: selectedRoles as AppRole[],
       });
     }
     setUserRoleDialogOpen(false);

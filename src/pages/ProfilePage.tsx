@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +18,7 @@ const ProfilePage = () => {
   const { data: profile, isLoading, error } = useUserProfile(userId);
   const { follow, unfollow, isLoading: followLoading } = useFollow();
 
-  // Check auth on component mount
+  // Check auth on component mount - fix the Promise handling here
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
@@ -31,7 +30,7 @@ const ProfilePage = () => {
     checkAuth();
   }, [navigate]);
 
-  // Fetch user posts
+  // Fetch user posts - fix the Promise handling for post.likes
   const { data: userPosts, isLoading: postsLoading } = useQuery({
     queryKey: ['userPosts', userId],
     queryFn: async () => {
@@ -50,6 +49,10 @@ const ProfilePage = () => {
       
       if (error) throw error;
       
+      // Get current user to check if posts are liked
+      const { data: sessionData } = await supabase.auth.getSession();
+      const currentUserId = sessionData.session?.user?.id;
+      
       return data.map((post) => ({
         id: post.id,
         content: post.content,
@@ -62,7 +65,7 @@ const ProfilePage = () => {
         },
         likes: post.likes ? post.likes.length : 0,
         comments: post.comments ? post.comments.length : 0,
-        liked: post.likes ? post.likes.some(like => like.user_id === supabase.auth.getSession()?.user?.id) : false,
+        liked: post.likes ? post.likes.some(like => like.user_id === currentUserId) : false,
       }));
     },
     enabled: !!userId,
