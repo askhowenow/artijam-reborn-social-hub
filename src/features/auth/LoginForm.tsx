@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import { Facebook, Mail, Twitter } from "lucide-react";
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -30,23 +32,46 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
     setIsSubmitting(true);
 
-    // Mock authentication - would be replaced with actual auth service
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      localStorage.setItem("artijam_user", JSON.stringify({ email }));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "You have successfully logged in",
       });
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to log in. Please try again.",
+        description: error.message || "Failed to log in. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || `Failed to login with ${provider}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -115,8 +140,22 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full">
-          <Button variant="outline">Google</Button>
-          <Button variant="outline">Facebook</Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleSocialLogin('google')}
+            type="button"
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Google
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleSocialLogin('facebook')}
+            type="button"
+          >
+            <Facebook className="mr-2 h-4 w-4" />
+            Facebook
+          </Button>
         </div>
       </CardFooter>
     </Card>

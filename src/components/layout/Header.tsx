@@ -1,14 +1,33 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Bell, Plus, Search } from "lucide-react";
+import { Bell, Plus, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 import Logo from "./Logo";
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Success",
+        description: "You have been signed out",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
@@ -42,11 +61,23 @@ const Header = () => {
               <Bell size={18} />
             </Button>
           </Link>
-          <Link to="/profile" className="hidden md:block">
-            <Avatar className="w-8 h-8">
-              <img src="/placeholder.svg" alt="Profile" />
-            </Avatar>
-          </Link>
+          <div className="hidden md:flex items-center gap-2">
+            <Link to="/profile">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src="/placeholder.svg" alt="Profile" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            </Link>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSignOut}
+              className="text-gray-600 hover:text-red-500"
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </Button>
+          </div>
         </div>
       </div>
     </header>

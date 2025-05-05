@@ -1,10 +1,12 @@
 
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
+import { supabase } from "@/lib/supabase";
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -12,12 +14,42 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import PeoplePage from "@/pages/PeoplePage";
 import NotFoundPage from "@/pages/NotFoundPage";
+import AuthCallbackPage from "@/pages/AuthCallbackPage";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Basic auth check - would be replaced with a more robust auth system
-  const isLoggedIn = localStorage.getItem("artijam_user") !== null;
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for active session on component mount
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsLoggedIn(!!data.session);
+      setLoading(false);
+
+      // Set up auth state change listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        setIsLoggedIn(!!session);
+      });
+
+      // Cleanup subscription
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+
+    checkSession();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-artijam-purple"></div>
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -35,6 +67,7 @@ const App = () => {
               path="/register"
               element={isLoggedIn ? <Navigate to="/" /> : <RegisterPage />}
             />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
             {/* Protected Routes */}
             <Route element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" />}>

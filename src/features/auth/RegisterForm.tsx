@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import { Facebook, Mail, Twitter } from "lucide-react";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -29,25 +31,79 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
       return;
     }
 
-    setIsSubmitting(true);
-
-    // Mock registration - would be replaced with actual auth service
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      localStorage.setItem("artijam_user", JSON.stringify({ email, fullName }));
-      toast({
-        title: "Success",
-        description: "Your account has been created",
-      });
-      onSuccess();
-    } catch (error) {
+    if (password.length < 6) {
       toast({
         title: "Error",
-        description: "Failed to create account. Please try again.",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Register user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Show success message based on email confirmation requirement
+      toast({
+        title: "Success",
+        description: "Your account has been created. Please check your email for verification.",
+      });
+      
+      // Create a profile entry in the profiles table
+      if (data.user) {
+        const { error: profileError } = await supabase.from('profiles').insert([
+          { 
+            id: data.user.id,
+            full_name: fullName,
+            email: email,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+        if (profileError) console.error("Error creating profile:", profileError);
+      }
+      
+      onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSocialSignUp = async (provider: 'google' | 'facebook') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || `Failed to sign up with ${provider}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -94,7 +150,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               required
             />
             <p className="text-xs text-gray-500">
-              Password must be at least 8 characters long
+              Password must be at least 6 characters long
             </p>
           </div>
           <Button
@@ -122,8 +178,22 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full">
-          <Button variant="outline">Google</Button>
-          <Button variant="outline">Facebook</Button>
+          <Button 
+            variant="outline"
+            onClick={() => handleSocialSignUp('google')}
+            type="button"
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Google
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => handleSocialSignUp('facebook')}
+            type="button"
+          >
+            <Facebook className="mr-2 h-4 w-4" />
+            Facebook
+          </Button>
         </div>
       </CardFooter>
     </Card>
