@@ -1,40 +1,57 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, MessageSquare, BookOpen, Briefcase, ShoppingBag, Wallet, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Navigation links data
-const navLinks = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/people", label: "People", icon: Users },
-  { path: "/messages", label: "Chat", icon: MessageSquare },
-  { path: "/courses", label: "Learn", icon: BookOpen },
-  { path: "/search", label: "Search", icon: Search },
-];
+import { Home, Users, PlusCircle, Bell, User, Store } from "lucide-react";
+import { useVendorProfile } from "@/hooks/use-vendor-profile";
 
 const MobileNavigation = () => {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const pathname = location.pathname;
+  const { vendorProfile } = useVendorProfile();
+  const isVendor = !!vendorProfile;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-10">
-      <div className="flex justify-around items-center h-16">
-        {navLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={cn(
-              "flex flex-col items-center justify-center px-3 py-2 text-xs font-medium transition-colors",
-              currentPath === link.path
-                ? "text-artijam-purple"
-                : "text-gray-500 hover:text-artijam-purple"
-            )}
-          >
-            <link.icon size={20} />
-            <span className="mt-1">{link.label}</span>
+    <nav className="fixed md:hidden bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 pb-safe-area">
+      <div className="flex items-center justify-around h-16">
+        <Link to="/" className={cn(
+          "flex flex-col items-center justify-center w-full h-full",
+          pathname === "/" ? "text-artijam-purple" : "text-gray-600"
+        )}>
+          <Home size={20} />
+          <span className="text-xs mt-1">Home</span>
+        </Link>
+        
+        <Link to="/people" className={cn(
+          "flex flex-col items-center justify-center w-full h-full",
+          pathname === "/people" ? "text-artijam-purple" : "text-gray-600"
+        )}>
+          <Users size={20} />
+          <span className="text-xs mt-1">People</span>
+        </Link>
+        
+        <Link to="/post/create" className="flex flex-col items-center justify-center w-full h-full">
+          <div className="bg-artijam-purple rounded-full p-3">
+            <PlusCircle size={20} className="text-white" />
+          </div>
+        </Link>
+        
+        {isVendor && (
+          <Link to="/vendor/dashboard" className={cn(
+            "flex flex-col items-center justify-center w-full h-full",
+            pathname.startsWith("/vendor") ? "text-artijam-purple" : "text-gray-600"
+          )}>
+            <Store size={20} />
+            <span className="text-xs mt-1">Vendor</span>
           </Link>
-        ))}
+        )}
+        
+        <Link to="/profile" className={cn(
+          "flex flex-col items-center justify-center w-full h-full",
+          pathname === "/profile" ? "text-artijam-purple" : "text-gray-600"
+        )}>
+          <User size={20} />
+          <span className="text-xs mt-1">Profile</span>
+        </Link>
       </div>
     </nav>
   );

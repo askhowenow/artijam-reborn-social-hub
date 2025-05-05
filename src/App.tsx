@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,6 +20,9 @@ import CreatePostPage from "@/pages/CreatePostPage";
 import PostDetailPage from "@/pages/PostDetailPage";
 import ProfileEditPage from "@/pages/ProfileEditPage";
 import SearchPage from "@/pages/SearchPage";
+import VendorProfilePage from "./pages/VendorProfilePage";
+import VendorDashboardPage from "./pages/VendorDashboardPage";
+import ProductFormPage from "./pages/ProductFormPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,14 +93,19 @@ const App = () => {
             {/* Protected Routes */}
             <Route element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" />}>
               <Route path="/" element={<HomePage />} />
-              <Route path="/people" element={<PeoplePage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/profile/:userId" element={<ProfilePage />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/:userId?" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<ProfileEditPage />} />
-              <Route path="/post/create" element={<CreatePostPage />} />
+              <Route path="/people" element={<PeoplePage />} />
               <Route path="/post/:postId" element={<PostDetailPage />} />
+              <Route path="/post/create" element={<CreatePostPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              
+              {/* Vendor Routes */}
+              <Route path="/vendor/profile" element={<VendorProfilePage />} />
+              <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
+              <Route path="/vendor/products/new" element={<ProductFormPage />} />
+              <Route path="/vendor/products/:productId/edit" element={<ProductFormPage />} />
             </Route>
 
             {/* 404 Page */}

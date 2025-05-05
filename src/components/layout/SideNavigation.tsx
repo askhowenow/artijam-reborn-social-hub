@@ -4,12 +4,13 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, MessageSquare, BookOpen, Briefcase, 
   ShoppingBag, Wallet, Search, FileText, 
-  Video, Group, Shield, Settings, Bell 
+  Video, Group, Shield, Settings, Bell, Store 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import Logo from "./Logo";
 import { useUserRole } from "@/hooks/use-user-role";
+import { useVendorProfile } from "@/hooks/use-vendor-profile";
 
 const mainNavLinks = [
   { path: "/", label: "Home", icon: Home },
@@ -28,6 +29,11 @@ const secondaryNavLinks = [
   { path: "/groups", label: "Groups", icon: Group },
 ];
 
+const vendorNavLinks = [
+  { path: "/vendor/dashboard", label: "Vendor Dashboard", icon: Store },
+  { path: "/vendor/products/new", label: "Add Product", icon: ShoppingBag },
+];
+
 const adminNavLinks = [
   { path: "/admin", label: "Admin Dashboard", icon: Shield },
   { path: "/moderator", label: "Moderator", icon: Shield },
@@ -37,6 +43,8 @@ const SideNavigation = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { isAdmin } = useUserRole();
+  const { vendorProfile } = useVendorProfile();
+  const isVendor = !!vendorProfile;
 
   // Mock user data - would come from auth context in real app
   const user = {
@@ -80,6 +88,32 @@ const SideNavigation = () => {
             </Link>
           ))}
         </div>
+
+        {/* Vendor Links - only visible to vendors */}
+        {isVendor && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Vendor
+            </p>
+            <div className="space-y-1">
+              {vendorNavLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={cn(
+                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    currentPath === link.path
+                      ? "bg-artijam-purple-light text-artijam-purple"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <link.icon size={18} className="mr-3" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
