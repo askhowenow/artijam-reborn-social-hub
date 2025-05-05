@@ -1,11 +1,12 @@
 
-import { type NextFunction, type Request, type Response } from 'express';
-
 /**
  * Content Security Policy middleware
  * Implements CSP headers to mitigate XSS and other injection attacks
+ * 
+ * Note: This is a template for server middleware, but won't be used in the client-side app.
+ * Express would need to be installed for server-side implementation.
  */
-export function setupContentSecurityPolicy(req: Request, res: Response, next: NextFunction) {
+export function setupContentSecurityPolicy(req: any, res: any, next: () => void) {
   // Define CSP directives
   const cspDirectives = [
     "default-src 'self'",
