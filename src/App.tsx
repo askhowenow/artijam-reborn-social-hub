@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,6 +24,8 @@ import SearchPage from "@/pages/SearchPage";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
 import ProductFormPage from "./pages/ProductFormPage";
+import ShopPage from "./pages/ShopPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +103,10 @@ const App = () => {
               <Route path="/post/create" element={<CreatePostPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              
+              {/* Shop Routes */}
+              <Route path="/shop" element={<ShopPage />} />
+              <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
               
               {/* Vendor Routes */}
               <Route path="/vendor/profile" element={<VendorProfilePage />} />

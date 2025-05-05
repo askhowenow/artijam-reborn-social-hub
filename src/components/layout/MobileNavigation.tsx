@@ -1,13 +1,17 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Users, PlusCircle, Bell, User, Store } from "lucide-react";
+import { Home, Users, PlusCircle, Bell, User, Store, ShoppingBag } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
+import { useCart } from "@/hooks/use-cart";
+import { Badge } from "@/components/ui/badge";
 
 const MobileNavigation = () => {
   const location = useLocation();
   const pathname = location.pathname;
   const { vendorProfile } = useVendorProfile();
+  const { cartCount } = useCart();
   const isVendor = !!vendorProfile;
 
   return (
@@ -21,12 +25,17 @@ const MobileNavigation = () => {
           <span className="text-xs mt-1">Home</span>
         </Link>
         
-        <Link to="/people" className={cn(
-          "flex flex-col items-center justify-center w-full h-full",
-          pathname === "/people" ? "text-artijam-purple" : "text-gray-600"
+        <Link to="/shop" className={cn(
+          "flex flex-col items-center justify-center w-full h-full relative",
+          pathname === "/shop" || pathname.startsWith("/shop/") ? "text-artijam-purple" : "text-gray-600"
         )}>
-          <Users size={20} />
-          <span className="text-xs mt-1">People</span>
+          <ShoppingBag size={20} />
+          <span className="text-xs mt-1">Shop</span>
+          {cartCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 scale-75 bg-artijam-purple">
+              {cartCount}
+            </Badge>
+          )}
         </Link>
         
         <Link to="/post/create" className="flex flex-col items-center justify-center w-full h-full">

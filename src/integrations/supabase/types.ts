@@ -87,6 +87,80 @@ export type Database = {
           },
         ]
       }
+      guest_cart_items: {
+        Row: {
+          added_at: string | null
+          cart_id: string
+          id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          added_at?: string | null
+          cart_id: string
+          id?: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          added_at?: string | null
+          cart_id?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_guest_cart"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "guest_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "guest_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_carts: {
+        Row: {
+          created_at: string | null
+          guest_id: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          guest_id: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          guest_id?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -154,6 +228,48 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_metrics: {
+        Row: {
+          cart_adds: number
+          id: string
+          last_updated: string | null
+          product_id: string
+          purchases: number
+          views: number
+        }
+        Insert: {
+          cart_adds?: number
+          id?: string
+          last_updated?: string | null
+          product_id: string
+          purchases?: number
+          views?: number
+        }
+        Update: {
+          cart_adds?: number
+          id?: string
+          last_updated?: string | null
+          product_id?: string
+          purchases?: number
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_metrics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -277,6 +393,80 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cart_items: {
+        Row: {
+          added_at: string | null
+          cart_id: string
+          id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          added_at?: string | null
+          cart_id: string
+          id?: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          added_at?: string | null
+          cart_id?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_cart"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "user_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "user_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_carts: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -392,6 +582,14 @@ export type Database = {
           check_role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      increment_product_metric: {
+        Args: {
+          product_id_param: string
+          metric_name: string
+          increment_value?: number
+        }
+        Returns: undefined
       }
     }
     Enums: {

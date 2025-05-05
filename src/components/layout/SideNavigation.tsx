@@ -11,15 +11,17 @@ import { Avatar } from "@/components/ui/avatar";
 import Logo from "./Logo";
 import { useUserRole } from "@/hooks/use-user-role";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
+import { useCart } from "@/hooks/use-cart";
+import { Badge } from "@/components/ui/badge";
 
 const mainNavLinks = [
   { path: "/", label: "Home", icon: Home },
+  { path: "/shop", label: "Shop", icon: ShoppingBag },
   { path: "/people", label: "People", icon: Users },
   { path: "/messages", label: "Messages", icon: MessageSquare },
   { path: "/blogs", label: "Blogs", icon: FileText },
   { path: "/courses", label: "Courses", icon: BookOpen },
   { path: "/jobs", label: "Jobs", icon: Briefcase },
-  { path: "/offers", label: "Marketplace", icon: ShoppingBag },
 ];
 
 const secondaryNavLinks = [
@@ -44,6 +46,7 @@ const SideNavigation = () => {
   const currentPath = location.pathname;
   const { isAdmin } = useUserRole();
   const { vendorProfile } = useVendorProfile();
+  const { cartCount } = useCart();
   const isVendor = !!vendorProfile;
 
   // Mock user data - would come from auth context in real app
@@ -78,13 +81,16 @@ const SideNavigation = () => {
               to={link.path}
               className={cn(
                 "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                currentPath === link.path
+                currentPath === link.path || (link.path === '/shop' && currentPath.startsWith('/shop'))
                   ? "bg-artijam-purple-light text-artijam-purple"
                   : "text-gray-700 hover:bg-gray-100"
               )}
             >
               <link.icon size={18} className="mr-3" />
               {link.label}
+              {link.path === '/shop' && cartCount > 0 && (
+                <Badge className="ml-auto bg-artijam-purple">{cartCount}</Badge>
+              )}
             </Link>
           ))}
         </div>

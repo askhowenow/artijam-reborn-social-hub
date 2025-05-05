@@ -8,11 +8,23 @@ import TrendingTopics from "@/features/feed/TrendingTopics";
 import { usePosts } from "@/hooks/use-posts";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingBag, ArrowRight } from "lucide-react";
+import { useProducts } from "@/hooks/use-products";
+import ProductCard from "@/components/shop/ProductCard";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { data: posts, isLoading, error } = usePosts();
+  const { data: trendingProducts, isLoading: isProductsLoading } = useProducts({ 
+    trending: true, 
+    limit: 4 
+  });
 
   // Check authentication status
   React.useEffect(() => {
@@ -52,6 +64,52 @@ const HomePage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <CreatePostButton />
+          
+          {/* Shop Promotion Section */}
+          <Card className="bg-gradient-to-r from-artijam-purple/10 to-artijam-purple/5 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold mb-2">Discover Creative Products</h2>
+                  <p className="text-gray-600">Shop unique items from the Artijam community</p>
+                </div>
+                <Button 
+                  onClick={() => navigate('/shop')}
+                  className="bg-artijam-purple hover:bg-artijam-purple/90"
+                >
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  Shop Now
+                </Button>
+              </div>
+              
+              {isProductsLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+                </div>
+              ) : trendingProducts && trendingProducts.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {trendingProducts.slice(0, 4).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">No products available yet</p>
+                </div>
+              )}
+              
+              <div className="mt-4 text-center">
+                <Button 
+                  variant="link" 
+                  className="text-artijam-purple"
+                  onClick={() => navigate('/shop')}
+                >
+                  View all products
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           
           {posts && posts.length > 0 ? (
             posts.map((post) => (
