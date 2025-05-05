@@ -429,7 +429,7 @@ export function useCart(options?: UseCartOptions) {
   const cartCount = cartData?.items?.reduce((count, item) => count + item.quantity, 0) || 0;
   const cartTotal = cartData?.items?.reduce((total, item) => {
     // Check if product is defined and has a price property before using it
-    if (item.product && 'price' in item.product) {
+    if (item.product && typeof item.product.price === 'number') {
       return total + (item.product.price * item.quantity);
     }
     return total;
