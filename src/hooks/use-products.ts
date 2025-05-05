@@ -65,7 +65,14 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
         throw error;
       }
 
-      return data as Product[];
+      // Transform the data to match our Product type
+      // The metrics comes as an array from Supabase, but we want a single object
+      return data.map(item => ({
+        ...item,
+        metrics: item.metrics && item.metrics.length > 0 
+          ? item.metrics[0] 
+          : { views: 0, cart_adds: 0, purchases: 0 }
+      })) as Product[];
     },
     meta: {
       onError: (error: Error) => {
@@ -98,13 +105,21 @@ export function useProductDetails(productId?: string) {
         throw error;
       }
 
+      // Transform the metrics array to a single object
+      const product = {
+        ...data,
+        metrics: data.metrics && data.metrics.length > 0 
+          ? data.metrics[0] 
+          : { views: 0, cart_adds: 0, purchases: 0 }
+      } as Product;
+
       // Increment view count
       await supabase.rpc('increment_product_metric', {
         product_id_param: productId,
         metric_name: 'views'
       });
 
-      return data as Product;
+      return product;
     },
     enabled: !!productId,
     meta: {

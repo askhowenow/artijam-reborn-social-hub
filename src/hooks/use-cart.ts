@@ -428,8 +428,11 @@ export function useCart(options?: UseCartOptions) {
   // Calculate cart totals
   const cartCount = cartData?.items?.reduce((count, item) => count + item.quantity, 0) || 0;
   const cartTotal = cartData?.items?.reduce((total, item) => {
-    const price = item.product?.price || 0;
-    return total + (price * item.quantity);
+    // Check if product is defined and has a price property before using it
+    if (item.product && 'price' in item.product) {
+      return total + (item.product.price * item.quantity);
+    }
+    return total;
   }, 0) || 0;
 
   return {
