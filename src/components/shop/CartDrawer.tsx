@@ -84,10 +84,10 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
               {cart.map((item) => (
                 <div key={item.id} className="flex items-center space-x-4">
                   <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                    {item.product?.image_url ? (
+                    {item.products && 'image_url' in item.products && item.products.image_url ? (
                       <img 
-                        src={item.product.image_url} 
-                        alt={item.product?.name || 'Product'} 
+                        src={item.products.image_url} 
+                        alt={'name' in item.products ? item.products.name : 'Product'} 
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -99,10 +99,12 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
                   
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm line-clamp-1">
-                      {item.product?.name}
+                      {item.products && 'name' in item.products ? item.products.name : 'Product'}
                     </p>
                     <p className="text-sm text-gray-500">
-                      ${typeof item.product?.price === 'number' ? item.product.price.toFixed(2) : '0.00'}
+                      ${item.products && 'price' in item.products && typeof item.products.price === 'number' 
+                        ? item.products.price.toFixed(2) 
+                        : '0.00'}
                     </p>
                     
                     <div className="flex items-center mt-2">

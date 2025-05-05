@@ -89,7 +89,7 @@ const ProductCard = ({ product, wide = false }: ProductCardProps) => {
           
           <div className="flex items-center justify-between mt-1">
             <p className="font-bold text-base sm:text-lg text-artijam-purple">
-              ${product.price.toFixed(2)}
+              ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
             </p>
             
             {product.category && (

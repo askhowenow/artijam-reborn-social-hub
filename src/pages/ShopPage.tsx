@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useProducts } from '@/hooks/use-products';
 import ProductCard from '@/components/shop/ProductCard';
 import CartDrawer from '@/components/shop/CartDrawer';

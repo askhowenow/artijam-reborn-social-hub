@@ -100,7 +100,7 @@ export function useCart(options?: UseCartOptions) {
           .from('user_cart_items')
           .select(`
             id, product_id, quantity, 
-            product:products(*)
+            products:product_id(*)
           `)
           .eq('cart_id', cartId);
 
@@ -141,7 +141,7 @@ export function useCart(options?: UseCartOptions) {
           .from('guest_cart_items')
           .select(`
             id, product_id, quantity,
-            product:products(*)
+            products:product_id(*)
           `)
           .eq('cart_id', cartId);
 
@@ -427,11 +427,14 @@ export function useCart(options?: UseCartOptions) {
 
   // Calculate cart totals
   const cartCount = cartData?.items?.reduce((count, item) => count + item.quantity, 0) || 0;
+  
+  // Fix TypeScript errors by safely accessing the price property
   const cartTotal = cartData?.items?.reduce((total, item) => {
-    // Check if product is defined and has a price property before using it
-    if (item.product && item.product.price !== undefined && 
-        item.product.price !== null && typeof item.product.price === 'number') {
-      return total + (item.product.price * item.quantity);
+    // Check if products exists and has a price property
+    if (item.products && typeof item.products === 'object' && 
+        'price' in item.products && 
+        typeof item.products.price === 'number') {
+      return total + (item.products.price * item.quantity);
     }
     return total;
   }, 0) || 0;

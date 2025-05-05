@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductDetails } from '@/hooks/use-products';
 import { useCart } from '@/hooks/use-cart';
