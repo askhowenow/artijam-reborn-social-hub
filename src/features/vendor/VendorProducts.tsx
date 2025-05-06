@@ -10,6 +10,7 @@ import ProductCard from "@/components/vendor/ProductCard";
 import ProductPlaceholder from "@/components/vendor/ProductPlaceholder";
 import ProductsHeader from "@/components/vendor/ProductsHeader";
 import { Product } from "@/hooks/use-products";
+import { toast } from "sonner";
 
 interface VendorProductsProps {
   showHeader?: boolean;
@@ -20,6 +21,47 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
   const { vendorProfile } = useVendorProfile();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  
+  // Debug function to check storage permissions
+  const checkStoragePermissions = async () => {
+    try {
+      // Verify buckets exist
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error("Error listing buckets:", bucketsError);
+        toast.error("Failed to access storage buckets");
+        return;
+      }
+      
+      console.log("Available buckets:", buckets?.map(b => b.name).join(", "));
+      
+      // Try to get a folder listing to test permissions
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user) {
+        toast.error("Not authenticated");
+        return;
+      }
+      
+      const userId = session.session.user.id;
+      const testPath = `${userId}`;
+      
+      const { data: files, error: filesError } = await supabase.storage
+        .from('product-images')
+        .list(testPath);
+        
+      if (filesError) {
+        console.error("Error listing files:", filesError);
+        toast.error(`Storage permission issue: ${filesError.message}`);
+      } else {
+        console.log("Files accessible:", files);
+        toast.success("Storage permissions verified successfully");
+      }
+    } catch (error: any) {
+      console.error("Storage check failed:", error);
+      toast.error(`Storage check failed: ${error.message}`);
+    }
+  };
   
   const { data: products, isLoading } = useQuery({
     queryKey: ['vendorProducts'],
@@ -50,6 +92,11 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
     setSelectedProduct(null);
     setQrModalOpen(true);
   };
+
+  // On component mount, check storage permissions
+  React.useEffect(() => {
+    checkStoragePermissions();
+  }, []);
 
   if (isLoading) {
     return (

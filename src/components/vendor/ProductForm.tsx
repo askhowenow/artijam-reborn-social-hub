@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,6 +52,7 @@ const ProductForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profitMargin, setProfitMargin] = useState<number>(0);
   const [profitPercentage, setProfitPercentage] = useState<number>(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Fetch product data for edit mode
   const { isLoading } = useQuery({
@@ -109,9 +111,54 @@ const ProductForm: React.FC = () => {
     setProfitPercentage(percentage);
   }, [formData.price, formData.purchase_price]);
 
+  // Helper function to upload image safely
+  async function uploadProductImage(file: File): Promise<string | null> {
+    try {
+      setUploadError(null);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create a unique file name with user ID path
+      const userId = session.session.user.id;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+      console.log('Attempting to upload to product-images bucket...');
+      
+      // Upload the file
+      const { error: uploadError, data } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+        
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      console.log('Upload successful, public URL:', urlData.publicUrl);
+      return urlData.publicUrl;
+    } catch (error: any) {
+      console.error('Error in image upload function:', error);
+      setUploadError(error.message);
+      toast.error(`Failed to upload image: ${error.message}`);
+      return null;
+    }
+  }
+
   // Create product mutation
   const createProduct = useMutation({
     mutationFn: async (productData: ProductFormData) => {
+      console.log('Starting product creation...');
       const { data: session } = await supabase.auth.getSession();
       if (!session.session?.user) {
         throw new Error('Not authenticated');
@@ -121,20 +168,14 @@ const ProductForm: React.FC = () => {
       
       // Upload image if provided
       if (image) {
-        const fileName = `${Date.now()}-${image.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, image);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: publicUrlData } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-          
-        imageUrl = publicUrlData.publicUrl;
+        console.log('Image found, attempting upload...');
+        imageUrl = await uploadProductImage(image);
+        if (!imageUrl && uploadError) {
+          throw new Error(uploadError);
+        }
       }
       
+      console.log('Creating product record with image URL:', imageUrl);
       // Insert new product
       const { data, error } = await supabase
         .from('products')
@@ -153,7 +194,11 @@ const ProductForm: React.FC = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Product insert error:', error);
+        throw error;
+      }
+      
       return data;
     },
     meta: {
@@ -163,6 +208,7 @@ const ProductForm: React.FC = () => {
         navigate('/vendor/products');
       },
       onError: (error: any) => {
+        console.error('Product creation error:', error);
         toast.error(`Failed to create product: ${error.message}`);
       }
     }
@@ -175,18 +221,10 @@ const ProductForm: React.FC = () => {
       
       // Upload image if provided
       if (image) {
-        const fileName = `${Date.now()}-${image.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, image);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: publicUrlData } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-          
-        imageUrl = publicUrlData.publicUrl;
+        imageUrl = await uploadProductImage(image);
+        if (!imageUrl && uploadError) {
+          throw new Error(uploadError);
+        }
       }
       
       // Update existing product
@@ -255,16 +293,46 @@ const ProductForm: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be less than 5MB");
+        return;
+      }
+      
       setImage(file);
       
       // Create preview URL
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       
-      // Clean up preview URL on unmount
       return () => URL.revokeObjectURL(objectUrl);
     }
   };
+  
+  // Verify storage bucket exists
+  useEffect(() => {
+    const checkStorageBuckets = async () => {
+      try {
+        const { data: buckets, error } = await supabase.storage.listBuckets();
+        
+        if (error) {
+          console.error("Error checking buckets:", error);
+          return;
+        }
+        
+        const productImagesBucketExists = buckets?.some(bucket => bucket.name === 'product-images');
+        
+        if (!productImagesBucketExists) {
+          console.warn('Product images bucket does not exist! Form uploads may fail.');
+        } else {
+          console.log('Product images bucket found and ready.');
+        }
+      } catch (err) {
+        console.error("Failed to check buckets:", err);
+      }
+    };
+    
+    checkStorageBuckets();
+  }, []);
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -272,11 +340,28 @@ const ProductForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // Basic validation
+      if (!formData.name.trim()) {
+        toast.error("Product name is required");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (formData.price <= 0) {
+        toast.error("Price must be greater than zero");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      console.log('Form submission started. Edit mode:', isEditMode);
+      
       if (isEditMode) {
         await updateProduct.mutateAsync(formData);
       } else {
         await createProduct.mutateAsync(formData);
       }
+    } catch (error: any) {
+      console.error('Form submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
