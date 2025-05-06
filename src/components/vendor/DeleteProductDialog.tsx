@@ -10,9 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Product } from "@/hooks/use-products";
 import { Loader2 } from "lucide-react";
+import { Product } from "@/hooks/use-products";
 
 interface DeleteProductDialogProps {
   open: boolean;

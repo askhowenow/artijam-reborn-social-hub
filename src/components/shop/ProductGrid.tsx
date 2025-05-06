@@ -12,6 +12,8 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGridProps) => {
+  console.log(`ProductGrid rendering with ${products?.length || 0} products, isLoading: ${isLoading}, error: ${error?.message || 'none'}`);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -29,9 +31,11 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
   }
 
   if (error) {
+    console.error("Error in ProductGrid:", error);
     return (
       <Card className="p-8 text-center">
         <p className="text-red-500">Failed to load products. Please try again later.</p>
+        <p className="text-sm text-gray-500">{error.message}</p>
       </Card>
     );
   }

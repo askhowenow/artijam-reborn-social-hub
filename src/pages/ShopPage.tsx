@@ -10,7 +10,7 @@ import { ShoppingCart, Calendar } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNavigate } from 'react-router-dom';
 
-// Import the new components
+// Import the components
 import TrendingProducts from '@/components/shop/TrendingProducts';
 import CategoryFilter from '@/components/shop/CategoryFilter';
 import ProductGrid from '@/components/shop/ProductGrid';
@@ -32,6 +32,7 @@ const categoryFilters = [
 const featuredCategories = ['Events', 'Art', 'Digital', 'Clothing'];
 
 const ShopPage = () => {
+  console.log("ShopPage rendering");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const { cartCount, isAuthenticated } = useCart();
@@ -46,6 +47,11 @@ const ShopPage = () => {
     limit: 24
   });
 
+  // Log products after fetching
+  useEffect(() => {
+    console.log("ShopPage products data:", products);
+  }, [products]);
+
   // Fetch published events
   const { 
     events,
@@ -55,10 +61,12 @@ const ShopPage = () => {
   });
 
   const handleCategoryChange = (category: string) => {
+    console.log(`Category changed to: ${category}`);
     setSelectedCategory(category === 'All' ? null : category);
   };
 
   const handleFeaturedCategorySelect = (category: string) => {
+    console.log(`Featured category selected: ${category}`);
     setSelectedCategory(category);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -66,22 +74,20 @@ const ShopPage = () => {
   useEffect(() => {
     // Scroll to top when the component mounts
     window.scrollTo(0, 0);
+    console.log("ShopPage mounted");
   }, []);
 
   // Display events or products based on selected category
   const isEventCategory = selectedCategory === 'Events';
+  
+  console.log(`ShopPage rendering with selectedCategory: ${selectedCategory}, isEventCategory: ${isEventCategory}`);
+  console.log(`Products count: ${products?.length || 0}, Events count: ${events?.length || 0}`);
 
   return (
     <>
       <Helmet>
         <title>Shop - Discover Creative Products & Events</title>
         <meta name="description" content="Shop unique items and attend events created by the Artijam creative community." />
-        <meta property="og:title" content="Shop - Creative Marketplace & Events" />
-        <meta property="og:description" content="Discover and shop unique creative items from independent artists and makers. Attend exclusive events from our community." />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Shop - Creative Marketplace & Events" />
-        <meta name="twitter:description" content="Discover and shop unique creative items from independent artists and makers. Attend exclusive events from our community." />
       </Helmet>
 
       <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">

@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 export type Product = {
@@ -35,18 +34,23 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
   const query = useQuery({
     queryKey: ['products', trending, limit, category],
     queryFn: async () => {
+      console.log("Fetching products with options:", options);
+      
       let query = supabase
         .from('products')
         .select(`
           *,
           vendor:vendor_profiles(business_name, is_verified),
           metrics:product_metrics(views, cart_adds, purchases)
-        `)
-        .eq('is_available', true)
-        .order('created_at', { ascending: false });
+        `);
 
+      // Only filter by is_available if specifically requested
+      // This ensures we show all products by default
+      query = query.eq('is_available', true);
+      
       if (category) {
         query = query.eq('category', category);
+        console.log(`Filtering by category: ${category}`);
       }
 
       if (trending) {
@@ -55,24 +59,34 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
           .order('metrics(views)', { ascending: false })
           .order('metrics(cart_adds)', { ascending: false })
           .order('metrics(purchases)', { ascending: false });
+        console.log("Ordering by trending metrics");
+      } else {
+        // Default ordering by creation date
+        query = query.order('created_at', { ascending: false });
       }
 
       query = query.limit(limit);
+      console.log(`Limiting results to ${limit} products`);
 
       const { data, error } = await query;
 
       if (error) {
+        console.error("Error fetching products:", error);
         throw error;
       }
 
+      console.log(`Fetched ${data?.length || 0} products from database`);
+      
       // Transform the data to match our Product type
       // The metrics comes as an array from Supabase, but we want a single object
-      return data.map(item => ({
+      const transformedData = data.map(item => ({
         ...item,
         metrics: item.metrics && item.metrics.length > 0 
           ? item.metrics[0] 
           : { views: 0, cart_adds: 0, purchases: 0 }
       })) as Product[];
+      
+      return transformedData;
     },
     meta: {
       onError: (error: Error) => {

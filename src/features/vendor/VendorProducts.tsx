@@ -23,7 +23,7 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [storageChecked, setStorageChecked] = useState(false);
   
-  // Debug function to check storage permissions - only run once
+  // Storage check runs only once
   useEffect(() => {
     const checkStoragePermissions = async () => {
       if (storageChecked) return;
@@ -33,37 +33,14 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
         const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
         
         if (bucketsError) {
-          console.error("Error listing buckets:", bucketsError);
-          toast.error("Failed to access storage buckets");
+          console.error("Storage check - Error listing buckets:", bucketsError);
           return;
         }
         
-        console.log("Available buckets:", buckets?.map(b => b.name).join(", "));
-        
-        // Try to get a folder listing to test permissions
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session?.user) {
-          toast.error("Not authenticated");
-          return;
-        }
-        
-        const userId = session.session.user.id;
-        const testPath = `${userId}`;
-        
-        const { data: files, error: filesError } = await supabase.storage
-          .from('product-images')
-          .list(testPath);
-          
-        if (filesError) {
-          console.error("Error listing files:", filesError);
-          toast.error(`Storage permission issue: ${filesError.message}`);
-        } else {
-          console.log("Files accessible:", files);
-          setStorageChecked(true);
-        }
+        console.log("Storage check - Available buckets:", buckets?.map(b => b.name).join(", "));
+        setStorageChecked(true);
       } catch (error: any) {
         console.error("Storage check failed:", error);
-        toast.error(`Storage check failed: ${error.message}`);
       } finally {
         setStorageChecked(true);
       }
@@ -72,22 +49,31 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
     checkStoragePermissions();
   }, [storageChecked]);
   
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, error } = useQuery({
     queryKey: ['vendorProducts'],
     queryFn: async () => {
+      console.log("Fetching vendor products");
       const { data: session } = await supabase.auth.getSession();
       if (!session.session?.user) {
+        console.log("No authenticated user found");
         return [];
       }
+      
+      const userId = session.session.user.id;
+      console.log(`Fetching products for vendor: ${userId}`);
       
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('vendor_id', session.session.user.id)
+        .eq('vendor_id', userId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching vendor products:", error);
+        throw error;
+      }
       
+      console.log(`Found ${data?.length || 0} products for this vendor`);
       return data as Product[];
     },
   });
@@ -101,6 +87,16 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
     setSelectedProduct(null);
     setQrModalOpen(true);
   };
+
+  if (error) {
+    console.error("Error in VendorProducts:", error);
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+        <p className="text-red-700">Failed to load products. Please try again.</p>
+        <p className="text-sm text-red-500">{error.message}</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
