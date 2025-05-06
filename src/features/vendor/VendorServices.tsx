@@ -1,0 +1,237 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Loader2, PlusCircle } from 'lucide-react';
+import ServiceForm from '@/components/services/ServiceForm';
+import ServiceCard from '@/components/services/ServiceCard';
+import AvailabilityManager from '@/components/services/AvailabilityManager';
+import { useServices, ServiceFormData } from '@/hooks/use-services';
+import { useServiceAvailability } from '@/hooks/use-service-availability';
+import { useVendorProfile } from '@/hooks/use-vendor-profile';
+
+const VendorServices = () => {
+  const { vendorProfile } = useVendorProfile();
+  const { services, isLoading, createService, updateService, deleteService } = useServices(vendorProfile?.id);
+  
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentService, setCurrentService] = useState<any>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const { availabilities, isLoading: isLoadingAvailability, createAvailability, deleteAvailability } = 
+    useServiceAvailability(selectedServiceId || undefined);
+
+  const handleOpenForm = (service?: any) => {
+    setCurrentService(service || null);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setCurrentService(null);
+  };
+
+  const handleSubmitForm = async (formData: ServiceFormData & { id?: string }) => {
+    try {
+      if (formData.id) {
+        await updateService.mutateAsync(formData);
+      } else {
+        const newService = await createService.mutateAsync(formData);
+        if (newService) {
+          // Auto-select the newly created service for availability management
+          setSelectedServiceId(newService.id);
+        }
+      }
+      handleCloseForm();
+    } catch (error) {
+      console.error('Error saving service:', error);
+    }
+  };
+
+  const handleDeleteService = (serviceId: string) => {
+    setCurrentService({ id: serviceId });
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteService = async () => {
+    if (currentService?.id) {
+      await deleteService.mutateAsync(currentService.id);
+      setIsDeleteDialogOpen(false);
+      setCurrentService(null);
+      
+      // If we deleted the currently selected service, clear the selection
+      if (selectedServiceId === currentService.id) {
+        setSelectedServiceId(null);
+      }
+    }
+  };
+
+  const handleSelectService = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">Services Management</h2>
+        <Button 
+          onClick={() => handleOpenForm()} 
+          className="bg-artijam-purple hover:bg-artijam-purple/90"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add New Service
+        </Button>
+      </div>
+
+      {!services || services.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 flex flex-col items-center justify-center text-center">
+            <h3 className="text-lg font-semibold mb-2">No Services Yet</h3>
+            <p className="text-gray-500 mb-6">
+              Start by adding your first service to make it available for booking.
+            </p>
+            <Button 
+              onClick={() => handleOpenForm()} 
+              className="bg-artijam-purple hover:bg-artijam-purple/90"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Your First Service
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs 
+          defaultValue="services" 
+          value={selectedServiceId ? "availability" : "services"}
+          onValueChange={(value) => {
+            if (value === "services") setSelectedServiceId(null);
+          }}
+        >
+          <TabsList className="mb-6">
+            <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="availability" disabled={!selectedServiceId}>
+              Manage Availability
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="services" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((service) => (
+                <ServiceCard 
+                  key={service.id}
+                  service={service}
+                  onEdit={() => handleOpenForm(service)}
+                  onDelete={() => handleDeleteService(service.id)}
+                />
+              ))}
+            </div>
+
+            {services.length > 0 && (
+              <div className="pt-6 text-center">
+                <p className="text-gray-500 mb-2">Select a service to manage its availability:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {services.map((service) => (
+                    <Button 
+                      key={service.id}
+                      variant={selectedServiceId === service.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleSelectService(service.id)}
+                      className={selectedServiceId === service.id ? "bg-artijam-purple hover:bg-artijam-purple/90" : ""}
+                    >
+                      {service.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="availability">
+            {selectedServiceId && (
+              <>
+                <div className="mb-4 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">
+                    Managing Availability for: {services.find(s => s.id === selectedServiceId)?.name}
+                  </h3>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedServiceId(null)}
+                  >
+                    Back to Services
+                  </Button>
+                </div>
+
+                <AvailabilityManager 
+                  serviceId={selectedServiceId}
+                  availabilities={availabilities || []}
+                  onAdd={createAvailability.mutateAsync}
+                  onDelete={deleteAvailability.mutateAsync}
+                />
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {/* Service Form Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{currentService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
+            <DialogDescription>
+              {currentService 
+                ? 'Update your service details below.'
+                : 'Fill in the details to create a new service.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ServiceForm
+            initialData={currentService}
+            onSubmit={handleSubmitForm}
+            isSubmitting={createService.isPending || updateService.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this service? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteService}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deleteService.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default VendorServices;

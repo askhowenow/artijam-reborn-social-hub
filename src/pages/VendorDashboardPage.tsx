@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Loader2, 
@@ -10,7 +10,8 @@ import {
   Settings, 
   DollarSign, 
   LineChart,
-  QrCode 
+  QrCode,
+  Calendar
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,9 +20,9 @@ import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import VendorProducts from "@/features/vendor/VendorProducts";
 import VendorOrders from "@/features/vendor/VendorOrders";
 import VendorStats from "@/features/vendor/VendorStats";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import VendorServices from "@/features/vendor/VendorServices";
+import VendorBookings from "@/features/vendor/VendorBookings";
 import QRCodeModal from "@/components/vendor/QRCodeModal";
-import VendorQRCodeGenerator from "@/components/vendor/VendorQRCodeGenerator";
 
 const VendorDashboardPage = () => {
   const navigate = useNavigate();
@@ -30,7 +31,9 @@ const VendorDashboardPage = () => {
   const [storeStats, setStoreStats] = useState({
     totalProducts: 0,
     totalViews: 0,
-    totalSales: 0
+    totalSales: 0,
+    totalServices: 0,
+    totalBookings: 0
   });
   
   useEffect(() => {
@@ -67,6 +70,14 @@ const VendorDashboardPage = () => {
         
         if (productError) throw productError;
         
+        // Get total service count
+        const { count: serviceCount, error: serviceError } = await supabase
+          .from('services')
+          .select('id', { count: 'exact', head: true })
+          .eq('vendor_id', vendorProfile.id);
+        
+        if (serviceError) throw serviceError;
+        
         // First, get all product IDs belonging to this vendor
         const { data: productIds, error: productIdsError } = await supabase
           .from('products')
@@ -75,7 +86,22 @@ const VendorDashboardPage = () => {
           
         if (productIdsError) throw productIdsError;
         
+        // Get total bookings count
+        const { count: bookingCount, error: bookingError } = await supabase
+          .from('service_bookings')
+          .select(`
+            id,
+            service:service_id(vendor_id)
+          `, { count: 'exact' })
+          .eq('service.vendor_id', vendorProfile.id);
+        
+        let totalBookings = 0;
+        if (!bookingError) {
+          totalBookings = bookingCount || 0;
+        }
+        
         // Now use those IDs to get metrics
+        let totalViews = 0;
         if (productIds && productIds.length > 0) {
           const productIdArray = productIds.map(item => item.id);
           
@@ -87,24 +113,16 @@ const VendorDashboardPage = () => {
           if (metricsError) throw metricsError;
           
           // Calculate total views
-          const totalViews = metricsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
-          
-          // For demonstration, we'll set sales to 0
-          // In a real app, this would come from order data
-          const totalSales = 0;
-          
-          setStoreStats({
-            totalProducts: productCount || 0,
-            totalViews,
-            totalSales
-          });
-        } else {
-          setStoreStats({
-            totalProducts: productCount || 0,
-            totalViews: 0,
-            totalSales: 0
-          });
+          totalViews = metricsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
         }
+        
+        setStoreStats({
+          totalProducts: productCount || 0,
+          totalViews,
+          totalSales: 0, // In a real app, this would come from order data
+          totalServices: serviceCount || 0,
+          totalBookings
+        });
       } catch (error) {
         console.error("Error fetching store stats:", error);
       }
@@ -166,7 +184,7 @@ const VendorDashboardPage = () => {
       
       <Card className="mb-6">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="bg-blue-50 p-4 rounded-md">
               <div className="flex items-center gap-3">
                 <Package className="h-10 w-10 text-blue-500" />
@@ -194,6 +212,24 @@ const VendorDashboardPage = () => {
                 </div>
               </div>
             </div>
+            <div className="bg-amber-50 p-4 rounded-md">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-10 w-10 text-amber-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Services</p>
+                  <p className="text-2xl font-bold">{storeStats.totalServices}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-indigo-50 p-4 rounded-md">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-10 w-10 text-indigo-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Bookings</p>
+                  <p className="text-2xl font-bold">{storeStats.totalBookings}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -201,16 +237,26 @@ const VendorDashboardPage = () => {
       <Tabs defaultValue="products">
         <TabsList className="mb-6">
           <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products">
           <VendorProducts />
         </TabsContent>
+
+        <TabsContent value="services">
+          <VendorServices />
+        </TabsContent>
         
         <TabsContent value="orders">
           <VendorOrders />
+        </TabsContent>
+        
+        <TabsContent value="bookings">
+          <VendorBookings />
         </TabsContent>
         
         <TabsContent value="analytics">

@@ -12,29 +12,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 import { Product } from "@/hooks/use-products";
+import { Service } from "@/hooks/use-services";
 
-interface DeleteProductDialogProps {
+interface DeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  product: Product;
+  item: Product | Service;
   isDeleting: boolean;
+  type?: 'product' | 'service';
 }
 
-const DeleteProductDialog: React.FC<DeleteProductDialogProps> = ({
+const DeleteProductDialog: React.FC<DeleteDialogProps> = ({
   open,
   onOpenChange,
   onConfirm,
-  product,
-  isDeleting
+  item,
+  isDeleting,
+  type = 'product'
 }) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Product</AlertDialogTitle>
+          <AlertDialogTitle>Delete {type === 'product' ? 'Product' : 'Service'}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{product.name}</strong>? This action cannot be undone.
+            Are you sure you want to delete <strong>{item.name}</strong>? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

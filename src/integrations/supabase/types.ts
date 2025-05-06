@@ -494,6 +494,200 @@ export type Database = {
         }
         Relationships: []
       }
+      service_availability: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean | null
+          service_id: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          service_id: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          service_id?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_availability_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_bookings: {
+        Row: {
+          booking_reference: string | null
+          created_at: string | null
+          customer_id: string
+          customer_notes: string | null
+          end_time: string
+          id: string
+          payment_status: string | null
+          qr_code: string | null
+          service_id: string
+          special_requests: string | null
+          start_time: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_reference?: string | null
+          created_at?: string | null
+          customer_id: string
+          customer_notes?: string | null
+          end_time: string
+          id?: string
+          payment_status?: string | null
+          qr_code?: string | null
+          service_id: string
+          special_requests?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_reference?: string | null
+          created_at?: string | null
+          customer_id?: string
+          customer_notes?: string | null
+          end_time?: string
+          id?: string
+          payment_status?: string | null
+          qr_code?: string | null
+          service_id?: string
+          special_requests?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_breaks: {
+        Row: {
+          created_at: string | null
+          end_time: string
+          id: string
+          reason: string | null
+          service_id: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_time: string
+          id?: string
+          reason?: string | null
+          service_id: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          reason?: string | null
+          service_id?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_breaks_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category: string | null
+          cleanup_time: number | null
+          created_at: string | null
+          currency: string
+          description: string | null
+          duration: number
+          id: string
+          is_available: boolean | null
+          location_type: string
+          name: string
+          preparation_time: number | null
+          price: number
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          category?: string | null
+          cleanup_time?: number | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          duration: number
+          id?: string
+          is_available?: boolean | null
+          location_type?: string
+          name: string
+          preparation_time?: number | null
+          price: number
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          category?: string | null
+          cleanup_time?: number | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          is_available?: boolean | null
+          location_type?: string
+          name?: string
+          preparation_time?: number | null
+          price?: number
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_tiers: {
         Row: {
           created_at: string
@@ -832,6 +1026,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_service_availability: {
+        Args: { p_service_id: string; p_start_time: string; p_end_time: string }
+        Returns: boolean
+      }
       get_user_roles: {
         Args: { user_id: string }
         Returns: {
