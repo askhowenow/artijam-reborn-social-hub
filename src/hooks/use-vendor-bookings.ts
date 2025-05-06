@@ -4,6 +4,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking } from '@/types/booking';
 
+// Define a simplified interface for the API response structure
+interface ServiceBookingResponse {
+  id: string;
+  service_id: string;
+  customer_id: string;
+  start_time: string;
+  end_time: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  special_requests?: string;
+  customer_notes?: string;
+  payment_status: 'pending' | 'paid' | 'refunded';
+  booking_reference?: string;
+  qr_code?: string;
+  created_at: string;
+  service?: {
+    id: string;
+    name: string;
+    vendor_id: string;
+  };
+  customer?: {
+    id: string;
+    email: string;
+    full_name?: string;
+  };
+}
+
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
@@ -30,7 +56,6 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // Use explicit type casting to address the complex type nesting issue
       const { data, error } = await supabase
         .from('service_bookings')
         .select(`
@@ -53,8 +78,25 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Use type assertion with unknown as intermediary to safely convert the response
-      return (data as unknown) as Booking[];
+      // Map the response data to our Booking type
+      return (data || []).map((item: ServiceBookingResponse) => {
+        return {
+          id: item.id,
+          service_id: item.service_id,
+          customer_id: item.customer_id,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          status: item.status,
+          special_requests: item.special_requests,
+          customer_notes: item.customer_notes,
+          payment_status: item.payment_status,
+          booking_reference: item.booking_reference,
+          qr_code: item.qr_code,
+          created_at: item.created_at,
+          service: item.service,
+          customer: item.customer
+        } as Booking;
+      });
     }
   });
   

@@ -46,6 +46,7 @@ const VendorServiceCard: React.FC<VendorServiceCardProps> = ({
               size="sm" 
               className="flex-1"
               onClick={onEdit}
+              disabled={isDeletingService}
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -56,6 +57,7 @@ const VendorServiceCard: React.FC<VendorServiceCardProps> = ({
               size="sm" 
               className={`flex-1 ${isSelected ? 'bg-artijam-purple hover:bg-artijam-purple/90' : ''}`}
               onClick={onManageAvailability}
+              disabled={isDeletingService}
             >
               <Calendar className="mr-2 h-4 w-4" />
               {isSelected ? 'Managing' : 'Availability'}
