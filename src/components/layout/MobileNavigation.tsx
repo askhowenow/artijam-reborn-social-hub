@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Users, PlusCircle, Bell, User, Store, ShoppingBag, Calendar } from "lucide-react";
+import { Home, PlusCircle, User, Store, ShoppingBag, Calendar } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ const MobileNavigation = () => {
   const isVendor = !!vendorProfile;
 
   return (
-    <nav className="fixed md:hidden bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 pb-safe-area">
+    <nav className="fixed md:hidden bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-200 pb-safe-area shadow-lg">
       <div className="flex items-center justify-around h-16">
         <Link to="/" className={cn(
           "flex flex-col items-center justify-center w-full h-full",
@@ -46,7 +46,7 @@ const MobileNavigation = () => {
         
         <Link to="/my-bookings" className={cn(
           "flex flex-col items-center justify-center w-full h-full",
-          pathname === "/my-bookings" ? "text-artijam-purple" : "text-gray-600"
+          pathname === "/my-bookings" || pathname.startsWith("/my-bookings/") ? "text-artijam-purple" : "text-gray-600"
         )}>
           <Calendar size={20} />
           <span className="text-xs mt-1">Bookings</span>
@@ -64,7 +64,7 @@ const MobileNavigation = () => {
         
         <Link to="/profile" className={cn(
           "flex flex-col items-center justify-center w-full h-full",
-          pathname === "/profile" ? "text-artijam-purple" : "text-gray-600"
+          pathname === "/profile" || pathname.startsWith("/profile/") ? "text-artijam-purple" : "text-gray-600"
         )}>
           <User size={20} />
           <span className="text-xs mt-1">Profile</span>

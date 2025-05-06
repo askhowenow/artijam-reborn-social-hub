@@ -152,12 +152,12 @@ const ProductCard = ({ product, onQRCodeGenerate }: ProductCardProps) => {
         </div>
       </CardContent>
       
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog - Fix here: change product to item */}
       <DeleteProductDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDelete}
-        product={product}
+        item={product}
         isDeleting={deleteProduct.isPending}
       />
     </Card>

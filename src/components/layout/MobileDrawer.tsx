@@ -11,25 +11,9 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import {
-  Home,
-  Users,
-  PlusCircle,
-  Bell,
-  User,
-  Store,
-  ShoppingBag,
-  Calendar,
-  FileText,
-  MessageSquare,
-  BookOpen,
-  Briefcase,
-  Wallet,
-  Video,
-  Group,
-  Shield,
-  Settings,
-  Menu,
-  X,
+  Home, Users, PlusCircle, Bell, User, Store, ShoppingBag, Calendar,
+  FileText, MessageSquare, BookOpen, Briefcase, Wallet, Video,
+  Group, Shield, Settings, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
@@ -114,7 +98,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           <div className="px-4 py-2">
             <Link to="/profile" className="flex items-center space-x-3 mb-3" onClick={() => setOpen(false)}>
               <Avatar>
-                <img src="/placeholder.svg" alt={user.email || "User"} />
+                <img src={user.user_metadata?.avatar_url || "/placeholder.svg"} 
+                     alt={user.email || "User"} />
               </Avatar>
               <div>
                 <p className="font-medium">{user.email}</p>
@@ -189,6 +174,9 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                       currentPath === link.path || (
                         link.path === "/vendor/products" && 
                         (currentPath === "/vendor/products" || currentPath.startsWith("/vendor/products/"))
+                      ) || (
+                        link.path === "/vendor/bookings" && 
+                        currentPath.startsWith("/vendor/bookings")
                       )
                         ? "bg-artijam-purple-light text-artijam-purple"
                         : "text-gray-700 hover:bg-gray-100"
@@ -226,7 +214,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
             ))}
           </div>
           
-          {isAdmin() && (
+          {isAdmin && isAdmin() && (
             <>
               <Separator className="my-3" />
               <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">

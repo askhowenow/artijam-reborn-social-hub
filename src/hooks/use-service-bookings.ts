@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Simplified type definition to avoid recursion
 export type Booking = {
   id: string;
   service_id: string;
@@ -105,7 +106,7 @@ export const useCustomerBookings = () => {
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
-  // Fetch vendor bookings
+  // Fetch vendor bookings - avoid deep nesting in response type
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['vendor-bookings'],
     queryFn: async () => {
@@ -151,7 +152,7 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      return data as unknown as Booking[];
+      return data as Booking[];
     }
   });
   
