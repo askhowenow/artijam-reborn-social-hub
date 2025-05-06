@@ -1,5 +1,11 @@
 
 project_id = "gqceeliuclgzjzmubywy"
 
+[functions.send-ticket-email]
+verify_jwt = true
+
+[functions.decrement-tier-quantity]
+verify_jwt = true
+
 [functions.secure-cart-ops]
 verify_jwt = true

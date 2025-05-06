@@ -71,7 +71,7 @@ export interface UseEventsResult {
   isLoading: boolean;
   error: Error | null;
   refetch: () => void;
-  createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Event>;
+  createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'updatedAt' | 'ticketTiers'>) => Promise<Event>;
   updateEvent: (id: string, updates: Partial<Event>) => Promise<Event>;
   deleteEvent: (id: string) => Promise<void>;
   publishEvent: (id: string) => Promise<Event>;

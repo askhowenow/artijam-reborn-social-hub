@@ -3,114 +3,183 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 import type { Ticket, UseTicketsOptions, UseTicketsResult } from '@/types/event';
 
-// Mock implementation for now - will be replaced with Supabase integration
-const mockTickets: Ticket[] = [];
+// Helper function to map database ticket to our model
+const mapDbTicketToTicket = (dbTicket: any): Ticket => {
+  return {
+    id: dbTicket.id,
+    eventId: dbTicket.event_id,
+    tierId: dbTicket.tier_id,
+    userId: dbTicket.user_id,
+    purchaseDate: dbTicket.purchase_date,
+    price: dbTicket.price,
+    currency: dbTicket.currency,
+    status: dbTicket.status,
+    qrCode: dbTicket.qr_code,
+    attendeeName: dbTicket.attendee_name,
+    attendeeEmail: dbTicket.attendee_email,
+  };
+};
 
 // Helper functions for tickets
 const fetchTickets = async (options?: UseTicketsOptions): Promise<Ticket[]> => {
-  // For now we'll use mock data, but this would fetch from Supabase
-  console.log('Fetching tickets with options:', options);
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  let filteredTickets = [...mockTickets];
+  let query = supabase.from('tickets').select('*');
   
   // Apply filters based on options
   if (options?.eventId) {
-    filteredTickets = filteredTickets.filter(ticket => 
-      ticket.eventId === options.eventId
-    );
+    query = query.eq('event_id', options.eventId);
   }
   
   if (options?.userId) {
-    filteredTickets = filteredTickets.filter(ticket => 
-      ticket.userId === options.userId
-    );
+    query = query.eq('user_id', options.userId);
   }
   
-  return filteredTickets;
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching tickets:', error);
+    throw error;
+  }
+  
+  return (data || []).map(mapDbTicketToTicket);
 };
 
 const purchaseTicketOperation = async (ticketData: Omit<Ticket, 'id' | 'purchaseDate' | 'status' | 'qrCode'>): Promise<Ticket> => {
-  // This would create a ticket in Supabase
-  console.log('Purchasing ticket:', ticketData);
+  // Insert the ticket
+  const { data, error } = await supabase
+    .from('tickets')
+    .insert({
+      event_id: ticketData.eventId,
+      tier_id: ticketData.tierId,
+      user_id: ticketData.userId,
+      price: ticketData.price,
+      currency: ticketData.currency,
+      attendee_name: ticketData.attendeeName,
+      attendee_email: ticketData.attendeeEmail,
+    })
+    .select()
+    .single();
+    
+  if (error) {
+    console.error('Error purchasing ticket:', error);
+    throw error;
+  }
   
-  const newTicket: Ticket = {
-    ...ticketData,
-    id: uuidv4(),
-    purchaseDate: new Date().toISOString(),
-    status: 'valid',
-    qrCode: undefined // Will be generated later
-  };
+  // Also update the ticket tier quantity available
+  const { error: tierError } = await supabase.rpc('decrement_tier_quantity', {
+    tier_id: ticketData.tierId,
+  });
   
-  mockTickets.push(newTicket);
-  return newTicket;
+  if (tierError) {
+    console.error('Error updating ticket tier quantity:', tierError);
+    // Don't throw here, the ticket was created successfully
+  }
+  
+  return mapDbTicketToTicket(data);
 };
 
 const cancelTicketOperation = async (id: string): Promise<void> => {
-  // This would update a ticket's status in Supabase
-  console.log('Canceling ticket:', id);
-  
-  const ticketIndex = mockTickets.findIndex(ticket => ticket.id === id);
-  if (ticketIndex === -1) {
-    throw new Error('Ticket not found');
+  // Update ticket status to canceled
+  const { error } = await supabase
+    .from('tickets')
+    .update({ status: 'canceled' })
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error canceling ticket:', error);
+    throw error;
   }
-  
-  mockTickets[ticketIndex] = {
-    ...mockTickets[ticketIndex],
-    status: 'canceled'
-  };
 };
 
 const validateTicketOperation = async (id: string): Promise<boolean> => {
-  // This would validate a ticket in Supabase
-  console.log('Validating ticket:', id);
-  
-  const ticket = mockTickets.find(ticket => ticket.id === id);
-  if (!ticket) {
+  // Get the ticket
+  const { data, error } = await supabase
+    .from('tickets')
+    .select('status')
+    .eq('id', id)
+    .single();
+    
+  if (error) {
+    console.error('Error validating ticket:', error);
     return false;
   }
   
-  if (ticket.status !== 'valid') {
+  if (data.status !== 'valid') {
     return false;
   }
   
   // Mark ticket as used
-  ticket.status = 'used';
+  const { error: updateError } = await supabase
+    .from('tickets')
+    .update({ status: 'used' })
+    .eq('id', id);
+    
+  if (updateError) {
+    console.error('Error updating ticket status:', updateError);
+    return false;
+  }
+  
   return true;
 };
 
 const generateQrCodeOperation = async (id: string): Promise<string> => {
-  // This would generate a QR code for a ticket
-  console.log('Generating QR code for ticket:', id);
+  // Generate a QR code (this would be a more sophisticated implementation in a real app)
+  const qrCode = `https://event-app.com/verify/${id}`;
   
-  const ticketIndex = mockTickets.findIndex(ticket => ticket.id === id);
-  if (ticketIndex === -1) {
-    throw new Error('Ticket not found');
+  // Update the ticket with the QR code
+  const { error } = await supabase
+    .from('tickets')
+    .update({ qr_code: qrCode })
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error updating ticket with QR code:', error);
+    throw error;
   }
-  
-  // In a real implementation, this would generate a QR code
-  const qrCode = `qrcode:${id}`;
-  mockTickets[ticketIndex].qrCode = qrCode;
   
   return qrCode;
 };
 
 const sendTicketByEmailOperation = async (id: string, email: string): Promise<void> => {
-  // This would send a ticket by email
-  console.log('Sending ticket by email:', id, email);
-  
-  const ticket = mockTickets.find(ticket => ticket.id === id);
-  if (!ticket) {
-    throw new Error('Ticket not found');
+  // First fetch the ticket details
+  const { data: ticket, error: ticketError } = await supabase
+    .from('tickets')
+    .select(`
+      *,
+      events(title),
+      ticket_tiers(name)
+    `)
+    .eq('id', id)
+    .single();
+    
+  if (ticketError) {
+    console.error('Error fetching ticket for email:', ticketError);
+    throw ticketError;
   }
   
-  // In a real implementation, this would send an email
-  console.log(`Email sent to ${email} with ticket ${id}`);
+  // Generate QR code if not already present
+  let qrCode = ticket.qr_code;
+  
+  if (!qrCode) {
+    qrCode = await generateQrCodeOperation(id);
+  }
+  
+  // Call the send-ticket-email function
+  const { error } = await supabase.functions.invoke('send-ticket-email', {
+    body: {
+      ticketId: id,
+      eventName: ticket.events.title,
+      attendeeName: ticket.attendee_name || email,
+      attendeeEmail: email,
+      qrCodeUrl: qrCode,
+    },
+  });
+  
+  if (error) {
+    console.error('Error sending ticket email:', error);
+    throw error;
+  }
 };
 
 export function useTickets(options?: UseTicketsOptions): UseTicketsResult {

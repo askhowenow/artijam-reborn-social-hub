@@ -3,102 +3,255 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 import type { Event, UseEventsOptions, UseEventsResult, EventStatus } from '@/types/event';
 
-// Mock implementation for now - will be replaced with Supabase integration
-const mockEvents: Event[] = [];
+// Helper function to convert database response to our Event type
+const mapDbEventToEvent = async (dbEvent: any): Promise<Event> => {
+  // Fetch location for the event
+  const { data: locationData, error: locationError } = await supabase
+    .from('event_locations')
+    .select('*')
+    .eq('event_id', dbEvent.id)
+    .single();
+    
+  if (locationError) {
+    console.error('Error fetching location:', locationError);
+  }
+  
+  // Fetch ticket tiers for the event
+  const { data: ticketTiers, error: tierError } = await supabase
+    .from('ticket_tiers')
+    .select('*')
+    .eq('event_id', dbEvent.id);
+    
+  if (tierError) {
+    console.error('Error fetching ticket tiers:', tierError);
+  }
+  
+  // Map database schema to our frontend schema
+  return {
+    id: dbEvent.id,
+    title: dbEvent.title,
+    description: dbEvent.description || '',
+    startDate: dbEvent.start_date,
+    endDate: dbEvent.end_date,
+    location: locationData ? {
+      address: locationData.address,
+      city: locationData.city,
+      state: locationData.state,
+      country: locationData.country,
+      postalCode: locationData.postal_code,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+    } : {
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      postalCode: '',
+    },
+    organizerId: dbEvent.organizer_id,
+    organizerName: dbEvent.organizer_name || '',
+    featuredImage: dbEvent.featured_image,
+    ticketTiers: (ticketTiers || []).map(tier => ({
+      id: tier.id,
+      name: tier.name,
+      description: tier.description || '',
+      price: tier.price,
+      currency: tier.currency,
+      quantity: tier.quantity,
+      quantityAvailable: tier.quantity_available,
+      type: tier.type as any,
+      salesStartDate: tier.sales_start_date,
+      salesEndDate: tier.sales_end_date,
+    })),
+    status: dbEvent.status as EventStatus,
+    createdAt: dbEvent.created_at,
+    updatedAt: dbEvent.updated_at,
+    isPublic: dbEvent.is_public,
+    capacity: dbEvent.capacity,
+  };
+};
 
 // Helper functions for events
 const fetchEvents = async (options?: UseEventsOptions): Promise<Event[]> => {
-  // For now we'll use mock data, but this would fetch from Supabase
-  console.log('Fetching events with options:', options);
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  let filteredEvents = [...mockEvents];
+  let query = supabase.from('events').select('*');
   
   // Apply filters based on options
-  if (options?.filterByStatus) {
-    filteredEvents = filteredEvents.filter(event => 
-      options.filterByStatus!.includes(event.status)
-    );
+  if (options?.filterByStatus && options.filterByStatus.length > 0) {
+    query = query.in('status', options.filterByStatus);
   }
   
   if (options?.filterByOrganizer) {
-    filteredEvents = filteredEvents.filter(event => 
-      event.organizerId === options.filterByOrganizer
-    );
+    query = query.eq('organizer_id', options.filterByOrganizer);
   }
   
   if (options?.filterByDate) {
     if (options.filterByDate.start) {
-      filteredEvents = filteredEvents.filter(event => 
-        new Date(event.startDate) >= new Date(options.filterByDate!.start!)
-      );
+      query = query.gte('start_date', options.filterByDate.start);
     }
     
     if (options.filterByDate.end) {
-      filteredEvents = filteredEvents.filter(event => 
-        new Date(event.endDate) <= new Date(options.filterByDate!.end!)
-      );
+      query = query.lte('end_date', options.filterByDate.end);
     }
   }
   
-  return filteredEvents;
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
+  
+  // Map each event to our format and fetch related data
+  return Promise.all((data || []).map(mapDbEventToEvent));
 };
 
-const createEventOperation = async (eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event> => {
-  // This would create an event in Supabase
-  console.log('Creating event:', eventData);
+const createEventOperation = async (eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt' | 'ticketTiers'>): Promise<Event> => {
+  const { location, ...eventFields } = eventData;
   
-  const now = new Date().toISOString();
-  const newEvent: Event = {
-    ...eventData,
-    id: uuidv4(),
-    createdAt: now,
-    updatedAt: now
-  };
+  // Insert the event
+  const { data: eventData, error: eventError } = await supabase
+    .from('events')
+    .insert({
+      title: eventFields.title,
+      description: eventFields.description,
+      start_date: eventFields.startDate,
+      end_date: eventFields.endDate,
+      organizer_id: eventFields.organizerId,
+      organizer_name: eventFields.organizerName,
+      featured_image: eventFields.featuredImage,
+      status: eventFields.status,
+      is_public: eventFields.isPublic,
+      capacity: eventFields.capacity,
+    })
+    .select()
+    .single();
+    
+  if (eventError) {
+    console.error('Error creating event:', eventError);
+    throw eventError;
+  }
   
-  mockEvents.push(newEvent);
-  return newEvent;
+  // Insert the location
+  const { error: locationError } = await supabase
+    .from('event_locations')
+    .insert({
+      event_id: eventData.id,
+      address: location.address,
+      city: location.city,
+      state: location.state,
+      country: location.country,
+      postal_code: location.postalCode,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+    
+  if (locationError) {
+    console.error('Error creating event location:', locationError);
+    throw locationError;
+  }
+  
+  // Return the full event object
+  return mapDbEventToEvent(eventData);
 };
 
 const updateEventOperation = async (id: string, updates: Partial<Event>): Promise<Event> => {
-  // This would update an event in Supabase
-  console.log('Updating event:', id, updates);
+  const updateData: any = {};
+  const { location, ticketTiers, ...eventFields } = updates;
   
-  const eventIndex = mockEvents.findIndex(event => event.id === id);
-  if (eventIndex === -1) {
-    throw new Error('Event not found');
+  // Map our frontend schema to database schema
+  if (eventFields.title !== undefined) updateData.title = eventFields.title;
+  if (eventFields.description !== undefined) updateData.description = eventFields.description;
+  if (eventFields.startDate !== undefined) updateData.start_date = eventFields.startDate;
+  if (eventFields.endDate !== undefined) updateData.end_date = eventFields.endDate;
+  if (eventFields.organizerName !== undefined) updateData.organizer_name = eventFields.organizerName;
+  if (eventFields.featuredImage !== undefined) updateData.featured_image = eventFields.featuredImage;
+  if (eventFields.status !== undefined) updateData.status = eventFields.status;
+  if (eventFields.isPublic !== undefined) updateData.is_public = eventFields.isPublic;
+  if (eventFields.capacity !== undefined) updateData.capacity = eventFields.capacity;
+  
+  // Update the event
+  if (Object.keys(updateData).length > 0) {
+    const { error: eventError } = await supabase
+      .from('events')
+      .update(updateData)
+      .eq('id', id);
+      
+    if (eventError) {
+      console.error('Error updating event:', eventError);
+      throw eventError;
+    }
   }
   
-  const updatedEvent: Event = {
-    ...mockEvents[eventIndex],
-    ...updates,
-    updatedAt: new Date().toISOString()
-  };
+  // Update location if provided
+  if (location) {
+    const locationData: any = {};
+    
+    if (location.address !== undefined) locationData.address = location.address;
+    if (location.city !== undefined) locationData.city = location.city;
+    if (location.state !== undefined) locationData.state = location.state;
+    if (location.country !== undefined) locationData.country = location.country;
+    if (location.postalCode !== undefined) locationData.postal_code = location.postalCode;
+    if (location.latitude !== undefined) locationData.latitude = location.latitude;
+    if (location.longitude !== undefined) locationData.longitude = location.longitude;
+    
+    if (Object.keys(locationData).length > 0) {
+      const { error: locationError } = await supabase
+        .from('event_locations')
+        .update(locationData)
+        .eq('event_id', id);
+        
+      if (locationError) {
+        console.error('Error updating event location:', locationError);
+        throw locationError;
+      }
+    }
+  }
   
-  mockEvents[eventIndex] = updatedEvent;
-  return updatedEvent;
+  // Fetch the updated event
+  const { data: eventData, error: fetchError } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .single();
+    
+  if (fetchError) {
+    console.error('Error fetching updated event:', fetchError);
+    throw fetchError;
+  }
+  
+  return mapDbEventToEvent(eventData);
 };
 
 const deleteEventOperation = async (id: string): Promise<void> => {
-  // This would delete an event from Supabase
-  console.log('Deleting event:', id);
-  
-  const eventIndex = mockEvents.findIndex(event => event.id === id);
-  if (eventIndex === -1) {
-    throw new Error('Event not found');
+  // Delete the event (cascade will handle related records)
+  const { error } = await supabase
+    .from('events')
+    .delete()
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error deleting event:', error);
+    throw error;
   }
-  
-  mockEvents.splice(eventIndex, 1);
 };
 
 const updateEventStatus = async (id: string, status: EventStatus): Promise<Event> => {
-  // This would update an event's status in Supabase
-  return updateEventOperation(id, { status });
+  // Update the event status
+  const { data, error } = await supabase
+    .from('events')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+    
+  if (error) {
+    console.error(`Error updating event status to ${status}:`, error);
+    throw error;
+  }
+  
+  return mapDbEventToEvent(data);
 };
 
 export function useEvents(options?: UseEventsOptions): UseEventsResult {

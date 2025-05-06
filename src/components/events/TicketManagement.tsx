@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +35,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Ticket, TicketTier } from "@/types/event";
 import { Trash2, Plus, QrCode, Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TicketManagementProps {
   eventId: string;
@@ -65,6 +67,8 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
   const { toast } = useToast();
   const [isAddTicketTierDialogOpen, setIsAddTicketTierDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tiers");
+  const [soldTickets, setSoldTickets] = useState<any[]>([]);
+  const [isLoadingSoldTickets, setIsLoadingSoldTickets] = useState(false);
   
   // Form for adding ticket tier
   const ticketTierForm = useForm<TicketTierFormValues>({
@@ -81,25 +85,109 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
     },
   });
   
+  // Fetch sold tickets when the active tab changes to "sold"
+  React.useEffect(() => {
+    if (activeTab === "sold" && eventId) {
+      fetchSoldTickets();
+    }
+  }, [activeTab, eventId]);
+  
+  const fetchSoldTickets = async () => {
+    setIsLoadingSoldTickets(true);
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select(`
+          *,
+          ticket_tiers (name, price, currency)
+        `)
+        .eq('event_id', eventId);
+        
+      if (error) throw error;
+      
+      setSoldTickets(data || []);
+    } catch (error) {
+      console.error('Error fetching sold tickets:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load sold tickets",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingSoldTickets(false);
+    }
+  };
+  
   const handleAddTicketTier = async (data: TicketTierFormValues) => {
     try {
-      // When adding a ticket tier, set quantityAvailable to equal the quantity (all tickets available)
-      const ticketTierWithAvailability = {
-        ...data,
-        quantityAvailable: data.quantity
-      };
+      // Insert the new ticket tier directly into the database
+      const { error } = await supabase
+        .from('ticket_tiers')
+        .insert({
+          event_id: eventId,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          currency: data.currency,
+          quantity: data.quantity,
+          quantity_available: data.quantity,
+          type: data.type,
+          sales_start_date: data.salesStartDate,
+          sales_end_date: data.salesEndDate,
+        });
+        
+      if (error) throw error;
       
-      await onAddTicketTier(ticketTierWithAvailability);
       setIsAddTicketTierDialogOpen(false);
       ticketTierForm.reset();
       toast({
         title: "Success",
         description: "Ticket tier added successfully",
       });
+      
+      // Refresh the parent component
+      await onAddTicketTier({
+        name: data.name,
+        description: data.description || "",
+        price: data.price,
+        currency: data.currency,
+        quantity: data.quantity,
+        type: data.type,
+        salesStartDate: data.salesStartDate,
+        salesEndDate: data.salesEndDate,
+      });
+      
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to add ticket tier",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleDeleteTicketTierDirect = async (id: string) => {
+    try {
+      // Delete the ticket tier directly from the database
+      const { error } = await supabase
+        .from('ticket_tiers')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Ticket tier deleted successfully",
+      });
+      
+      // Notify the parent component
+      await onDeleteTicketTier(id);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete ticket tier",
         variant: "destructive",
       });
     }
@@ -170,7 +258,7 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        onDeleteTicketTier(tier.id);
+                        handleDeleteTicketTierDirect(tier.id);
                       }}
                     >
                       <Trash2 className="h-4 w-4 mr-1" /> Delete
@@ -184,12 +272,56 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
         </TabsContent>
         
         <TabsContent value="sold" className="py-4">
-          <div className="text-center py-10">
-            <h3 className="text-xl font-medium">No tickets sold yet</h3>
-            <p className="text-gray-500 mt-1">
-              Once tickets are purchased, they will appear here.
-            </p>
-          </div>
+          {isLoadingSoldTickets ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+            </div>
+          ) : soldTickets.length === 0 ? (
+            <div className="text-center py-10">
+              <h3 className="text-xl font-medium">No tickets sold yet</h3>
+              <p className="text-gray-500 mt-1">
+                Once tickets are purchased, they will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tier</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchase Date</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {soldTickets.map((ticket) => (
+                    <tr key={ticket.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.id.substring(0, 8)}...</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.ticket_tiers?.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.attendee_name || ticket.attendee_email || 'Anonymous'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.price} {ticket.currency}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          ticket.status === 'valid' ? 'bg-green-100 text-green-800' :
+                          ticket.status === 'used' ? 'bg-blue-100 text-blue-800' :
+                          ticket.status === 'canceled' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {ticket.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(ticket.purchase_date).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="checkin" className="py-4">
@@ -298,6 +430,7 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
                       <FormControl>
                         <Input
                           type="number"
+                          step="0.01"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value))}
                         />
