@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, MessageSquare, BookOpen, Briefcase, 
   ShoppingBag, Wallet, Search, FileText, 
-  Video, Group, Shield, Settings, Bell, Store, Calendar, FileText as PageIcon
+  Video, Group, Shield, Settings, Bell, Store, Calendar, FileText as PageIcon,
+  List
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
@@ -35,6 +35,7 @@ const secondaryNavLinks = [
 
 const vendorNavLinks = [
   { path: "/vendor/dashboard", label: "Vendor Dashboard", icon: Store },
+  { path: "/vendor/products", label: "My Products", icon: List },
   { path: "/vendor/products/new", label: "Add Product", icon: ShoppingBag },
 ];
 
@@ -142,7 +143,10 @@ const SideNavigation = () => {
                   to={link.path}
                   className={cn(
                     "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    currentPath === link.path
+                    currentPath === link.path || (
+                      link.path === "/vendor/products" && 
+                      (currentPath === "/vendor/products" || currentPath.startsWith("/vendor/products/"))
+                    )
                       ? "bg-artijam-purple-light text-artijam-purple"
                       : "text-gray-700 hover:bg-gray-100"
                   )}

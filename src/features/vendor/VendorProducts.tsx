@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +20,11 @@ type Product = {
   is_available: boolean | null;
 };
 
-const VendorProducts = () => {
+interface VendorProductsProps {
+  showHeader?: boolean;
+}
+
+const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
   const navigate = useNavigate();
   const { vendorProfile } = useVendorProfile();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -103,26 +106,28 @@ const VendorProducts = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">My Products</h2>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={handleStoreQRCodeGenerate}
-          >
-            <QrCode className="h-4 w-4" />
-            Store QR Code
-          </Button>
-          <Button 
-            className="bg-artijam-purple hover:bg-artijam-purple/90"
-            onClick={() => navigate('/vendor/products/new')}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Product
-          </Button>
+      {showHeader && (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">My Products</h2>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={handleStoreQRCodeGenerate}
+            >
+              <QrCode className="h-4 w-4" />
+              Store QR Code
+            </Button>
+            <Button 
+              className="bg-artijam-purple hover:bg-artijam-purple/90"
+              onClick={() => navigate('/vendor/products/new')}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {products.map((product) => (
         <Card key={product.id} className="overflow-hidden">

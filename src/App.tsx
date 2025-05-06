@@ -26,6 +26,7 @@ import EventsPage from "@/pages/EventsPage";
 import EventDetailPage from "@/pages/EventDetailPage";
 import MyEventsPage from "@/pages/MyEventsPage";
 import MyPagesPage from "@/pages/MyPagesPage";
+import MyProductsPage from "@/pages/MyProductsPage";
 import { EventModalProvider } from "@/hooks/use-event-modal";
 
 // Create a client
@@ -116,6 +117,7 @@ function App() {
                 <Route path="/profile/edit" element={<ProfileEditPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
+                <Route path="/vendor/products" element={<MyProductsPage />} />
                 <Route path="/vendor/products/new" element={<ProductFormPage />} />
                 <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
