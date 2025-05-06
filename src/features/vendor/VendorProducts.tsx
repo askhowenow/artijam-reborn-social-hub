@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -21,47 +21,56 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
   const { vendorProfile } = useVendorProfile();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [storageChecked, setStorageChecked] = useState(false);
   
-  // Debug function to check storage permissions
-  const checkStoragePermissions = async () => {
-    try {
-      // Verify buckets exist
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+  // Debug function to check storage permissions - only run once
+  useEffect(() => {
+    const checkStoragePermissions = async () => {
+      if (storageChecked) return;
       
-      if (bucketsError) {
-        console.error("Error listing buckets:", bucketsError);
-        toast.error("Failed to access storage buckets");
-        return;
-      }
-      
-      console.log("Available buckets:", buckets?.map(b => b.name).join(", "));
-      
-      // Try to get a folder listing to test permissions
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.user) {
-        toast.error("Not authenticated");
-        return;
-      }
-      
-      const userId = session.session.user.id;
-      const testPath = `${userId}`;
-      
-      const { data: files, error: filesError } = await supabase.storage
-        .from('product-images')
-        .list(testPath);
+      try {
+        // Verify buckets exist
+        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
         
-      if (filesError) {
-        console.error("Error listing files:", filesError);
-        toast.error(`Storage permission issue: ${filesError.message}`);
-      } else {
-        console.log("Files accessible:", files);
-        toast.success("Storage permissions verified successfully");
+        if (bucketsError) {
+          console.error("Error listing buckets:", bucketsError);
+          toast.error("Failed to access storage buckets");
+          return;
+        }
+        
+        console.log("Available buckets:", buckets?.map(b => b.name).join(", "));
+        
+        // Try to get a folder listing to test permissions
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session?.user) {
+          toast.error("Not authenticated");
+          return;
+        }
+        
+        const userId = session.session.user.id;
+        const testPath = `${userId}`;
+        
+        const { data: files, error: filesError } = await supabase.storage
+          .from('product-images')
+          .list(testPath);
+          
+        if (filesError) {
+          console.error("Error listing files:", filesError);
+          toast.error(`Storage permission issue: ${filesError.message}`);
+        } else {
+          console.log("Files accessible:", files);
+          setStorageChecked(true);
+        }
+      } catch (error: any) {
+        console.error("Storage check failed:", error);
+        toast.error(`Storage check failed: ${error.message}`);
+      } finally {
+        setStorageChecked(true);
       }
-    } catch (error: any) {
-      console.error("Storage check failed:", error);
-      toast.error(`Storage check failed: ${error.message}`);
-    }
-  };
+    };
+    
+    checkStoragePermissions();
+  }, [storageChecked]);
   
   const { data: products, isLoading } = useQuery({
     queryKey: ['vendorProducts'],
@@ -92,11 +101,6 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
     setSelectedProduct(null);
     setQrModalOpen(true);
   };
-
-  // On component mount, check storage permissions
-  React.useEffect(() => {
-    checkStoragePermissions();
-  }, []);
 
   if (isLoading) {
     return (

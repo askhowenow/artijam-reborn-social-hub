@@ -1,21 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PenSquare, Trash2, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Package } from "lucide-react";
-
-export type Product = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  category: string | null;
-  stock_quantity: number | null;
-  is_available: boolean | null;
-};
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import DeleteProductDialog from "./DeleteProductDialog";
+import { Product } from "@/hooks/use-products";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +18,63 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onQRCodeGenerate }: ProductCardProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  
+  const deleteProduct = useMutation({
+    mutationFn: async () => {
+      // First delete any associated storage images if they exist
+      if (product.image_url) {
+        try {
+          // Extract the file path from the URL
+          const { data: session } = await supabase.auth.getSession();
+          if (!session.session?.user) {
+            throw new Error("User not authenticated");
+          }
+          
+          const userId = session.session.user.id;
+          const path = `${userId}/${product.id}`;
+          
+          // Delete all files in the product folder
+          const { error: storageError } = await supabase.storage
+            .from('product-images')
+            .remove([path]);
+          
+          if (storageError) {
+            console.warn("Failed to delete product image:", storageError);
+            // Continue with product deletion even if image deletion fails
+          }
+        } catch (error) {
+          console.warn("Error during image deletion:", error);
+          // Continue with product deletion even if image deletion fails
+        }
+      }
+      
+      // Delete the product from the database
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', product.id);
+      
+      if (error) throw error;
+      
+      return product.id;
+    },
+    meta: {
+      onSuccess: (deletedId) => {
+        toast.success("Product deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ['vendorProducts'] });
+      },
+      onError: (error: Error) => {
+        console.error("Failed to delete product:", error);
+        toast.error("Failed to delete product. Please try again.");
+      }
+    }
+  });
+  
+  const handleDelete = () => {
+    deleteProduct.mutate();
+  };
   
   return (
     <Card key={product.id} className="overflow-hidden">
@@ -91,6 +142,8 @@ const ProductCard = ({ product, onQRCodeGenerate }: ProductCardProps) => {
               <Button 
                 variant="destructive" 
                 size="sm"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={deleteProduct.isPending}
               >
                 <Trash2 className="h-4 w-4 mr-1" /> Delete
               </Button>
@@ -98,6 +151,15 @@ const ProductCard = ({ product, onQRCodeGenerate }: ProductCardProps) => {
           </div>
         </div>
       </CardContent>
+      
+      {/* Delete Confirmation Dialog */}
+      <DeleteProductDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        product={product}
+        isDeleting={deleteProduct.isPending}
+      />
     </Card>
   );
 };
