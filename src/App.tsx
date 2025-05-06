@@ -23,6 +23,8 @@ import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsDashboard from "@/components/dashboard/AnalyticsDashboard";
 import PageEditor from "@/components/pages/PageEditor";
 import PageViewPage from "@/pages/PageViewPage";
+import EventsPage from "@/pages/EventsPage";
+import EventDetailPage from "@/pages/EventDetailPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -116,6 +118,10 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
               <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+              
+              {/* Events Routes */}
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:id" element={<EventDetailPage />} />
               
               {/* Page Routes */}
               <Route path="/page/:id/edit" element={<PageEditor />} />

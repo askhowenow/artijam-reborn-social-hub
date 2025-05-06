@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Plus, Search, LogOut, Shield, FilePlus } from "lucide-react";
+import { Bell, Plus, Search, LogOut, Shield, FilePlus, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -18,12 +18,14 @@ import Logo from "./Logo";
 import { useUserRole } from "@/hooks/use-user-role";
 import { Badge } from "@/components/ui/badge";
 import CreatePageModal from "@/components/pages/CreatePageModal";
+import CreateEventModal from "@/components/events/CreateEventModal";
 
 const Header = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
   const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
+  const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -86,6 +88,10 @@ const Header = () => {
                 <FilePlus className="mr-2 h-4 w-4" />
                 <span>Create Page</span>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsCreateEventModalOpen(true)}>
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>Create Event</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/post" className="w-full flex items-center">
@@ -125,6 +131,12 @@ const Header = () => {
       <CreatePageModal 
         isOpen={isCreatePageModalOpen}
         onOpenChange={setIsCreatePageModalOpen}
+      />
+      
+      {/* Create Event Modal */}
+      <CreateEventModal 
+        isOpen={isCreateEventModalOpen}
+        onOpenChange={setIsCreateEventModalOpen}
       />
     </header>
   );
