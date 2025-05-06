@@ -25,6 +25,9 @@ import PageEditor from "@/components/pages/PageEditor";
 import PageViewPage from "@/pages/PageViewPage";
 import EventsPage from "@/pages/EventsPage";
 import EventDetailPage from "@/pages/EventDetailPage";
+import MyEventsPage from "@/pages/MyEventsPage";
+import MyPagesPage from "@/pages/MyPagesPage";
+import { EventModalProvider } from "@/hooks/use-event-modal";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -78,68 +81,73 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/landing" element={
-              <PublicRoute>
-                <LandingPage />
-              </PublicRoute>
-            } />
-            
-            {/* Guest Layout Routes */}
-            <Route element={<GuestLayout />}>
-              <Route path="/login" element={
+          <EventModalProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/landing" element={
                 <PublicRoute>
-                  <LoginPage />
+                  <LandingPage />
                 </PublicRoute>
               } />
-              <Route path="/register" element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              } />
-            </Route>
-            
-            {/* App Layout Routes - Protected */}
-            <Route element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/product/:id" element={<ProductDetailPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/edit" element={<ProfileEditPage />} />
-              <Route path="/vendor/profile" element={<VendorProfilePage />} />
-              <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
-              <Route path="/vendor/products/new" element={<ProductFormPage />} />
-              <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
-              <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
               
-              {/* Events Routes */}
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/events/:id" element={<EventDetailPage />} />
+              {/* Guest Layout Routes */}
+              <Route element={<GuestLayout />}>
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                } />
+                <Route path="/register" element={
+                  <PublicRoute>
+                    <RegisterPage />
+                  </PublicRoute>
+                } />
+              </Route>
               
-              {/* Page Routes */}
-              <Route path="/page/:id/edit" element={<PageEditor />} />
-              <Route path="/@:slug" element={<PageViewPage />} />
-            </Route>
+              {/* App Layout Routes - Protected */}
+              <Route element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/edit" element={<ProfileEditPage />} />
+                <Route path="/vendor/profile" element={<VendorProfilePage />} />
+                <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
+                <Route path="/vendor/products/new" element={<ProductFormPage />} />
+                <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
+                <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+                
+                {/* Events Routes */}
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/my-events" element={<MyEventsPage />} />
+                
+                {/* Page Routes */}
+                <Route path="/page/new" element={<PageEditor />} />
+                <Route path="/page/:id/edit" element={<PageEditor />} />
+                <Route path="/@:slug" element={<PageViewPage />} />
+                <Route path="/my-pages" element={<MyPagesPage />} />
+              </Route>
 
-            {/* Redirect from Index to Landing or Home */}
-            <Route path="/" element={
-              <AuthCheck 
-                authenticatedRoute="/" 
-                unauthenticatedRoute="/landing" 
-              />
-            } />
-            
-            {/* 404 Page */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-          <Toaster />
+              {/* Redirect from Index to Landing or Home */}
+              <Route path="/" element={
+                <AuthCheck 
+                  authenticatedRoute="/" 
+                  unauthenticatedRoute="/landing" 
+                />
+              } />
+              
+              {/* 404 Page */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+            <Toaster />
+          </EventModalProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

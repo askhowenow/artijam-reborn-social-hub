@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, MessageSquare, BookOpen, Briefcase, 
   ShoppingBag, Wallet, Search, FileText, 
-  Video, Group, Shield, Settings, Bell, Store 
+  Video, Group, Shield, Settings, Bell, Store, Calendar, FileText as PageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import { useUserRole } from "@/hooks/use-user-role";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthProvider";
 
 const mainNavLinks = [
   { path: "/", label: "Home", icon: Home },
@@ -22,6 +23,7 @@ const mainNavLinks = [
   { path: "/blogs", label: "Blogs", icon: FileText },
   { path: "/courses", label: "Courses", icon: BookOpen },
   { path: "/jobs", label: "Jobs", icon: Briefcase },
+  { path: "/events", label: "Events", icon: Calendar },
 ];
 
 const secondaryNavLinks = [
@@ -47,13 +49,19 @@ const SideNavigation = () => {
   const { isAdmin } = useUserRole();
   const { vendorProfile } = useVendorProfile();
   const { cartCount } = useCart();
+  const { user } = useAuth();
   const isVendor = !!vendorProfile;
 
   // Mock user data - would come from auth context in real app
-  const user = {
+  const userData = {
     name: "John Doe",
     avatar: "/placeholder.svg",
   };
+
+  const myContentLinks = [
+    { path: "/my-events", label: "My Events", icon: Calendar },
+    { path: "/my-pages", label: "My Pages", icon: PageIcon },
+  ];
 
   return (
     <aside className="hidden md:flex flex-col h-screen w-64 border-r border-gray-200 bg-white overflow-y-auto fixed left-0 top-0 z-10">
@@ -64,10 +72,10 @@ const SideNavigation = () => {
       <div className="p-4">
         <Link to="/profile" className="flex items-center space-x-3 mb-6">
           <Avatar>
-            <img src={user.avatar} alt={user.name} />
+            <img src={userData.avatar} alt={userData.name} />
           </Avatar>
           <div>
-            <p className="font-medium">{user.name}</p>
+            <p className="font-medium">{userData.name}</p>
             <p className="text-xs text-gray-500">View Profile</p>
           </div>
         </Link>
@@ -81,7 +89,7 @@ const SideNavigation = () => {
               to={link.path}
               className={cn(
                 "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                currentPath === link.path || (link.path === '/shop' && currentPath.startsWith('/shop'))
+                currentPath === link.path || (link.path === '/shop' && currentPath.startsWith('/shop')) || (link.path === '/events' && currentPath.startsWith('/events'))
                   ? "bg-artijam-purple-light text-artijam-purple"
                   : "text-gray-700 hover:bg-gray-100"
               )}
@@ -94,6 +102,32 @@ const SideNavigation = () => {
             </Link>
           ))}
         </div>
+
+        {/* My Content Links - visible to authenticated users */}
+        {user && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              My Content
+            </p>
+            <div className="space-y-1">
+              {myContentLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={cn(
+                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    currentPath === link.path || currentPath.startsWith(link.path)
+                      ? "bg-artijam-purple-light text-artijam-purple"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <link.icon size={18} className="mr-3" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Vendor Links - only visible to vendors */}
         {isVendor && (
