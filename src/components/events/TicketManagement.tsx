@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,7 +38,7 @@ import { Trash2, Plus, QrCode, Mail } from "lucide-react";
 interface TicketManagementProps {
   eventId: string;
   ticketTiers: TicketTier[];
-  onAddTicketTier: (ticketTier: Omit<TicketTier, "id">) => Promise<void>;
+  onAddTicketTier: (ticketTier: Omit<TicketTier, "id" | "quantityAvailable">) => Promise<void>;
   onDeleteTicketTier: (id: string) => Promise<void>;
 }
 
@@ -84,7 +83,13 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
   
   const handleAddTicketTier = async (data: TicketTierFormValues) => {
     try {
-      await onAddTicketTier(data);
+      // When adding a ticket tier, set quantityAvailable to equal the quantity (all tickets available)
+      const ticketTierWithAvailability = {
+        ...data,
+        quantityAvailable: data.quantity
+      };
+      
+      await onAddTicketTier(ticketTierWithAvailability);
       setIsAddTicketTierDialogOpen(false);
       ticketTierForm.reset();
       toast({

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
   Share2,
   QrCode,
   Mail,
-  Ticket,
+  Ticket as TicketIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -292,7 +291,7 @@ const EventDetail: React.FC = () => {
               
               <div className="pt-2 border-t">
                 <Button className="w-full" onClick={() => setActiveTab("tickets")}>
-                  <Ticket className="mr-2 h-4 w-4" />
+                  <TicketIcon className="mr-2 h-4 w-4" />
                   Manage Tickets
                 </Button>
               </div>
