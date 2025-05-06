@@ -1,20 +1,20 @@
 
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
 
 const Index = () => {
-  const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    // Redirect to the home page
-    navigate("/");
-  }, [navigate]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
-    </div>
-  );
+  return <Navigate to={user ? "/" : "/landing"} replace />;
 };
 
 export default Index;

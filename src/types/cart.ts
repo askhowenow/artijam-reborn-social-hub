@@ -24,3 +24,28 @@ export interface Cart {
   items: CartItem[];
   total: number;
 }
+
+// Adding the missing interfaces
+export interface CartData {
+  cartId: string;
+  items: CartItem[];
+}
+
+export interface UseCartOptions {
+  syncOnLogin?: boolean;
+}
+
+export interface UseCartResult {
+  cart: CartItem[];
+  cartId?: string;
+  isLoading: boolean;
+  error: Error | null;
+  addToCart: any;
+  removeFromCart: any;
+  updateQuantity: any;
+  syncGuestCartToUserCart: any;
+  cartCount: number;
+  cartTotal: number;
+  isAuthenticated: boolean;
+  refetch: () => void;
+}

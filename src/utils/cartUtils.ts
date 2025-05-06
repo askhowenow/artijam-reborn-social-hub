@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { CartData, CartItem } from '@/types/cart';
+import { CartItem, CartData } from '@/types/cart';
 import { type Product } from '@/hooks/use-products';
 
 // Fetch cart data based on authentication status
@@ -34,12 +34,12 @@ export async function fetchCartData(isAuthenticated: boolean, guestId: string | 
       cartId = userCart.id;
     }
 
-    // Fix: Use explicit product column reference to avoid ambiguity
+    // Use explicit column name to avoid ambiguity
     const { data: cartItems, error: itemsError } = await supabase
       .from('user_cart_items')
       .select(`
         id, product_id, quantity, 
-        products:products(*)
+        product:product_id (*)
       `)
       .eq('cart_id', cartId);
 
@@ -75,12 +75,12 @@ export async function fetchCartData(isAuthenticated: boolean, guestId: string | 
       cartId = guestCart.id;
     }
 
-    // Fix: Use explicit product column reference to avoid ambiguity
+    // Use explicit column name to avoid ambiguity
     const { data: cartItems, error: itemsError } = await supabase
       .from('guest_cart_items')
       .select(`
         id, product_id, quantity,
-        products:products(*)
+        product:product_id (*)
       `)
       .eq('cart_id', cartId);
 
@@ -315,15 +315,15 @@ export async function syncGuestCartToUserCart(guestId: string): Promise<boolean>
 // Calculate cart total with null safety
 export function calculateCartTotal(items: CartItem[]): number {
   return items.reduce((total, item) => {
-    // Skip calculation if products is null or undefined
-    if (!item.products) {
+    // Skip calculation if product is null or undefined
+    if (!item.product) {
       return total;
     }
     
-    // Check if products has a price property of type number
-    if (typeof item.products === 'object' && 'price' in item.products && 
-        typeof item.products.price === 'number') {
-      return total + (item.products.price * item.quantity);
+    // Check if product has a price property of type number
+    if (typeof item.product === 'object' && 'price' in item.product && 
+        typeof item.product.price === 'number') {
+      return total + (item.product.price * item.quantity);
     }
     
     return total;
@@ -388,15 +388,7 @@ export async function fetchCartItems(userId: string): Promise<CartItem[]> {
       throw new Error(`Error fetching cart items: ${itemsError.message}`);
     }
     
-    // Transform the result to match CartItem type
-    const cartItems: CartItem[] = items.map(item => ({
-      id: item.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      product: item.product
-    }));
-    
-    return cartItems;
+    return items as CartItem[];
   } catch (error) {
     console.error('Error in fetchCartItems:', error);
     return [];
@@ -461,15 +453,7 @@ export async function fetchGuestCartItems(guestId: string): Promise<CartItem[]> 
       throw new Error(`Error fetching guest cart items: ${itemsError.message}`);
     }
     
-    // Transform the result to match CartItem type
-    const cartItems: CartItem[] = items.map(item => ({
-      id: item.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      product: item.product
-    }));
-    
-    return cartItems;
+    return items as CartItem[];
   } catch (error) {
     console.error('Error in fetchGuestCartItems:', error);
     return [];

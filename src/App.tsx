@@ -1,11 +1,12 @@
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "./context/AuthProvider";
+import { AuthProvider, useAuth } from "./context/AuthProvider";
 import AppLayout from "@/components/layout/AppLayout";
 import GuestLayout from "@/components/layout/GuestLayout";
 import HomePage from "@/pages/HomePage";
+import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -30,13 +31,77 @@ const queryClient = new QueryClient({
   },
 });
 
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/landing" />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Public Route - redirects to home if authenticated
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/" />;
+  }
+  
+  return <>{children}</>;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route element={<AppLayout />}>
+            {/* Public Routes */}
+            <Route path="/landing" element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            } />
+            
+            {/* Guest Layout Routes */}
+            <Route element={<GuestLayout />}>
+              <Route path="/login" element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <RegisterPage />
+                </PublicRoute>
+              } />
+            </Route>
+            
+            {/* App Layout Routes - Protected */}
+            <Route element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
               <Route path="/" element={<HomePage />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -49,13 +114,21 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
               <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
-              <Route path="/@:storeSlug" element={<StorefrontPage />} />
-              <Route path="*" element={<NotFoundPage />} />
             </Route>
-            <Route element={<GuestLayout />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-            </Route>
+
+            {/* Public Storefront */}
+            <Route path="/@:storeSlug" element={<StorefrontPage />} />
+            
+            {/* Redirect from Index to Landing or Home */}
+            <Route path="/" element={
+              <AuthCheck 
+                authenticatedRoute="/" 
+                unauthenticatedRoute="/landing" 
+              />
+            } />
+            
+            {/* 404 Page */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Toaster />
         </AuthProvider>
@@ -63,5 +136,26 @@ function App() {
     </QueryClientProvider>
   );
 }
+
+// Helper component to redirect based on auth status
+const AuthCheck = ({ 
+  authenticatedRoute, 
+  unauthenticatedRoute 
+}: { 
+  authenticatedRoute: string;
+  unauthenticatedRoute: string;
+}) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+  
+  return <Navigate to={user ? authenticatedRoute : unauthenticatedRoute} replace />;
+};
 
 export default App;

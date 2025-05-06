@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useVendorProfile, VendorProfileFormData } from "@/hooks/use-vendor-profile";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { slugify } from "@/utils/string-utils";
 
 const VendorProfilePage = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const VendorProfilePage = () => {
     contact_phone: "",
     location: "",
     website: "",
+    store_slug: "",
+    banner_image_url: ""
   });
   
   const [saving, setSaving] = useState(false);
@@ -55,13 +58,25 @@ const VendorProfilePage = () => {
         contact_phone: vendorProfile.contact_phone || "",
         location: vendorProfile.location || "",
         website: vendorProfile.website || "",
+        store_slug: vendorProfile.store_slug || "",
+        banner_image_url: vendorProfile.banner_image_url || ""
       });
     }
   }, [vendorProfile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Auto-generate store slug from business name if this is the business name field
+    if (name === 'business_name' && !formData.store_slug) {
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        store_slug: slugify(value)
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,6 +144,27 @@ const VendorProfilePage = () => {
               </div>
               
               <div>
+                <Label htmlFor="store_slug">Store URL *</Label>
+                <div className="flex items-center">
+                  <span className="bg-gray-100 px-3 py-2 text-gray-500 border border-r-0 border-gray-300 rounded-l-md">
+                    @
+                  </span>
+                  <Input
+                    id="store_slug"
+                    name="store_slug"
+                    value={formData.store_slug}
+                    onChange={handleChange}
+                    placeholder="your-store-name"
+                    className="rounded-l-none"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be the URL for your store: @{formData.store_slug || "your-store-name"}
+                </p>
+              </div>
+              
+              <div>
                 <Label htmlFor="business_description">Business Description</Label>
                 <Textarea
                   id="business_description"
@@ -139,6 +175,20 @@ const VendorProfilePage = () => {
                   className="resize-none"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="banner_image_url">Banner Image URL</Label>
+                <Input
+                  id="banner_image_url"
+                  name="banner_image_url"
+                  value={formData.banner_image_url || ""}
+                  onChange={handleChange}
+                  placeholder="https://example.com/banner.jpg"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter a URL for your store's banner image
+                </p>
               </div>
               
               <div>
@@ -211,7 +261,7 @@ const VendorProfilePage = () => {
               </Button>
               <Button 
                 type="submit"
-                disabled={saving || !formData.business_name}
+                disabled={saving || !formData.business_name || !formData.store_slug}
                 className="bg-artijam-purple hover:bg-artijam-purple/90"
               >
                 {saving ? (
