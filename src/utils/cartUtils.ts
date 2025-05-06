@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { CartData, CartItem } from '@/types/cart';
+import { type Product } from '@/hooks/use-products';
 
 // Fetch cart data based on authentication status
 export async function fetchCartData(isAuthenticated: boolean, guestId: string | null): Promise<CartData> {
@@ -34,12 +35,12 @@ export async function fetchCartData(isAuthenticated: boolean, guestId: string | 
       cartId = userCart.id;
     }
 
-    // Fetch cart items with product details
+    // Fix: Use explicit product column reference to avoid ambiguity
     const { data: cartItems, error: itemsError } = await supabase
       .from('user_cart_items')
       .select(`
         id, product_id, quantity, 
-        products:product_id(*)
+        products:products(*)
       `)
       .eq('cart_id', cartId);
 
@@ -75,12 +76,12 @@ export async function fetchCartData(isAuthenticated: boolean, guestId: string | 
       cartId = guestCart.id;
     }
 
-    // Fetch guest cart items with product details
+    // Fix: Use explicit product column reference to avoid ambiguity
     const { data: cartItems, error: itemsError } = await supabase
       .from('guest_cart_items')
       .select(`
         id, product_id, quantity,
-        products:product_id(*)
+        products:products(*)
       `)
       .eq('cart_id', cartId);
 
