@@ -3,7 +3,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, PlusCircle, Package, Settings, DollarSign, LineChart } from "lucide-react";
+import { 
+  Loader2, 
+  PlusCircle, 
+  Package, 
+  Settings, 
+  DollarSign, 
+  LineChart,
+  QrCode 
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,10 +19,18 @@ import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import VendorProducts from "@/features/vendor/VendorProducts";
 import VendorOrders from "@/features/vendor/VendorOrders";
 import VendorStats from "@/features/vendor/VendorStats";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import VendorQRCodeGenerator from "@/components/vendor/VendorQRCodeGenerator";
 
 const VendorDashboardPage = () => {
   const navigate = useNavigate();
   const { vendorProfile, isLoading } = useVendorProfile();
+  const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
+  const [storeStats, setStoreStats] = useState({
+    totalProducts: 0,
+    totalViews: 0,
+    totalSales: 0
+  });
   
   useEffect(() => {
     // Check if user is authenticated
@@ -35,6 +51,53 @@ const VendorDashboardPage = () => {
     
     checkAuth();
   }, [navigate, isLoading, vendorProfile]);
+
+  useEffect(() => {
+    // Fetch store statistics when vendor profile is loaded
+    const fetchStoreStats = async () => {
+      if (!vendorProfile) return;
+      
+      try {
+        // Get total product count
+        const { count: productCount, error: productError } = await supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('vendor_id', vendorProfile.id);
+        
+        if (productError) throw productError;
+        
+        // Get total views across all products
+        const { data: metricsData, error: metricsError } = await supabase
+          .from('product_metrics')
+          .select('views, product_id')
+          .in('product_id', 
+            supabase
+              .from('products')
+              .select('id')
+              .eq('vendor_id', vendorProfile.id)
+          );
+        
+        if (metricsError) throw metricsError;
+        
+        // Calculate total views
+        const totalViews = metricsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
+        
+        // For demonstration, we'll set sales to 0
+        // In a real app, this would come from order data
+        const totalSales = 0;
+        
+        setStoreStats({
+          totalProducts: productCount || 0,
+          totalViews,
+          totalSales
+        });
+      } catch (error) {
+        console.error("Error fetching store stats:", error);
+      }
+    };
+    
+    fetchStoreStats();
+  }, [vendorProfile]);
 
   if (isLoading) {
     return (
@@ -62,6 +125,14 @@ const VendorDashboardPage = () => {
         </div>
         
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setQrCodeModalOpen(true)}
+            disabled={!vendorProfile.store_slug}
+          >
+            <QrCode className="mr-2 h-4 w-4" />
+            Store QR Code
+          </Button>
           <Button 
             variant="outline"
             onClick={() => navigate("/vendor/profile")}
@@ -87,7 +158,7 @@ const VendorDashboardPage = () => {
                 <Package className="h-10 w-10 text-blue-500" />
                 <div>
                   <p className="text-sm text-gray-500">Total Products</p>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{storeStats.totalProducts}</p>
                 </div>
               </div>
             </div>
@@ -96,7 +167,7 @@ const VendorDashboardPage = () => {
                 <DollarSign className="h-10 w-10 text-green-500" />
                 <div>
                   <p className="text-sm text-gray-500">Total Sales</p>
-                  <p className="text-2xl font-bold">$0.00</p>
+                  <p className="text-2xl font-bold">${storeStats.totalSales.toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -105,7 +176,7 @@ const VendorDashboardPage = () => {
                 <LineChart className="h-10 w-10 text-purple-500" />
                 <div>
                   <p className="text-sm text-gray-500">Views</p>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{storeStats.totalViews}</p>
                 </div>
               </div>
             </div>
@@ -132,6 +203,22 @@ const VendorDashboardPage = () => {
           <VendorStats />
         </TabsContent>
       </Tabs>
+
+      {/* Store QR Code Modal */}
+      {vendorProfile.store_slug && (
+        <Dialog open={qrCodeModalOpen} onOpenChange={setQrCodeModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogTitle>Store QR Code</DialogTitle>
+            <DialogDescription>
+              Share this QR code to give customers access to your store.
+            </DialogDescription>
+            <VendorQRCodeGenerator
+              storeSlug={vendorProfile.store_slug || ""}
+              businessName={vendorProfile.business_name}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

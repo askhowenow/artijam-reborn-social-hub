@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, PenSquare, Trash2, PlusCircle } from "lucide-react";
+import { Loader2, PenSquare, Trash2, PlusCircle, QrCode } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Avatar } from "@/components/ui/avatar";
+import QRCodeModal from "@/components/vendor/QRCodeModal";
+import { useVendorProfile } from "@/hooks/use-vendor-profile";
 
 type Product = {
   id: string;
@@ -22,6 +23,9 @@ type Product = {
 
 const VendorProducts = () => {
   const navigate = useNavigate();
+  const { vendorProfile } = useVendorProfile();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   
   const { data: products, isLoading } = useQuery({
     queryKey: ['vendorProducts'],
@@ -42,6 +46,17 @@ const VendorProducts = () => {
       return data as Product[];
     },
   });
+
+  const handleQRCodeGenerate = (product: Product) => {
+    setSelectedProduct(product);
+    setQrModalOpen(true);
+  };
+  
+  // Handle QR code generation for the entire store
+  const handleStoreQRCodeGenerate = () => {
+    setSelectedProduct(null);
+    setQrModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -69,8 +84,46 @@ const VendorProducts = () => {
     );
   }
 
+  if (!vendorProfile?.store_slug) {
+    return (
+      <div className="bg-white rounded-md p-10 text-center shadow">
+        <h3 className="text-lg font-medium mb-2">Store URL Required</h3>
+        <p className="text-gray-500 mb-6">
+          You need to set up your store URL before you can generate QR codes.
+        </p>
+        <Button 
+          onClick={() => navigate('/vendor/profile')}
+          className="bg-artijam-purple hover:bg-artijam-purple/90"
+        >
+          Setup Store URL
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">My Products</h2>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleStoreQRCodeGenerate}
+          >
+            <QrCode className="h-4 w-4" />
+            Store QR Code
+          </Button>
+          <Button 
+            className="bg-artijam-purple hover:bg-artijam-purple/90"
+            onClick={() => navigate('/vendor/products/new')}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Product
+          </Button>
+        </div>
+      </div>
+
       {products.map((product) => (
         <Card key={product.id} className="overflow-hidden">
           <CardContent className="p-0">
@@ -123,6 +176,13 @@ const VendorProducts = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    onClick={() => handleQRCodeGenerate(product)}
+                  >
+                    <QrCode className="h-4 w-4 mr-1" /> QR Code
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => navigate(`/vendor/products/${product.id}/edit`)}
                   >
                     <PenSquare className="h-4 w-4 mr-1" /> Edit
@@ -139,6 +199,18 @@ const VendorProducts = () => {
           </CardContent>
         </Card>
       ))}
+
+      {/* QR Code Modal */}
+      {vendorProfile && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          storeSlug={vendorProfile.store_slug || ""}
+          productId={selectedProduct?.id}
+          businessName={vendorProfile.business_name}
+          productName={selectedProduct?.name}
+        />
+      )}
     </div>
   );
 };

@@ -69,3 +69,29 @@ export const mapDbEventToEvent = async (dbEvent: any): Promise<Event> => {
     capacity: dbEvent.capacity,
   };
 };
+
+// Track QR code scan for a product or store
+export const trackQRCodeScan = async (productId?: string, storeId?: string) => {
+  try {
+    if (productId) {
+      // Increment product scan metric
+      await supabase.rpc('increment_product_metric', {
+        product_id_param: productId,
+        metric_name: 'views',
+        increment_value: 1
+      });
+      
+      console.log(`Tracked QR scan for product: ${productId}`);
+    }
+    
+    if (storeId) {
+      // We could implement store-level metrics in the future
+      console.log(`Tracked QR scan for store: ${storeId}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to track QR code scan:', error);
+    return false;
+  }
+};
