@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -27,6 +28,8 @@ import EventDetailPage from "@/pages/EventDetailPage";
 import MyEventsPage from "@/pages/MyEventsPage";
 import MyPagesPage from "@/pages/MyPagesPage";
 import MyProductsPage from "@/pages/MyProductsPage";
+import MyBookingsPage from "@/pages/MyBookingsPage";
+import ServicesPage from "@/pages/ServicesPage";
 import { EventModalProvider } from "@/hooks/use-event-modal";
 
 // Create a client
@@ -120,9 +123,13 @@ function App() {
                 <Route path="/vendor/products" element={<MyProductsPage />} />
                 <Route path="/vendor/products/new" element={<ProductFormPage />} />
                 <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
+                <Route path="/vendor/services" element={<ServicesPage vendor />} />
+                <Route path="/vendor/bookings" element={<MyBookingsPage vendor />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
                 <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+                <Route path="/my-bookings" element={<MyBookingsPage />} />
+                <Route path="/services" element={<ServicesPage />} />
                 
                 {/* Events Routes */}
                 <Route path="/events" element={<EventsPage />} />

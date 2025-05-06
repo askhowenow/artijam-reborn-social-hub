@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CartItem } from "@/types/cart";
 import { Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { formatPrice } from "@/utils/string-utils";
+import { formatCurrency } from "@/utils/string-utils";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -106,7 +106,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                       {item.product.name}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {formatPrice(item.product.price, item.product.currency)}
+                      {formatCurrency(item.product.price, item.product.currency)}
                     </p>
                   </div>
 
@@ -157,7 +157,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span>{formatPrice(cartTotal, "USD")}</span>
+                <span>{formatCurrency(cartTotal, "USD")}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping</span>
@@ -166,7 +166,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Total</span>
-                <span>{formatPrice(cartTotal, "USD")}</span>
+                <span>{formatCurrency(cartTotal, "USD")}</span>
               </div>
             </div>
 

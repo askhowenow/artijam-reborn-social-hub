@@ -10,11 +10,20 @@ import { format, parseISO } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { useCustomerBookings } from '@/hooks/use-service-bookings';
+import { useCustomerBookings, useVendorBookings } from '@/hooks/use-service-bookings';
 
-const MyBookingsPage = () => {
+interface MyBookingsPageProps {
+  vendor?: boolean;
+}
+
+const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
   const navigate = useNavigate();
-  const { bookings, isLoading, cancelBooking } = useCustomerBookings();
+  const { bookings: customerBookings, isLoading: isLoadingCustomer, cancelBooking } = useCustomerBookings();
+  const { bookings: vendorBookings, isLoading: isLoadingVendor, updateBookingStatus } = useVendorBookings();
+  
+  const bookings = vendor ? vendorBookings : customerBookings;
+  const isLoading = vendor ? isLoadingVendor : isLoadingCustomer;
+  
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
 
@@ -44,7 +53,14 @@ const MyBookingsPage = () => {
     if (!selectedBooking) return;
     
     try {
-      await cancelBooking.mutateAsync(selectedBooking);
+      if (vendor) {
+        await updateBookingStatus.mutateAsync({
+          bookingId: selectedBooking,
+          status: 'cancelled'
+        });
+      } else {
+        await cancelBooking.mutateAsync(selectedBooking);
+      }
       setCancelDialogOpen(false);
       setSelectedBooking(null);
     } catch (error) {
@@ -57,7 +73,7 @@ const MyBookingsPage = () => {
       <div className="container max-w-4xl mx-auto py-8 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
-          <p className="text-sm text-gray-500">Loading your bookings...</p>
+          <p className="text-sm text-gray-500">Loading {vendor ? 'vendor' : ''} bookings...</p>
         </div>
       </div>
     );
@@ -72,9 +88,26 @@ const MyBookingsPage = () => {
     booking.status === 'completed' || booking.status === 'cancelled'
   ) || [];
 
+  const getVendorBusinessName = (booking: any) => {
+    if (vendor) {
+      // When in vendor mode, show customer name instead
+      return booking.customer?.email || 'Unknown Customer';
+    }
+    
+    // Check service vendor structure safely
+    return booking.service?.vendor_id || 'Unknown Vendor';
+  };
+
+  const pageTitle = vendor ? "Manage Bookings" : "My Bookings";
+  const emptyMessage = vendor 
+    ? "You don't have any bookings for your services yet" 
+    : "You don't have any upcoming bookings";
+  const browseText = vendor ? "Manage Services" : "Browse Services";
+  const browseLink = vendor ? "/vendor/services" : "/services";
+
   return (
     <div className="container max-w-4xl mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">My Bookings</h1>
+      <h1 className="text-3xl font-bold mb-6">{pageTitle}</h1>
       
       <Card className="mb-8">
         <CardHeader>
@@ -83,12 +116,12 @@ const MyBookingsPage = () => {
         <CardContent>
           {activeBookings.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-gray-500 mb-4">You don't have any upcoming bookings</p>
+              <p className="text-gray-500 mb-4">{emptyMessage}</p>
               <Button 
-                onClick={() => navigate('/services')} 
+                onClick={() => navigate(browseLink)} 
                 className="bg-artijam-purple hover:bg-artijam-purple/90"
               >
-                Browse Services
+                {browseText}
               </Button>
             </div>
           ) : (
@@ -106,7 +139,7 @@ const MyBookingsPage = () => {
                         </div>
                         
                         <div className="text-sm text-gray-600">
-                          {booking.service?.vendor?.business_name}
+                          {getVendorBusinessName(booking)}
                         </div>
                         
                         <div className="flex items-center text-sm">
@@ -135,7 +168,36 @@ const MyBookingsPage = () => {
                           {booking.status}
                         </Badge>
                         
-                        <div className="mt-2">
+                        <div className="mt-2 space-y-2">
+                          {vendor && (
+                            <div className="flex flex-wrap gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-green-600 hover:text-green-700"
+                                onClick={() => updateBookingStatus.mutate({
+                                  bookingId: booking.id,
+                                  status: 'confirmed'
+                                })}
+                                disabled={booking.status === 'confirmed'}
+                              >
+                                Confirm
+                              </Button>
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-700"
+                                onClick={() => updateBookingStatus.mutate({
+                                  bookingId: booking.id,
+                                  status: 'completed'
+                                })}
+                              >
+                                Mark Complete
+                              </Button>
+                            </div>
+                          )}
+                          
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -175,7 +237,7 @@ const MyBookingsPage = () => {
                         </div>
                         
                         <div className="text-sm text-gray-600">
-                          {booking.service?.vendor?.business_name}
+                          {getVendorBusinessName(booking)}
                         </div>
                         
                         <div className="flex items-center text-sm">

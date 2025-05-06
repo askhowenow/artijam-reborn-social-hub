@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Users, PlusCircle, Bell, User, Store, ShoppingBag } from "lucide-react";
+import { Home, Users, PlusCircle, Bell, User, Store, ShoppingBag, Calendar } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,14 @@ const MobileNavigation = () => {
           <div className="bg-artijam-purple rounded-full p-3">
             <PlusCircle size={20} className="text-white" />
           </div>
+        </Link>
+        
+        <Link to="/my-bookings" className={cn(
+          "flex flex-col items-center justify-center w-full h-full",
+          pathname === "/my-bookings" ? "text-artijam-purple" : "text-gray-600"
+        )}>
+          <Calendar size={20} />
+          <span className="text-xs mt-1">Bookings</span>
         </Link>
         
         {isVendor && (

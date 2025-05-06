@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Plus, Search, LogOut, Shield, FilePlus, Calendar } from "lucide-react";
+import { Bell, Plus, Search, LogOut, Shield, FilePlus, Calendar, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -19,6 +19,7 @@ import { useUserRole } from "@/hooks/use-user-role";
 import { Badge } from "@/components/ui/badge";
 import CreatePageModal from "@/components/pages/CreatePageModal";
 import CreateEventModal from "@/components/events/CreateEventModal";
+import MobileDrawer from "./MobileDrawer";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -46,8 +47,11 @@ const Header = () => {
   return (
     <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:pl-64 md:pr-8">
-        {/* Always show logo, not just on mobile */}
-        <Logo size="sm" />
+        {/* Left side with mobile drawer and logo */}
+        <div className="flex items-center">
+          <MobileDrawer />
+          <Logo size="sm" />
+        </div>
 
         <div className="flex-1 md:flex md:justify-center">
           {!isMobile && (

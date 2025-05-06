@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -24,6 +25,7 @@ const mainNavLinks = [
   { path: "/courses", label: "Courses", icon: BookOpen },
   { path: "/jobs", label: "Jobs", icon: Briefcase },
   { path: "/events", label: "Events", icon: Calendar },
+  { path: "/my-bookings", label: "My Bookings", icon: Calendar },
 ];
 
 const secondaryNavLinks = [
@@ -36,6 +38,8 @@ const secondaryNavLinks = [
 const vendorNavLinks = [
   { path: "/vendor/dashboard", label: "Vendor Dashboard", icon: Store },
   { path: "/vendor/products", label: "My Products", icon: List },
+  { path: "/vendor/services", label: "My Services", icon: Calendar },
+  { path: "/vendor/bookings", label: "Manage Bookings", icon: Calendar },
   { path: "/vendor/products/new", label: "Add Product", icon: ShoppingBag },
 ];
 
@@ -146,6 +150,12 @@ const SideNavigation = () => {
                     currentPath === link.path || (
                       link.path === "/vendor/products" && 
                       (currentPath === "/vendor/products" || currentPath.startsWith("/vendor/products/"))
+                    ) || (
+                      link.path === "/vendor/services" && 
+                      currentPath.startsWith("/vendor/services")
+                    ) || (
+                      link.path === "/vendor/bookings" && 
+                      currentPath.startsWith("/vendor/bookings")
                     )
                       ? "bg-artijam-purple-light text-artijam-purple"
                       : "text-gray-700 hover:bg-gray-100"

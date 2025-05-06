@@ -10,8 +10,8 @@ const AppLayout = () => {
     <div className="min-h-screen bg-gray-50">
       <SideNavigation />
       <Header />
-      <main className="md:pl-64 pt-16 pb-16 min-h-screen">
-        <div className="p-4">
+      <main className="md:pl-64 pt-16 pb-20 md:pb-6 min-h-screen">
+        <div className="p-2 sm:p-4 max-w-[100vw] overflow-x-hidden">
           <Outlet />
         </div>
       </main>

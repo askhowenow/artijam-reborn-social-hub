@@ -17,3 +17,6 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
     minimumFractionDigits: 2
   }).format(amount);
 }
+
+// Add formatPrice as an alias for formatCurrency for backward compatibility
+export const formatPrice = formatCurrency;
