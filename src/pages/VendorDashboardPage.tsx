@@ -19,8 +19,7 @@ import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import VendorProducts from "@/features/vendor/VendorProducts";
 import VendorOrders from "@/features/vendor/VendorOrders";
 import VendorStats from "@/features/vendor/VendorStats";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import VendorQRCodeGenerator from "@/components/vendor/VendorQRCodeGenerator";
+import QRCodeModal from "@/components/vendor/QRCodeModal";
 
 const VendorDashboardPage = () => {
   const navigate = useNavigate();
@@ -71,10 +70,12 @@ const VendorDashboardPage = () => {
           .from('product_metrics')
           .select('views, product_id')
           .in('product_id', 
+            // Create a subquery that returns an array of product IDs
             supabase
               .from('products')
               .select('id')
               .eq('vendor_id', vendorProfile.id)
+              .then(result => result.data?.map(item => item.id) || [])
           );
         
         if (metricsError) throw metricsError;

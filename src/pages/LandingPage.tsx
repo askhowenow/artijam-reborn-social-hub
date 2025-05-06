@@ -10,6 +10,7 @@ import CategoryFilter from "@/components/shop/CategoryFilter";
 import ProductGrid from "@/components/shop/ProductGrid";
 import FeaturedCategories from "@/components/shop/FeaturedCategories";
 import EventCard from "@/components/events/EventCard";
+import type { Event, TicketType } from "@/types/event";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const LandingPage = () => {
     }
   ];
 
-  const mockEvents = [
+  const mockEvents: Event[] = [
     {
       id: "1",
       title: "Art Workshop",
@@ -82,12 +83,13 @@ const LandingPage = () => {
         currency: "USD",
         quantity: 20,
         quantityAvailable: 20,
-        type: "paid",
+        type: "paid" as TicketType,
         salesStartDate: new Date().toISOString(),
         salesEndDate: new Date(Date.now() + 86400000).toISOString()
       }],
       featuredImage: "/lovable-uploads/artijam_05a8ae816465a7e1f2d568c714a9754b.jpg",
       organizerId: "mock-organizer-1",
+      organizerName: "Art Workshop Inc.",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isPublic: true,
@@ -115,12 +117,13 @@ const LandingPage = () => {
         currency: "USD",
         quantity: 50,
         quantityAvailable: 50,
-        type: "paid",
+        type: "paid" as TicketType,
         salesStartDate: new Date().toISOString(),
         salesEndDate: new Date(Date.now() + 172800000).toISOString()
       }],
       featuredImage: "/lovable-uploads/artijam_07ceb03c712172f112890ca52143a13d.jpg",
       organizerId: "mock-organizer-2",
+      organizerName: "Digital Arts Society",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isPublic: true,

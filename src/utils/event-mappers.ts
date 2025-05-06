@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Event, EventStatus } from "@/types/event";
+import type { Event, EventStatus, TicketType } from "@/types/event";
 
 // Helper function to convert database response to our Event type
 export const mapDbEventToEvent = async (dbEvent: any): Promise<Event> => {
