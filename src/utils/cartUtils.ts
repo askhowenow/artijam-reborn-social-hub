@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { CartData, CartItem } from '@/types/cart';
 import { type Product } from '@/hooks/use-products';
@@ -329,4 +328,150 @@ export function calculateCartTotal(items: CartItem[]): number {
     
     return total;
   }, 0);
+}
+
+// Fetch cart items for a user
+export async function fetchCartItems(userId: string): Promise<CartItem[]> {
+  try {
+    // First, get or create user cart
+    const { data: cartData, error: cartError } = await supabase
+      .from('user_carts')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    
+    if (cartError && cartError.code !== 'PGRST116') {
+      throw new Error(`Error fetching cart: ${cartError.message}`);
+    }
+    
+    let cartId;
+    
+    // If no cart exists, create one
+    if (!cartData) {
+      const { data: newCart, error: createError } = await supabase
+        .from('user_carts')
+        .insert({ user_id: userId })
+        .select('id')
+        .single();
+      
+      if (createError) {
+        throw new Error(`Error creating cart: ${createError.message}`);
+      }
+      
+      cartId = newCart.id;
+    } else {
+      cartId = cartData.id;
+    }
+    
+    // Now fetch cart items with product details
+    const { data: items, error: itemsError } = await supabase
+      .from('user_cart_items')
+      .select(`
+        id,
+        product_id,
+        quantity,
+        product:product_id (
+          id,
+          name,
+          description,
+          price,
+          image_url,
+          category,
+          stock_quantity,
+          is_available,
+          currency
+        )
+      `)
+      .eq('cart_id', cartId);
+    
+    if (itemsError) {
+      throw new Error(`Error fetching cart items: ${itemsError.message}`);
+    }
+    
+    // Transform the result to match CartItem type
+    const cartItems: CartItem[] = items.map(item => ({
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      product: item.product
+    }));
+    
+    return cartItems;
+  } catch (error) {
+    console.error('Error in fetchCartItems:', error);
+    return [];
+  }
+}
+
+// Fetch cart items for a guest
+export async function fetchGuestCartItems(guestId: string): Promise<CartItem[]> {
+  try {
+    // First, get or create guest cart
+    const { data: cartData, error: cartError } = await supabase
+      .from('guest_carts')
+      .select('id')
+      .eq('guest_id', guestId)
+      .single();
+    
+    if (cartError && cartError.code !== 'PGRST116') {
+      throw new Error(`Error fetching guest cart: ${cartError.message}`);
+    }
+    
+    let cartId;
+    
+    // If no cart exists, create one
+    if (!cartData) {
+      const { data: newCart, error: createError } = await supabase
+        .from('guest_carts')
+        .insert({ guest_id: guestId })
+        .select('id')
+        .single();
+      
+      if (createError) {
+        throw new Error(`Error creating guest cart: ${createError.message}`);
+      }
+      
+      cartId = newCart.id;
+    } else {
+      cartId = cartData.id;
+    }
+    
+    // Now fetch cart items with product details
+    const { data: items, error: itemsError } = await supabase
+      .from('guest_cart_items')
+      .select(`
+        id,
+        product_id,
+        quantity,
+        product:product_id (
+          id,
+          name,
+          description,
+          price,
+          image_url,
+          category,
+          stock_quantity,
+          is_available,
+          currency
+        )
+      `)
+      .eq('cart_id', cartId);
+    
+    if (itemsError) {
+      throw new Error(`Error fetching guest cart items: ${itemsError.message}`);
+    }
+    
+    // Transform the result to match CartItem type
+    const cartItems: CartItem[] = items.map(item => ({
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      product: item.product
+    }));
+    
+    return cartItems;
+  } catch (error) {
+    console.error('Error in fetchGuestCartItems:', error);
+    return [];
+  }
 }

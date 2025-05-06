@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -68,30 +67,32 @@ const ProductForm: React.FC = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      if (data) {
-        setFormData({
-          name: data.name || '',
-          description: data.description || '',
-          price: data.price || 0,
-          purchase_price: data.purchase_price || 0,
-          image_url: data.image_url || null,
-          category: data.category || '',
-          stock_quantity: data.stock_quantity || 1,
-          is_available: data.is_available ?? true,
-          currency: data.currency || 'USD'
-        });
-        
-        if (data.image_url) {
-          setPreviewUrl(data.image_url);
-        }
-      }
-    },
-    onError: (error: any) => {
-      toast.error(`Failed to load product: ${error.message}`);
-      navigate('/vendor/products');
-    },
     enabled: isEditMode,
+    meta: {
+      onSuccess: (data: any) => {
+        if (data) {
+          setFormData({
+            name: data.name || '',
+            description: data.description || '',
+            price: data.price || 0,
+            purchase_price: data.purchase_price || 0,
+            image_url: data.image_url || null,
+            category: data.category || '',
+            stock_quantity: data.stock_quantity || 1,
+            is_available: data.is_available ?? true,
+            currency: data.currency || 'USD'
+          });
+          
+          if (data.image_url) {
+            setPreviewUrl(data.image_url);
+          }
+        }
+      },
+      onError: (error: Error) => {
+        toast.error(`Failed to load product: ${error.message}`);
+        navigate('/vendor/products');
+      }
+    }
   });
 
   // Calculate profit margin when prices change

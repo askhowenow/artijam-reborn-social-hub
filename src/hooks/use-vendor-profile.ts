@@ -16,6 +16,8 @@ export type VendorProfile = {
   commission_rate: number | null;
   created_at: string | null;
   updated_at: string | null;
+  store_slug: string | null;
+  banner_image_url: string | null;
 };
 
 export type VendorProfileFormData = Omit<VendorProfile, 'id' | 'is_verified' | 'commission_rate' | 'created_at' | 'updated_at'>;

@@ -157,6 +157,11 @@ const StorefrontCreation = () => {
         business_description: businessDescription,
         store_slug: storeSlug,
         banner_image_url: uploadedBannerUrl,
+        business_type: vendorProfile?.business_type || null,
+        contact_email: vendorProfile?.contact_email || null,
+        contact_phone: vendorProfile?.contact_phone || null,
+        location: vendorProfile?.location || null,
+        website: vendorProfile?.website || null
       });
 
       toast.success("Storefront created successfully!");

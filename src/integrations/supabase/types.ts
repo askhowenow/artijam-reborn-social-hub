@@ -278,12 +278,14 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string | null
+          currency: string
           description: string | null
           id: string
           image_url: string | null
           is_available: boolean | null
           name: string
           price: number
+          purchase_price: number | null
           stock_quantity: number | null
           updated_at: string | null
           vendor_id: string
@@ -291,12 +293,14 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string | null
+          currency?: string
           description?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
           name: string
           price: number
+          purchase_price?: number | null
           stock_quantity?: number | null
           updated_at?: string | null
           vendor_id: string
@@ -304,12 +308,14 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string | null
+          currency?: string
           description?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
           name?: string
           price?: number
+          purchase_price?: number | null
           stock_quantity?: number | null
           updated_at?: string | null
           vendor_id?: string
@@ -490,6 +496,7 @@ export type Database = {
       }
       vendor_profiles: {
         Row: {
+          banner_image_url: string | null
           business_description: string | null
           business_name: string
           business_type: string | null
@@ -500,10 +507,12 @@ export type Database = {
           id: string
           is_verified: boolean | null
           location: string | null
+          store_slug: string | null
           updated_at: string | null
           website: string | null
         }
         Insert: {
+          banner_image_url?: string | null
           business_description?: string | null
           business_name: string
           business_type?: string | null
@@ -514,10 +523,12 @@ export type Database = {
           id: string
           is_verified?: boolean | null
           location?: string | null
+          store_slug?: string | null
           updated_at?: string | null
           website?: string | null
         }
         Update: {
+          banner_image_url?: string | null
           business_description?: string | null
           business_name?: string
           business_type?: string | null
@@ -528,6 +539,7 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           location?: string | null
+          store_slug?: string | null
           updated_at?: string | null
           website?: string | null
         }
