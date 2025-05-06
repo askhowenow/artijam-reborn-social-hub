@@ -21,6 +21,8 @@ import StorefrontCreation from "@/components/vendor/StorefrontCreation";
 import StorefrontPage from "@/pages/StorefrontPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsDashboard from "@/components/dashboard/AnalyticsDashboard";
+import PageEditor from "@/components/pages/PageEditor";
+import PageViewPage from "@/pages/PageViewPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -114,8 +116,14 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
               <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+              
+              {/* Page Routes */}
+              <Route path="/page/:id/edit" element={<PageEditor />} />
             </Route>
 
+            {/* Public Pages */}
+            <Route path="/@:slug" element={<PageViewPage />} />
+            
             {/* Public Storefront */}
             <Route path="/@:storeSlug" element={<StorefrontPage />} />
             

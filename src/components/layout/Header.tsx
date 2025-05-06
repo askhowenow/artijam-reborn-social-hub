@@ -1,20 +1,29 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Plus, Search, LogOut, Shield } from "lucide-react";
+import { Bell, Plus, Search, LogOut, Shield, FilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "./Logo";
 import { useUserRole } from "@/hooks/use-user-role";
 import { Badge } from "@/components/ui/badge";
+import CreatePageModal from "@/components/pages/CreatePageModal";
 
 const Header = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
+  const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -64,11 +73,29 @@ const Header = () => {
               </Button>
             </Link>
           )}
-          <Link to="/post">
-            <Button variant="outline" size="icon" className="rounded-full">
-              <Plus size={18} />
-            </Button>
-          </Link>
+          
+          {/* Create dropdown for the plus button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="rounded-full">
+                <Plus size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => setIsCreatePageModalOpen(true)}>
+                <FilePlus className="mr-2 h-4 w-4" />
+                <span>Create Page</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/post" className="w-full flex items-center">
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>Create Post</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Link to="/notifications">
             <Button variant="outline" size="icon" className="rounded-full">
               <Bell size={18} />
@@ -93,6 +120,12 @@ const Header = () => {
           </div>
         </div>
       </div>
+      
+      {/* Create Page Modal */}
+      <CreatePageModal 
+        isOpen={isCreatePageModalOpen}
+        onOpenChange={setIsCreatePageModalOpen}
+      />
     </header>
   );
 };

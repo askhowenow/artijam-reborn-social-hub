@@ -1,80 +1,64 @@
 
-import React from 'react';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetFooter, 
+import React from "react";
+import {
+  Sheet,
   SheetClose,
-  SheetTrigger
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useCart } from '@/hooks/use-cart';
-import { ShoppingCart, Minus, Plus, Trash2, LogIn } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
+import { CartItem } from "@/types/cart";
+import { Trash2, Plus, Minus } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { formatPrice } from "@/utils/string-utils";
 
 interface CartDrawerProps {
-  children?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cart: CartItem[];
+  onRemoveItem: (id: string) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
+  onCheckout: () => void;
+  isAuthenticated: boolean;
 }
 
-const CartDrawer = ({ children }: CartDrawerProps) => {
-  const { 
-    cart, 
-    cartCount, 
-    cartTotal, 
-    isLoading, 
-    removeFromCart, 
-    updateQuantity,
-    isAuthenticated
-  } = useCart();
-  const navigate = useNavigate();
-  
-  const handleCheckout = () => {
-    if (!isAuthenticated) {
-      toast.error('Please sign in to checkout');
-      navigate('/login');
-      return;
-    }
-    navigate('/shop/checkout');
-  };
-  
-  if (isLoading) {
-    return <div className="animate-pulse p-2">Loading...</div>;
-  }
-  
+const CartDrawer: React.FC<CartDrawerProps> = ({
+  open,
+  onOpenChange,
+  cart,
+  onRemoveItem,
+  onUpdateQuantity,
+  onCheckout,
+  isAuthenticated,
+}) => {
+  // Calculate cart total
+  const cartTotal = cart.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  );
+
+  // Calculate total number of items
+  const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
+
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        {children || (
-          <Button variant="outline" size="icon" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-artijam-purple text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </Button>
-        )}
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md flex flex-col">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Shopping Cart ({cartCount} items)</SheetTitle>
+          <SheetTitle>Your Cart ({itemCount} items)</SheetTitle>
+          <SheetDescription>
+            Review items in your cart before checkout.
+          </SheetDescription>
         </SheetHeader>
-        
-        <div className="flex-1 overflow-y-auto py-4">
+
+        <div className="py-4">
           {cart.length === 0 ? (
-            <div className="text-center py-10">
-              <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">Your cart is empty</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Your cart is empty.</p>
               <SheetClose asChild>
-                <Button 
-                  onClick={() => navigate('/')} 
-                  variant="link" 
-                  className="mt-2"
-                >
+                <Button variant="default" className="mt-4">
                   Continue Shopping
                 </Button>
               </SheetClose>
@@ -82,74 +66,60 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
           ) : (
             <div className="space-y-4">
               {cart.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                    {item.products && 'image_url' in item.products && item.products.image_url ? (
-                      <img 
-                        src={item.products.image_url} 
-                        alt={'name' in item.products ? item.products.name : 'Product'} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <ShoppingCart className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
+                <div
+                  key={item.id}
+                  className="flex items-center gap-4 py-3 border-b"
+                >
+                  <div className="w-16 h-16 flex-shrink-0">
+                    <img
+                      src={item.product.image_url || "/placeholder.svg"}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover rounded"
+                    />
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm line-clamp-1">
-                      {item.products && 'name' in item.products ? item.products.name : 'Product'}
+                    <h4 className="font-medium text-sm mb-1 truncate">
+                      {item.product.name}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {formatPrice(item.product.price, item.product.currency)}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      ${item.products && 'price' in item.products && typeof item.products.price === 'number' 
-                        ? item.products.price.toFixed(2) 
-                        : '0.00'}
-                    </p>
-                    
-                    <div className="flex items-center mt-2">
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-7 w-7" 
-                        onClick={() => {
-                          if (item.quantity > 1) {
-                            updateQuantity.mutate({ 
-                              itemId: item.id, 
-                              quantity: item.quantity - 1 
-                            });
-                          }
-                        }}
-                        disabled={item.quantity <= 1}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      
-                      <span className="mx-2 text-sm">
-                        {item.quantity}
-                      </span>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-7 w-7" 
-                        onClick={() => {
-                          updateQuantity.mutate({ 
-                            itemId: item.id, 
-                            quantity: item.quantity + 1 
-                          });
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
                   </div>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-gray-500 hover:text-red-500" 
-                    onClick={() => removeFromCart.mutate(item.id)}
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() =>
+                        onUpdateQuantity(
+                          item.id,
+                          Math.max(1, item.quantity - 1)
+                        )
+                      }
+                      disabled={item.quantity <= 1}
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center">{item.quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() =>
+                        onUpdateQuantity(item.id, item.quantity + 1)
+                      }
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500"
+                    onClick={() => onRemoveItem(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -158,51 +128,31 @@ const CartDrawer = ({ children }: CartDrawerProps) => {
             </div>
           )}
         </div>
-        
+
         {cart.length > 0 && (
-          <div className="mt-auto">
-            <Separator />
-            <div className="py-4">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-500">Subtotal</span>
-                <span className="font-medium">${cartTotal.toFixed(2)}</span>
+          <>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span>{formatPrice(cartTotal, "USD")}</span>
               </div>
-              <div className="flex justify-between mb-4">
-                <span className="text-gray-500">Shipping</span>
-                <span className="font-medium">Calculated at checkout</span>
+              <div className="flex justify-between text-sm">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
               </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between mb-4">
-                <span className="font-bold">Total</span>
-                <span className="font-bold">${cartTotal.toFixed(2)}</span>
+              <Separator />
+              <div className="flex justify-between font-medium">
+                <span>Total</span>
+                <span>{formatPrice(cartTotal, "USD")}</span>
               </div>
-              
-              <SheetFooter className="flex flex-col gap-2 sm:flex-row">
-                <SheetClose asChild>
-                  <Button variant="outline" className="w-full">
-                    Continue Shopping
-                  </Button>
-                </SheetClose>
-                
-                {isAuthenticated ? (
-                  <Button 
-                    onClick={handleCheckout} 
-                    className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
-                  >
-                    Checkout
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => navigate('/login')} 
-                    className="w-full"
-                  >
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Sign in to Checkout
-                  </Button>
-                )}
-              </SheetFooter>
             </div>
-          </div>
+
+            <SheetFooter className="pt-4">
+              <Button onClick={onCheckout} className="w-full">
+                {isAuthenticated ? "Proceed to Checkout" : "Sign In to Checkout"}
+              </Button>
+            </SheetFooter>
+          </>
         )}
       </SheetContent>
     </Sheet>
