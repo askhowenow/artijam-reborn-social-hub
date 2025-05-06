@@ -2,37 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking } from '@/types/booking';
-
-// Define more specific types to avoid recursion
-interface ServiceBookingResponseCustomer {
-  id: string;
-  email: string;
-  full_name?: string;
-}
-
-interface ServiceBookingResponseService {
-  id: string;
-  name: string;
-  vendor_id: string;
-}
-
-interface ServiceBookingResponse {
-  id: string;
-  service_id: string;
-  customer_id: string;
-  start_time: string;
-  end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
-  special_requests?: string;
-  customer_notes?: string;
-  payment_status: 'pending' | 'paid' | 'refunded';
-  booking_reference?: string;
-  qr_code?: string;
-  created_at: string;
-  service?: ServiceBookingResponseService;
-  customer?: ServiceBookingResponseCustomer;
-}
+import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
+import { transformBookingFromApi } from '@/utils/data-transformers';
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
@@ -83,29 +54,12 @@ export const useVendorBookings = () => {
       }
       
       // Map the response data to our Booking type
-      return (data || []).map((item: ServiceBookingResponse) => {
-        return {
-          id: item.id,
-          service_id: item.service_id,
-          customer_id: item.customer_id,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          status: item.status,
-          special_requests: item.special_requests,
-          customer_notes: item.customer_notes,
-          payment_status: item.payment_status,
-          booking_reference: item.booking_reference,
-          qr_code: item.qr_code,
-          created_at: item.created_at,
-          service: item.service,
-          customer: item.customer
-        } as Booking;
-      });
+      return (data || []).map((item: ApiBooking) => transformBookingFromApi(item));
     }
   });
   
   const updateBookingStatus = useMutation({
-    mutationFn: async ({ bookingId, status }: { bookingId: string, status: Booking['status'] }) => {
+    mutationFn: async ({ bookingId, status }: { bookingId: string, status: BookingStatus }) => {
       const { error } = await supabase
         .from('service_bookings')
         .update({ status })

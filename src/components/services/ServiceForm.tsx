@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -55,10 +54,22 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
   const handleSubmit = async (data: z.infer<typeof serviceFormSchema>) => {
     try {
-      await onSubmit({
-        ...data,
+      // Ensure all required fields are present for ServiceFormData type
+      const formData: ServiceFormData & { id?: string } = {
+        name: data.name,
+        price: data.price,
+        duration: data.duration,
+        description: data.description,
+        category: data.category,
+        currency: data.currency,
+        location_type: data.location_type,
+        preparation_time: data.preparation_time,
+        cleanup_time: data.cleanup_time,
+        is_available: data.is_available,
         id: initialData?.id
-      });
+      };
+      
+      await onSubmit(formData);
     } catch (error) {
       console.error("Error submitting form:", error);
     }

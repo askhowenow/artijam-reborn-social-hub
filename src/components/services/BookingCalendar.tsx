@@ -9,7 +9,7 @@ import { format, addDays, isSameDay, getDay, parseISO, isAfter, addMinutes } fro
 
 import { Service } from '@/hooks/use-services';
 import { ServiceAvailability } from '@/hooks/use-service-availability';
-import { ServiceBookingFormData } from '@/hooks/use-service-bookings';
+import { ServiceBookingFormData } from '@/types/booking';
 
 interface BookingCalendarProps {
   service: Service;
@@ -116,13 +116,10 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     const endTime = addMinutes(startTime, service.duration);
     
     const bookingData: ServiceBookingFormData = {
-      service_id: service.id,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      status: 'confirmed',
-      special_requests: notes,
-      customer_notes: notes,
-      payment_status: 'pending'
+      serviceId: service.id,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      specialRequests: notes
     };
     
     onBookingSubmit(bookingData);

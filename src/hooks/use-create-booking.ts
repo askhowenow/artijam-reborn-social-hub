@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ServiceBookingFormData } from '@/types/booking';
+import { transformBookingDataForApi } from '@/utils/data-transformers';
 
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
@@ -15,12 +16,15 @@ export const useCreateBooking = () => {
         throw new Error('User not authenticated');
       }
       
+      // Transform booking data from camelCase to snake_case for the API
+      const apiBookingData = {
+        ...transformBookingDataForApi(bookingData),
+        customer_id: user.user.id
+      };
+      
       const { data, error } = await supabase
         .from('service_bookings')
-        .insert({
-          ...bookingData,
-          customer_id: user.user.id
-        })
+        .insert(apiBookingData)
         .select()
         .single();
         
