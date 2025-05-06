@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { PlusCircle, X } from 'lucide-react';
 import { ServiceAvailabilityFormData, ServiceAvailability } from '@/hooks/use-service-availability';
+import { toast } from 'sonner';
 
 interface AvailabilityManagerProps {
   serviceId: string;
@@ -38,6 +39,8 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
     end_time: '17:00',
     is_available: true
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (name: string, value: any) => {
     setNewAvailability(prev => ({
@@ -46,16 +49,34 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
     }));
   };
 
-  const handleAddAvailability = () => {
-    onAdd(newAvailability);
-    // Reset form to default values
-    setNewAvailability({
-      service_id: serviceId,
-      day_of_week: 1,
-      start_time: '09:00',
-      end_time: '17:00',
-      is_available: true
-    });
+  const validateAvailability = () => {
+    // Check if start time is before end time
+    if (newAvailability.start_time >= newAvailability.end_time) {
+      toast.error("Start time must be before end time");
+      return false;
+    }
+    return true;
+  };
+
+  const handleAddAvailability = async () => {
+    if (!validateAvailability()) return;
+    
+    try {
+      setIsSubmitting(true);
+      await onAdd(newAvailability);
+      // Reset form to default values
+      setNewAvailability({
+        service_id: serviceId,
+        day_of_week: 1,
+        start_time: '09:00',
+        end_time: '17:00',
+        is_available: true
+      });
+    } catch (error) {
+      console.error("Error adding availability:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Group availabilities by day
@@ -80,7 +101,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
               value={newAvailability.day_of_week.toString()}
               onValueChange={(value) => handleChange('day_of_week', parseInt(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger id="day_of_week">
                 <SelectValue placeholder="Select day" />
               </SelectTrigger>
               <SelectContent>
@@ -117,11 +138,19 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
         <Button 
           type="button" 
           onClick={handleAddAvailability} 
-          className="w-full"
-          variant="outline"
+          className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
+          disabled={isSubmitting}
         >
-          <PlusCircle className="mr-2 h-4 w-4" /> 
-          Add Availability Slot
+          {isSubmitting ? (
+            <>
+              <span className="animate-spin mr-2">⏳</span> Adding...
+            </>
+          ) : (
+            <>
+              <PlusCircle className="mr-2 h-4 w-4" /> 
+              Add Availability Slot
+            </>
+          )}
         </Button>
 
         <div className="mt-8 space-y-4">

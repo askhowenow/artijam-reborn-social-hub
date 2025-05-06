@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Sheet,
   SheetClose,
@@ -21,10 +21,16 @@ import { useNavigate } from "react-router-dom";
 
 interface CartDrawerProps {
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
-  const [open, setOpen] = useState(false);
+const CartDrawer: React.FC<CartDrawerProps> = ({ 
+  children, 
+  open, 
+  onOpenChange 
+}) => {
+  const [internalOpen, setInternalOpen] = React.useState(false);
   const navigate = useNavigate();
   const { 
     cart, 
@@ -34,6 +40,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     cartTotal, 
     isAuthenticated 
   } = useCart();
+  
+  // Use controlled or uncontrolled state based on props
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
 
   const handleRemoveItem = (itemId: string) => {
     removeFromCart.mutate(itemId);
@@ -49,7 +59,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     } else {
       navigate("/login?redirect=checkout");
     }
-    setOpen(false);
+    setIsOpen(false);
   };
 
   // Default trigger if none provided
@@ -64,7 +74,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   );
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         {children || defaultTrigger}
       </SheetTrigger>

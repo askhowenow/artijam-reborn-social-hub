@@ -4,7 +4,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Simplified type definition to avoid recursion
+// Define simplified types to avoid recursion
+export type BookingService = {
+  id: string;
+  name: string;
+  vendor_id: string;
+};
+
+export type BookingCustomer = {
+  id: string;
+  email: string;
+  full_name?: string;
+};
+
 export type Booking = {
   id: string;
   service_id: string;
@@ -18,16 +30,8 @@ export type Booking = {
   booking_reference?: string;
   qr_code?: string;
   created_at: string;
-  service?: {
-    id: string;
-    name: string;
-    vendor_id: string;
-  };
-  customer?: {
-    id: string;
-    email: string;
-    full_name?: string;
-  };
+  service?: BookingService;
+  customer?: BookingCustomer;
 };
 
 export type ServiceBookingFormData = {
@@ -106,7 +110,7 @@ export const useCustomerBookings = () => {
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
-  // Fetch vendor bookings - avoid deep nesting in response type
+  // Fetch vendor bookings
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['vendor-bookings'],
     queryFn: async () => {
@@ -152,7 +156,8 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      return data as Booking[];
+      // Cast to the correct type to avoid type issues
+      return data as unknown as Booking[];
     }
   });
   

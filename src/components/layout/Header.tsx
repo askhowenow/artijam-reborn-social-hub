@@ -13,7 +13,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ children }) => {
-  const { cartCount, isCartOpen, setIsCartOpen } = useCart();
+  const { cartCount } = useCart();
+  const [isCartOpen, setIsCartOpen] = React.useState(false);
   
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-10">
@@ -67,7 +68,11 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
         </div>
       </div>
       
-      <CartDrawer open={isCartOpen} onOpenChange={setIsCartOpen} />
+      <CartDrawer 
+        children={undefined} 
+        open={isCartOpen} 
+        onOpenChange={setIsCartOpen} 
+      />
     </header>
   );
 };

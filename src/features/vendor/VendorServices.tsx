@@ -6,12 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2, PlusCircle } from 'lucide-react';
 import ServiceForm from '@/components/services/ServiceForm';
-import ServiceCard from '@/components/services/ServiceCard';
 import AvailabilityManager from '@/components/services/AvailabilityManager';
 import { useServices, ServiceFormData } from '@/hooks/use-services';
 import { useServiceAvailability } from '@/hooks/use-service-availability';
 import { useVendorProfile } from '@/hooks/use-vendor-profile';
 import DeleteProductDialog from '@/components/vendor/DeleteProductDialog';
+import VendorServiceCard from '@/components/services/VendorServiceCard';
 
 const VendorServices = () => {
   const { vendorProfile } = useVendorProfile();
@@ -72,10 +72,6 @@ const VendorServices = () => {
     }
   };
 
-  const handleSelectService = (serviceId: string) => {
-    setSelectedServiceId(serviceId);
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -131,33 +127,16 @@ const VendorServices = () => {
           <TabsContent value="services" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
-                <ServiceCard 
+                <VendorServiceCard 
                   key={service.id}
                   service={service}
                   onEdit={() => handleOpenForm(service)}
                   onDelete={() => handleDeleteService(service.id)}
+                  onManageAvailability={() => setSelectedServiceId(service.id)}
+                  isSelected={selectedServiceId === service.id}
                 />
               ))}
             </div>
-
-            {services.length > 0 && (
-              <div className="pt-6 text-center">
-                <p className="text-gray-500 mb-2">Select a service to manage its availability:</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {services.map((service) => (
-                    <Button 
-                      key={service.id}
-                      variant={selectedServiceId === service.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleSelectService(service.id)}
-                      className={selectedServiceId === service.id ? "bg-artijam-purple hover:bg-artijam-purple/90" : ""}
-                    >
-                      {service.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="availability">
