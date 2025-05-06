@@ -5,15 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, Loader2 } from 'lucide-react';
 import { ServiceAvailabilityFormData, ServiceAvailability } from '@/hooks/use-service-availability';
 import { toast } from 'sonner';
 
 interface AvailabilityManagerProps {
   serviceId: string;
   availabilities: ServiceAvailability[];
-  onAdd: (availability: ServiceAvailabilityFormData) => void;
-  onDelete: (availabilityId: string) => void;
+  onAdd: (availability: ServiceAvailabilityFormData) => Promise<any>;
+  onDelete: (availabilityId: string) => Promise<any>;
 }
 
 const DAYS_OF_WEEK = [
@@ -41,6 +41,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleChange = (name: string, value: any) => {
     setNewAvailability(prev => ({
@@ -50,6 +51,11 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
   };
 
   const validateAvailability = () => {
+    if (!newAvailability.start_time || !newAvailability.end_time) {
+      toast.error("Start time and end time are required");
+      return false;
+    }
+    
     // Check if start time is before end time
     if (newAvailability.start_time >= newAvailability.end_time) {
       toast.error("Start time must be before end time");
@@ -63,7 +69,11 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
     
     try {
       setIsSubmitting(true);
-      await onAdd(newAvailability);
+      await onAdd({
+        ...newAvailability,
+        service_id: serviceId
+      });
+      
       // Reset form to default values
       setNewAvailability({
         service_id: serviceId,
@@ -76,6 +86,19 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
       console.error("Error adding availability:", error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteAvailability = async (id: string) => {
+    try {
+      setIsDeleting(id);
+      await onDelete(id);
+      toast.success("Availability slot removed");
+    } catch (error) {
+      console.error("Error deleting availability:", error);
+      toast.error("Failed to remove availability slot");
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -143,7 +166,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
         >
           {isSubmitting ? (
             <>
-              <span className="animate-spin mr-2">⏳</span> Adding...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...
             </>
           ) : (
             <>
@@ -170,10 +193,15 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(availability.id)}
+                        onClick={() => handleDeleteAvailability(availability.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                        disabled={isDeleting === availability.id}
                       >
-                        <X className="h-4 w-4" />
+                        {isDeleting === availability.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   ))}

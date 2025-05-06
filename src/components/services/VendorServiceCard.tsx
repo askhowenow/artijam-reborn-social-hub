@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Calendar } from 'lucide-react';
+import { Edit, Trash2, Calendar, Loader2 } from 'lucide-react';
 import { Service } from '@/hooks/use-services';
 import { formatCurrency } from '@/utils/string-utils';
 
@@ -12,6 +12,7 @@ interface VendorServiceCardProps {
   onDelete: () => void;
   onManageAvailability: () => void;
   isSelected: boolean;
+  isDeletingService?: boolean;
 }
 
 const VendorServiceCard: React.FC<VendorServiceCardProps> = ({ 
@@ -19,7 +20,8 @@ const VendorServiceCard: React.FC<VendorServiceCardProps> = ({
   onEdit, 
   onDelete, 
   onManageAvailability,
-  isSelected
+  isSelected,
+  isDeletingService = false
 }) => {
   return (
     <Card className={`overflow-hidden transition-all ${isSelected ? 'ring-2 ring-artijam-purple' : ''}`}>
@@ -64,8 +66,13 @@ const VendorServiceCard: React.FC<VendorServiceCardProps> = ({
               size="sm"
               className="text-red-600 hover:bg-red-50 hover:text-red-700"
               onClick={onDelete}
+              disabled={isDeletingService}
             >
-              <Trash2 className="h-4 w-4" />
+              {isDeletingService ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>

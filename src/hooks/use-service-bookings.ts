@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Define simplified types to avoid recursion
+// Define types without circular references
 export type BookingService = {
   id: string;
   name: string;
@@ -44,10 +44,10 @@ export type ServiceBookingFormData = {
   payment_status: 'pending' | 'paid' | 'refunded';
 };
 
+// Customer bookings hook
 export const useCustomerBookings = () => {
   const queryClient = useQueryClient();
 
-  // Fetch customer bookings
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['customer-bookings'],
     queryFn: async () => {
@@ -78,7 +78,6 @@ export const useCustomerBookings = () => {
     }
   });
   
-  // Cancel booking mutation
   const cancelBooking = useMutation({
     mutationFn: async (bookingId: string) => {
       const { error } = await supabase
@@ -107,10 +106,10 @@ export const useCustomerBookings = () => {
   };
 };
 
+// Vendor bookings hook
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
-  // Fetch vendor bookings
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['vendor-bookings'],
     queryFn: async () => {
@@ -156,12 +155,10 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Cast to the correct type to avoid type issues
-      return data as unknown as Booking[];
+      return data as Booking[];
     }
   });
   
-  // Update booking status mutation
   const updateBookingStatus = useMutation({
     mutationFn: async ({ bookingId, status }: { bookingId: string, status: Booking['status'] }) => {
       const { error } = await supabase
@@ -190,6 +187,7 @@ export const useVendorBookings = () => {
   };
 };
 
+// Create booking hook
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
   
