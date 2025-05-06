@@ -1,0 +1,42 @@
+
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+
+interface VendorCTAProps {
+  isAuthenticated: boolean;
+}
+
+const VendorCTA = ({ isAuthenticated }: VendorCTAProps) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="mb-8">
+      <Card className="bg-gradient-to-r from-artijam-purple/20 to-artijam-purple/5">
+        <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-bold mb-2">Become a Vendor</h3>
+            <p className="text-gray-700 mb-4">
+              Start selling your creations on Artijam's marketplace and reach our creative community
+            </p>
+          </div>
+          <Button 
+            className="bg-artijam-purple hover:bg-artijam-purple/90"
+            onClick={() => {
+              if (!isAuthenticated) {
+                navigate('/login');
+              } else {
+                navigate('/vendor/profile');
+              }
+            }}
+          >
+            {isAuthenticated ? 'Start Selling' : 'Sign in to Start Selling'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default VendorCTA;

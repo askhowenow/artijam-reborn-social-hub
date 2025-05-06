@@ -1,0 +1,60 @@
+
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import ProductCard from '@/components/shop/ProductCard';
+import { type Product } from '@/hooks/use-products';
+
+interface ProductGridProps {
+  products: Product[] | null;
+  isLoading: boolean;
+  error: Error | null;
+  selectedCategory: string | null;
+}
+
+const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGridProps) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[...Array(8)].map((_, index) => (
+          <Card key={index} className="h-64 animate-pulse">
+            <div className="bg-gray-200 h-40" />
+            <CardContent className="p-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-1/2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-8 text-center">
+        <p className="text-red-500">Failed to load products. Please try again later.</p>
+      </Card>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <p className="text-gray-500">
+          {selectedCategory 
+            ? `No products found in ${selectedCategory} category`
+            : 'No products available'}
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+};
+
+export default ProductGrid;
