@@ -66,10 +66,32 @@ const LandingPage = () => {
       description: "Learn the basics of painting landscapes with watercolors",
       startDate: new Date().toISOString(),
       endDate: new Date(Date.now() + 86400000).toISOString(),
-      location: { city: "San Francisco", state: "California" },
+      location: { 
+        city: "San Francisco", 
+        state: "California", 
+        address: "123 Art St",
+        country: "USA",
+        postalCode: "94105" 
+      },
       status: "published",
-      ticketTiers: [{ quantity: 20 }],
-      featuredImage: "/lovable-uploads/artijam_05a8ae816465a7e1f2d568c714a9754b.jpg"
+      ticketTiers: [{ 
+        id: "tier1",
+        name: "General Admission",
+        description: "Standard entry",
+        price: 20,
+        currency: "USD",
+        quantity: 20,
+        quantityAvailable: 20,
+        type: "paid",
+        salesStartDate: new Date().toISOString(),
+        salesEndDate: new Date(Date.now() + 86400000).toISOString()
+      }],
+      featuredImage: "/lovable-uploads/artijam_05a8ae816465a7e1f2d568c714a9754b.jpg",
+      organizerId: "mock-organizer-1",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPublic: true,
+      capacity: 50
     },
     {
       id: "2",
@@ -77,10 +99,32 @@ const LandingPage = () => {
       description: "Explore digital art from emerging artists",
       startDate: new Date(Date.now() + 172800000).toISOString(),
       endDate: new Date(Date.now() + 259200000).toISOString(),
-      location: { city: "Austin", state: "Texas" },
+      location: { 
+        city: "Austin", 
+        state: "Texas",
+        address: "456 Digital Ave",
+        country: "USA",
+        postalCode: "78701"
+      },
       status: "published",
-      ticketTiers: [{ quantity: 50 }],
-      featuredImage: "/lovable-uploads/artijam_07ceb03c712172f112890ca52143a13d.jpg"
+      ticketTiers: [{ 
+        id: "tier2",
+        name: "Standard Entry",
+        description: "Regular exhibition access",
+        price: 15,
+        currency: "USD",
+        quantity: 50,
+        quantityAvailable: 50,
+        type: "paid",
+        salesStartDate: new Date().toISOString(),
+        salesEndDate: new Date(Date.now() + 172800000).toISOString()
+      }],
+      featuredImage: "/lovable-uploads/artijam_07ceb03c712172f112890ca52143a13d.jpg",
+      organizerId: "mock-organizer-2",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPublic: true,
+      capacity: 100
     }
   ];
 
