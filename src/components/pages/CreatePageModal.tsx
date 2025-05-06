@@ -107,7 +107,13 @@ const CreatePageModal: React.FC<CreatePageModalProps> = ({
       });
       
       onOpenChange(false);
-      navigate(`/page/${newPage.id}/edit`);
+      
+      // Make sure newPage has an id before navigating
+      if (newPage && newPage.id) {
+        navigate(`/page/${newPage.id}/edit`);
+      } else {
+        throw new Error('Failed to get page ID from response');
+      }
     } catch (error) {
       console.error('Error creating page:', error);
       toast({

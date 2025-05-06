@@ -119,14 +119,9 @@ function App() {
               
               {/* Page Routes */}
               <Route path="/page/:id/edit" element={<PageEditor />} />
+              <Route path="/@:slug" element={<PageViewPage />} />
             </Route>
 
-            {/* Public Pages */}
-            <Route path="/@:slug" element={<PageViewPage />} />
-            
-            {/* Public Storefront */}
-            <Route path="/@:storeSlug" element={<StorefrontPage />} />
-            
             {/* Redirect from Index to Landing or Home */}
             <Route path="/" element={
               <AuthCheck 

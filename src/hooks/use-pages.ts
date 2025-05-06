@@ -193,7 +193,7 @@ export function usePages() {
     pageBySlugQuery,
     
     // Mutations
-    createPage: createPageMutation.mutate,
+    createPage: (pageData: CreatePageInput) => createPageMutation.mutateAsync(pageData),
     updatePage: updatePageMutation.mutate,
     deletePage: deletePageMutation.mutate,
     
