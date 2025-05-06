@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Sheet,
   SheetClose,
@@ -8,46 +8,69 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/types/cart";
-import { Trash2, Plus, Minus } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/utils/string-utils";
+import { useCart } from "@/hooks/use-cart";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface CartDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  cart: CartItem[];
-  onRemoveItem: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number) => void;
-  onCheckout: () => void;
-  isAuthenticated: boolean;
+  children?: React.ReactNode;
 }
 
-const CartDrawer: React.FC<CartDrawerProps> = ({
-  open,
-  onOpenChange,
-  cart,
-  onRemoveItem,
-  onUpdateQuantity,
-  onCheckout,
-  isAuthenticated,
-}) => {
-  // Calculate cart total
-  const cartTotal = cart.reduce(
-    (total, item) => total + item.product.price * item.quantity,
-    0
+const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { 
+    cart, 
+    removeFromCart, 
+    updateQuantity, 
+    cartCount, 
+    cartTotal, 
+    isAuthenticated 
+  } = useCart();
+
+  const handleRemoveItem = (itemId: string) => {
+    removeFromCart.mutate(itemId);
+  };
+
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+    updateQuantity.mutate({ itemId, quantity });
+  };
+
+  const handleCheckout = () => {
+    if (isAuthenticated) {
+      navigate("/checkout");
+    } else {
+      navigate("/login?redirect=checkout");
+    }
+    setOpen(false);
+  };
+
+  // Default trigger if none provided
+  const defaultTrigger = (
+    <Button variant="outline" size="sm" className="flex items-center gap-2">
+      <ShoppingCart className="h-4 w-4" />
+      <span className="sr-only sm:not-sr-only">Cart</span>
+      {cartCount > 0 && (
+        <Badge className="ml-1 bg-artijam-purple">{cartCount}</Badge>
+      )}
+    </Button>
   );
 
-  // Calculate total number of items
-  const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
-
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        {children || defaultTrigger}
+      </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Your Cart ({itemCount} items)</SheetTitle>
+          <SheetTitle>Your Cart ({cartCount} items)</SheetTitle>
           <SheetDescription>
             Review items in your cart before checkout.
           </SheetDescription>
@@ -93,7 +116,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       size="icon"
                       className="h-8 w-8"
                       onClick={() =>
-                        onUpdateQuantity(
+                        handleUpdateQuantity(
                           item.id,
                           Math.max(1, item.quantity - 1)
                         )
@@ -108,7 +131,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       size="icon"
                       className="h-8 w-8"
                       onClick={() =>
-                        onUpdateQuantity(item.id, item.quantity + 1)
+                        handleUpdateQuantity(item.id, item.quantity + 1)
                       }
                     >
                       <Plus className="h-3 w-3" />
@@ -119,7 +142,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-red-500"
-                    onClick={() => onRemoveItem(item.id)}
+                    onClick={() => handleRemoveItem(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -148,7 +171,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             <SheetFooter className="pt-4">
-              <Button onClick={onCheckout} className="w-full">
+              <Button onClick={handleCheckout} className="w-full">
                 {isAuthenticated ? "Proceed to Checkout" : "Sign In to Checkout"}
               </Button>
             </SheetFooter>

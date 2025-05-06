@@ -88,74 +88,63 @@ export function useCart(options?: UseCartOptions): UseCartResult {
       }
       return addToCartOperation(productId, quantity, cartData.cartId, isAuthenticated, guestId);
     },
-    meta: {
-      onSuccess: () => {
-        toast.success('Product added to cart');
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      },
-      onError: (error: Error) => {
-        console.error('Failed to add product to cart:', error);
-        toast.error('Failed to add product to cart. Please try again.');
-      }
+    onSuccess: () => {
+      toast.success('Product added to cart');
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to add product to cart:', error);
+      toast.error('Failed to add product to cart. Please try again.');
     }
   });
 
   // Remove item from cart
   const removeFromCart = useMutation({
     mutationFn: async (itemId: string) => {
-      if (!cartData?.cartId) {
-        throw new Error('Cart not initialized');
-      }
       return removeFromCartOperation(itemId, isAuthenticated, guestId);
     },
-    meta: {
-      onSuccess: () => {
-        toast.success('Product removed from cart');
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      },
-      onError: (error: Error) => {
-        console.error('Failed to remove product from cart:', error);
-        toast.error('Failed to remove product from cart. Please try again.');
-      }
+    onSuccess: () => {
+      toast.success('Product removed from cart');
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to remove product from cart:', error);
+      toast.error('Failed to remove product from cart. Please try again.');
     }
   });
 
   // Update quantity of an item in the cart
   const updateQuantity = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      if (!cartData?.cartId || quantity < 1) {
-        throw new Error('Invalid operation');
+      if (quantity < 1) {
+        throw new Error('Invalid quantity');
       }
       return updateQuantityOperation(itemId, quantity, isAuthenticated, guestId);
     },
-    meta: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      },
-      onError: (error: Error) => {
-        console.error('Failed to update cart:', error);
-        toast.error('Failed to update cart. Please try again.');
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to update cart:', error);
+      toast.error('Failed to update cart. Please try again.');
     }
   });
 
   // Sync guest cart to user cart on login
   const syncGuestCartToUserCart = useMutation({
     mutationFn: async () => {
-      if (!guestId || !isAuthenticated) {
-        throw new Error('Cannot sync cart: missing guest ID or not authenticated');
+      if (!guestId) {
+        throw new Error('Cannot sync cart: missing guest ID');
       }
       return syncCart(guestId);
     },
-    meta: {
-      onSuccess: () => {
-        toast.success('Your cart has been synced to your account');
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      },
-      onError: (error: Error) => {
-        console.error('Failed to sync cart:', error);
-        toast.error('Failed to sync your cart. Please try again.');
-      }
+    onSuccess: () => {
+      toast.success('Your cart has been synced to your account');
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to sync cart:', error);
+      toast.error('Failed to sync your cart. Please try again.');
     }
   });
 

@@ -15,6 +15,73 @@ export const getGuestId = (): string => {
   return guestId;
 };
 
+// Fetch cart data based on authentication status
+export const fetchCartData = async (
+  isAuthenticated: boolean,
+  guestId: string | null
+): Promise<CartData> => {
+  if (isAuthenticated) {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      throw new Error('User session not found');
+    }
+    
+    const userId = session.session.user.id;
+    const items = await getUserCart(userId);
+    
+    // Get or create user cart ID
+    let { data: userCart } = await supabase
+      .from('user_carts')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+      
+    if (!userCart) {
+      const { data: newCart } = await supabase
+        .from('user_carts')
+        .insert({ user_id: userId })
+        .select('id')
+        .single();
+        
+      userCart = newCart;
+    }
+    
+    return {
+      cartId: userCart?.id || '',
+      items
+    };
+  } else if (guestId) {
+    const items = await getGuestCart(guestId);
+    
+    // Get or create guest cart ID
+    let { data: guestCart } = await supabase
+      .from('guest_carts')
+      .select('id')
+      .eq('guest_id', guestId)
+      .single();
+      
+    if (!guestCart) {
+      const { data: newCart } = await supabase
+        .from('guest_carts')
+        .insert({ guest_id: guestId })
+        .select('id')
+        .single();
+        
+      guestCart = newCart;
+    }
+    
+    return {
+      cartId: guestCart?.id || '',
+      items
+    };
+  }
+  
+  return {
+    cartId: '',
+    items: []
+  };
+};
+
 // Get user cart
 export const getUserCart = async (userId: string): Promise<CartItem[]> => {
   try {
@@ -97,6 +164,53 @@ export const getGuestCart = async (guestId: string): Promise<CartItem[]> => {
     console.error('Error getting guest cart:', error);
     return [];
   }
+};
+
+// Add product to cart operation
+export const addToCartOperation = async (
+  productId: string,
+  quantity: number,
+  cartId: string,
+  isAuthenticated: boolean,
+  guestId: string | null
+): Promise<CartItem[]> => {
+  if (isAuthenticated) {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      throw new Error('User session not found');
+    }
+    
+    const userId = session.session.user.id;
+    return await addToUserCart(userId, productId, quantity);
+  } else if (guestId) {
+    return await addToGuestCart(guestId, productId, quantity);
+  }
+  
+  throw new Error('Authentication or guest ID required');
+};
+
+// Remove from cart operation
+export const removeFromCartOperation = async (
+  itemId: string,
+  isAuthenticated: boolean,
+  guestId: string | null
+): Promise<void> => {
+  if (!itemId) throw new Error('Item ID is required');
+  
+  return await removeCartItem(itemId, isAuthenticated);
+};
+
+// Update quantity operation
+export const updateQuantityOperation = async (
+  itemId: string,
+  quantity: number,
+  isAuthenticated: boolean,
+  guestId: string | null
+): Promise<void> => {
+  if (!itemId) throw new Error('Item ID is required');
+  if (quantity < 1) throw new Error('Quantity must be at least 1');
+  
+  return await updateCartItemQuantity(itemId, quantity, isAuthenticated);
 };
 
 // Add item to user cart
@@ -280,10 +394,15 @@ export const calculateCartCount = (cartItems: CartItem[]): number => {
 
 // Sync guest cart to user cart after login
 export const syncGuestCartToUserCart = async (
-  userId: string, 
   guestId: string
 ): Promise<CartItem[]> => {
   try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) {
+      throw new Error('User session not found');
+    }
+    
+    const userId = session.session.user.id;
     const guestCartItems = await getGuestCart(guestId);
     
     // Skip if guest cart is empty
