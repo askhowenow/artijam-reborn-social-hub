@@ -21,7 +21,7 @@ import {
   removeFromCartOperation,
   updateQuantityOperation,
   calculateCartTotal
-} from '@/utils/cartUtils';
+} from '@/utils/cart';
 
 export function useCart(options?: UseCartOptions): UseCartResult {
   const queryClient = useQueryClient();
