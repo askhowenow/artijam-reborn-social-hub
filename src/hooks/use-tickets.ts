@@ -66,7 +66,7 @@ const purchaseTicketOperation = async (ticketData: Omit<Ticket, 'id' | 'purchase
     throw error;
   }
   
-  // Also update the ticket tier quantity available
+  // Also update the ticket tier quantity available using the database function
   const { error: tierError } = await supabase.rpc('decrement_tier_quantity', {
     tier_id: ticketData.tierId,
   });

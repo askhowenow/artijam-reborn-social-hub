@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Event, UseEventsOptions, UseEventsResult, EventStatus } from '@/types/event';
+import { mapDbEventToEvent } from '@/utils/event-mappers';
 
 // Helper function to convert database response to our Event type
 const mapDbEventToEvent = async (dbEvent: any): Promise<Event> => {
@@ -107,11 +107,11 @@ const fetchEvents = async (options?: UseEventsOptions): Promise<Event[]> => {
   return Promise.all((data || []).map(mapDbEventToEvent));
 };
 
-const createEventOperation = async (eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt' | 'ticketTiers'>): Promise<Event> => {
-  const { location, ...eventFields } = eventData;
+const createEventOperation = async (eventInput: Omit<Event, 'id' | 'createdAt' | 'updatedAt' | 'ticketTiers'>): Promise<Event> => {
+  const { location, ...eventFields } = eventInput;
   
   // Insert the event
-  const { data: eventData, error: eventError } = await supabase
+  const { data: newEventData, error: eventError } = await supabase
     .from('events')
     .insert({
       title: eventFields.title,
@@ -137,7 +137,7 @@ const createEventOperation = async (eventData: Omit<Event, 'id' | 'createdAt' | 
   const { error: locationError } = await supabase
     .from('event_locations')
     .insert({
-      event_id: eventData.id,
+      event_id: newEventData.id,
       address: location.address,
       city: location.city,
       state: location.state,
@@ -153,7 +153,7 @@ const createEventOperation = async (eventData: Omit<Event, 'id' | 'createdAt' | 
   }
   
   // Return the full event object
-  return mapDbEventToEvent(eventData);
+  return mapDbEventToEvent(newEventData);
 };
 
 const updateEventOperation = async (id: string, updates: Partial<Event>): Promise<Event> => {
