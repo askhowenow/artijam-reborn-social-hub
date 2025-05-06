@@ -66,13 +66,13 @@ const purchaseTicketOperation = async (ticketData: Omit<Ticket, 'id' | 'purchase
     throw error;
   }
   
-  // Also update the ticket tier quantity available using the database function
-  const { error: tierError } = await supabase.rpc('decrement_tier_quantity', {
-    tier_id: ticketData.tierId,
+  // Call the edge function to decrement the ticket tier quantity
+  const { error: decrementError } = await supabase.functions.invoke('decrement-tier-quantity', {
+    body: { tierId: ticketData.tierId }
   });
   
-  if (tierError) {
-    console.error('Error updating ticket tier quantity:', tierError);
+  if (decrementError) {
+    console.error('Error updating ticket tier quantity:', decrementError);
     // Don't throw here, the ticket was created successfully
   }
   
