@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { format, addDays, isSameDay, getDay, parse, parseISO, isAfter, addMinutes } from 'date-fns';
+import { Clock } from 'lucide-react';
+import { format, addDays, isSameDay, getDay, parseISO, isAfter, addMinutes } from 'date-fns';
 
 import { Service } from '@/hooks/use-services';
 import { ServiceAvailability } from '@/hooks/use-service-availability';

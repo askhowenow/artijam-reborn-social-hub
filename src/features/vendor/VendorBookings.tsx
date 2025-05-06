@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -9,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Clock, User, Search, Check, X } from 'lucide-react';
 import { format, parseISO, isToday, isAfter, isBefore, addDays } from 'date-fns';
 import { useVendorProfile } from '@/hooks/use-vendor-profile';
-import { useVendorBookings } from '@/hooks/use-service-bookings';
+import { useVendorBookings, Booking } from '@/hooks/use-service-bookings';
 
 const VendorBookings = () => {
   const { vendorProfile } = useVendorProfile();
-  const { bookings, isLoading, updateBookingStatus } = useVendorBookings(vendorProfile?.id);
+  const { bookings, isLoading, updateBookingStatus } = useVendorBookings();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -98,7 +97,7 @@ const VendorBookings = () => {
     booking.status === 'completed'
   );
   
-  const handleStatusUpdate = async (bookingId: string, status: string) => {
+  const handleStatusUpdate = async (bookingId: string, status: Booking['status']) => {
     try {
       await updateBookingStatus.mutateAsync({ bookingId, status });
     } catch (error) {
@@ -106,7 +105,7 @@ const VendorBookings = () => {
     }
   };
   
-  const renderBookingCard = (booking: any) => {
+  const renderBookingCard = (booking: Booking) => {
     return (
       <Card key={booking.id} className={booking.status === 'cancelled' ? "opacity-70" : ""}>
         <CardContent className="p-4">
@@ -145,7 +144,7 @@ const VendorBookings = () => {
               
               <div className="flex items-center text-sm">
                 <User className="h-4 w-4 mr-2 text-gray-500" />
-                {booking.customer.full_name || 'Anonymous Customer'}
+                {booking.customer?.full_name || 'Anonymous Customer'}
               </div>
               
               {booking.special_requests && (

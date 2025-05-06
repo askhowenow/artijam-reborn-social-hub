@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -11,15 +11,20 @@ import { ShoppingCart, Eye, CheckCircle } from "lucide-react";
 import { useCart } from '@/hooks/use-cart';
 import { useNavigate } from 'react-router-dom';
 import { type Product } from '@/hooks/use-products';
+import DeleteProductDialog from '@/components/vendor/DeleteProductDialog';
 
 interface ProductCardProps {
   product: Product;
   wide?: boolean;
+  onDelete?: (productId: string) => void;
+  isVendorView?: boolean;
 }
 
-const ProductCard = ({ product, wide = false }: ProductCardProps) => {
+const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: ProductCardProps) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const handleViewProduct = () => {
     navigate(`/shop/product/${product.id}`);
@@ -28,6 +33,18 @@ const ProductCard = ({ product, wide = false }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart.mutate({ productId: product.id, quantity: 1 });
+  };
+
+  const handleDelete = async () => {
+    if (onDelete) {
+      setIsDeleting(true);
+      try {
+        await onDelete(product.id);
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+      }
+    }
   };
   
   const placeholderImage = "/placeholder.svg";
@@ -83,9 +100,13 @@ const ProductCard = ({ product, wide = false }: ProductCardProps) => {
             )}
           </div>
           
-          <h3 className="font-medium text-sm sm:text-base line-clamp-1">
+          <h3 className="font-semibold text-sm sm:text-base line-clamp-1">
             {product.name}
           </h3>
+          
+          {product.description && (
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+          )}
           
           <div className="flex items-center justify-between mt-1">
             <p className="font-bold text-base sm:text-lg text-artijam-purple">
@@ -101,17 +122,43 @@ const ProductCard = ({ product, wide = false }: ProductCardProps) => {
         </CardContent>
         
         <CardFooter className={`bg-gray-50 p-2 ${wide ? 'mt-auto' : ''}`}>
-          <Button 
-            onClick={handleAddToCart}
-            className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
-            disabled={!product.is_available || product.stock_quantity === 0}
-            size="sm"
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
+          {isVendorView && onDelete ? (
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteDialogOpen(true);
+              }}
+              variant="destructive"
+              className="w-full"
+              size="sm"
+            >
+              Delete Product
+            </Button>
+          ) : (
+            <Button 
+              onClick={(e) => handleAddToCart(e)}
+              className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
+              disabled={!product.is_available || product.stock_quantity === 0}
+              size="sm"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Add to Cart
+            </Button>
+          )}
         </CardFooter>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {onDelete && (
+        <DeleteProductDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={handleDelete}
+          item={product}
+          isDeleting={isDeleting}
+          type="product"
+        />
+      )}
     </Card>
   );
 };

@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Loader2, PlusCircle } from 'lucide-react';
 import ServiceForm from '@/components/services/ServiceForm';
 import ServiceCard from '@/components/services/ServiceCard';
@@ -12,6 +11,7 @@ import AvailabilityManager from '@/components/services/AvailabilityManager';
 import { useServices, ServiceFormData } from '@/hooks/use-services';
 import { useServiceAvailability } from '@/hooks/use-service-availability';
 import { useVendorProfile } from '@/hooks/use-vendor-profile';
+import DeleteProductDialog from '@/components/vendor/DeleteProductDialog';
 
 const VendorServices = () => {
   const { vendorProfile } = useVendorProfile();
@@ -37,7 +37,10 @@ const VendorServices = () => {
   const handleSubmitForm = async (formData: ServiceFormData & { id?: string }) => {
     try {
       if (formData.id) {
-        await updateService.mutateAsync(formData);
+        await updateService.mutateAsync({
+          ...formData,
+          id: formData.id
+        });
       } else {
         const newService = await createService.mutateAsync(formData);
         if (newService) {
@@ -205,31 +208,16 @@ const VendorServices = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Service</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this service? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteService}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              {deleteService.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {currentService && (
+        <DeleteProductDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={confirmDeleteService}
+          item={currentService}
+          isDeleting={deleteService.isPending}
+          type="service"
+        />
+      )}
     </div>
   );
 };

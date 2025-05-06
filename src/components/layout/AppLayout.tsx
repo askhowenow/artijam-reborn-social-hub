@@ -12,7 +12,9 @@ const AppLayout = () => {
       <Header />
       <main className="md:pl-64 pt-16 pb-20 md:pb-6 min-h-screen">
         <div className="p-2 sm:p-4 max-w-[100vw] overflow-x-hidden">
-          <Outlet />
+          <div className="max-w-full overflow-auto">
+            <Outlet />
+          </div>
         </div>
       </main>
       <MobileNavigation />

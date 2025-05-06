@@ -29,6 +29,16 @@ export type Booking = {
   };
 };
 
+export type ServiceBookingFormData = {
+  service_id: string;
+  start_time: string;
+  end_time: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  special_requests?: string;
+  customer_notes?: string;
+  payment_status: 'pending' | 'paid' | 'refunded';
+};
+
 export const useCustomerBookings = () => {
   const queryClient = useQueryClient();
 
@@ -130,7 +140,8 @@ export const useVendorBookings = () => {
           ),
           customer:customer_id(
             id,
-            email
+            email,
+            full_name
           )
         `)
         .eq('service.vendor_id', vendorProfile.id)
@@ -140,7 +151,7 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      return data as Booking[];
+      return data as unknown as Booking[];
     }
   });
   
@@ -177,7 +188,7 @@ export const useCreateBooking = () => {
   const queryClient = useQueryClient();
   
   const createBooking = useMutation({
-    mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'booking_reference' | 'qr_code'>) => {
+    mutationFn: async (bookingData: ServiceBookingFormData) => {
       const { data: user } = await supabase.auth.getUser();
       
       if (!user.user) {
