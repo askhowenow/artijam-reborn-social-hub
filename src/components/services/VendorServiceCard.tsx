@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Calendar, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Calendar, Loader2, Clock, DollarSign } from 'lucide-react';
 import { Service } from '@/hooks/use-services';
 import { formatCurrency } from '@/utils/string-utils';
 
@@ -27,17 +28,35 @@ const VendorServiceCard: React.FC<VendorServiceCardProps> = ({
     <Card className={`overflow-hidden transition-all ${isSelected ? 'ring-2 ring-artijam-purple' : ''}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold text-lg">{service.name}</h3>
-            <div className="flex items-center text-sm text-gray-600 mt-1">
-              <span className="font-medium">{formatCurrency(service.price, service.currency || 'USD')}</span>
-              <span className="mx-2">•</span>
-              <span>{service.duration} min</span>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold text-lg">{service.name}</h3>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                <DollarSign className="h-3 w-3 mr-1" />
+                <span className="font-medium">{formatCurrency(service.price, service.currency || 'USD')}</span>
+                <span className="mx-2">•</span>
+                <Clock className="h-3 w-3 mr-1" />
+                <span>{service.duration} min</span>
+              </div>
             </div>
+            
+            {service.is_available === false && (
+              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                Hidden
+              </Badge>
+            )}
           </div>
           
           {service.description && (
             <p className="text-sm text-gray-600 line-clamp-2">{service.description}</p>
+          )}
+          
+          {service.category && (
+            <div>
+              <Badge variant="outline" className="text-xs">
+                {service.category}
+              </Badge>
+            </div>
           )}
           
           <div className="pt-2 flex flex-wrap gap-2">

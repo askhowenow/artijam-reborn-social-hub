@@ -4,7 +4,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking } from '@/types/booking';
 
-// Define a simplified interface for the API response structure
+// Define more specific types to avoid recursion
+interface ServiceBookingResponseCustomer {
+  id: string;
+  email: string;
+  full_name?: string;
+}
+
+interface ServiceBookingResponseService {
+  id: string;
+  name: string;
+  vendor_id: string;
+}
+
 interface ServiceBookingResponse {
   id: string;
   service_id: string;
@@ -18,16 +30,8 @@ interface ServiceBookingResponse {
   booking_reference?: string;
   qr_code?: string;
   created_at: string;
-  service?: {
-    id: string;
-    name: string;
-    vendor_id: string;
-  };
-  customer?: {
-    id: string;
-    email: string;
-    full_name?: string;
-  };
+  service?: ServiceBookingResponseService;
+  customer?: ServiceBookingResponseCustomer;
 }
 
 export const useVendorBookings = () => {
