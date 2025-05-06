@@ -6,9 +6,10 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QRCodeModal from "@/components/vendor/QRCodeModal";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
-import ProductCard, { Product } from "@/components/vendor/ProductCard";
+import ProductCard from "@/components/vendor/ProductCard";
 import ProductPlaceholder from "@/components/vendor/ProductPlaceholder";
 import ProductsHeader from "@/components/vendor/ProductsHeader";
+import { Product } from "@/hooks/use-products";
 
 interface VendorProductsProps {
   showHeader?: boolean;
@@ -49,6 +50,38 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
     setSelectedProduct(null);
     setQrModalOpen(true);
   };
+
+  // Create storage buckets if they don't exist
+  React.useEffect(() => {
+    const createStorageBuckets = async () => {
+      try {
+        // Check if products bucket exists, create if it doesn't
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const productsBucketExists = buckets?.some(bucket => bucket.name === 'products');
+        const productImagesBucketExists = buckets?.some(bucket => bucket.name === 'product-images');
+        
+        if (!productsBucketExists) {
+          await supabase.storage.createBucket('products', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+          });
+          console.log('Created products bucket');
+        }
+        
+        if (!productImagesBucketExists) {
+          await supabase.storage.createBucket('product-images', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+          });
+          console.log('Created product-images bucket');
+        }
+      } catch (error) {
+        console.error('Error checking/creating storage buckets:', error);
+      }
+    };
+    
+    createStorageBuckets();
+  }, []);
 
   if (isLoading) {
     return (
