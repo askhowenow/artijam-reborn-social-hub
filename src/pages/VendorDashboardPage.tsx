@@ -19,7 +19,9 @@ import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import VendorProducts from "@/features/vendor/VendorProducts";
 import VendorOrders from "@/features/vendor/VendorOrders";
 import VendorStats from "@/features/vendor/VendorStats";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import QRCodeModal from "@/components/vendor/QRCodeModal";
+import VendorQRCodeGenerator from "@/components/vendor/VendorQRCodeGenerator";
 
 const VendorDashboardPage = () => {
   const navigate = useNavigate();
@@ -65,33 +67,44 @@ const VendorDashboardPage = () => {
         
         if (productError) throw productError;
         
-        // Get total views across all products
-        const { data: metricsData, error: metricsError } = await supabase
-          .from('product_metrics')
-          .select('views, product_id')
-          .in('product_id', 
-            // Create a subquery that returns an array of product IDs
-            supabase
-              .from('products')
-              .select('id')
-              .eq('vendor_id', vendorProfile.id)
-              .then(result => result.data?.map(item => item.id) || [])
-          );
+        // First, get all product IDs belonging to this vendor
+        const { data: productIds, error: productIdsError } = await supabase
+          .from('products')
+          .select('id')
+          .eq('vendor_id', vendorProfile.id);
+          
+        if (productIdsError) throw productIdsError;
         
-        if (metricsError) throw metricsError;
-        
-        // Calculate total views
-        const totalViews = metricsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
-        
-        // For demonstration, we'll set sales to 0
-        // In a real app, this would come from order data
-        const totalSales = 0;
-        
-        setStoreStats({
-          totalProducts: productCount || 0,
-          totalViews,
-          totalSales
-        });
+        // Now use those IDs to get metrics
+        if (productIds && productIds.length > 0) {
+          const productIdArray = productIds.map(item => item.id);
+          
+          const { data: metricsData, error: metricsError } = await supabase
+            .from('product_metrics')
+            .select('views, product_id')
+            .in('product_id', productIdArray);
+          
+          if (metricsError) throw metricsError;
+          
+          // Calculate total views
+          const totalViews = metricsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
+          
+          // For demonstration, we'll set sales to 0
+          // In a real app, this would come from order data
+          const totalSales = 0;
+          
+          setStoreStats({
+            totalProducts: productCount || 0,
+            totalViews,
+            totalSales
+          });
+        } else {
+          setStoreStats({
+            totalProducts: productCount || 0,
+            totalViews: 0,
+            totalSales: 0
+          });
+        }
       } catch (error) {
         console.error("Error fetching store stats:", error);
       }
@@ -207,18 +220,12 @@ const VendorDashboardPage = () => {
 
       {/* Store QR Code Modal */}
       {vendorProfile.store_slug && (
-        <Dialog open={qrCodeModalOpen} onOpenChange={setQrCodeModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogTitle>Store QR Code</DialogTitle>
-            <DialogDescription>
-              Share this QR code to give customers access to your store.
-            </DialogDescription>
-            <VendorQRCodeGenerator
-              storeSlug={vendorProfile.store_slug || ""}
-              businessName={vendorProfile.business_name}
-            />
-          </DialogContent>
-        </Dialog>
+        <QRCodeModal
+          open={qrCodeModalOpen}
+          onOpenChange={setQrCodeModalOpen}
+          storeSlug={vendorProfile.store_slug || ""}
+          businessName={vendorProfile.business_name}
+        />
       )}
     </div>
   );
