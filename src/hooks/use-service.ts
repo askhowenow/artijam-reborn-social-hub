@@ -47,8 +47,8 @@ export const useService = (serviceId?: string) => {
         return null;
       }
       
-      // Ensure vendor data is properly structured or set to null if there's an issue
-      const vendorData = data.vendor && typeof data.vendor === 'object' && !('error' in data.vendor) 
+      // Fix the TypeScript error by checking if data.vendor is null before accessing its properties
+      const vendorData = data.vendor && typeof data.vendor === 'object' && data.vendor !== null 
         ? data.vendor 
         : null;
       

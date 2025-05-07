@@ -3,14 +3,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerClose,
-} from "@/components/ui/drawer";
-import {
   Home, Users, PlusCircle, Bell, User, Store, ShoppingBag, Calendar,
   FileText, MessageSquare, BookOpen, Briefcase, Wallet, Video,
   Group, Shield, Settings, Menu, X,
@@ -21,13 +13,21 @@ import { useAuth } from "@/context/AuthProvider";
 import { useUserRole } from "@/hooks/use-user-role";
 import { Avatar } from "../ui/avatar";
 import { Separator } from "../ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface MobileDrawerProps {
   children?: React.ReactNode;
 }
 
 const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
-  const [open, setOpen] = React.useState(false);
   const location = useLocation();
   const currentPath = location.pathname;
   const { vendorProfile } = useVendorProfile();
@@ -80,40 +80,41 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
   );
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         {children || defaultTrigger}
-      </DrawerTrigger>
-      <DrawerContent className="h-[85vh] overflow-y-auto">
-        <DrawerHeader className="flex items-center justify-between">
-          <DrawerTitle>Menu</DrawerTitle>
-          <DrawerClose asChild>
-            <Button variant="ghost" size="icon">
-              <X className="h-4 w-4" />
-            </Button>
-          </DrawerClose>
-        </DrawerHeader>
-        
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        align="start" 
+        className="w-64 max-h-[80vh] overflow-y-auto bg-white" 
+        side="bottom"
+        sideOffset={8}
+      >
         {user && (
-          <div className="px-4 py-2">
-            <Link to="/profile" className="flex items-center space-x-3 mb-3" onClick={() => setOpen(false)}>
-              <Avatar>
-                <img src={user.user_metadata?.avatar_url || "/placeholder.svg"} 
-                     alt={user.email || "User"} />
-              </Avatar>
-              <div>
-                <p className="font-medium">{user.email}</p>
-                <p className="text-xs text-gray-500">View Profile</p>
-              </div>
-            </Link>
-          </div>
+          <>
+            <div className="p-2">
+              <Link to="/profile" className="flex items-center space-x-3 mb-1 p-2 rounded-md hover:bg-gray-100">
+                <Avatar>
+                  <img src={user.user_metadata?.avatar_url || "/placeholder.svg"} 
+                      alt={user.email || "User"} />
+                </Avatar>
+                <div>
+                  <p className="font-medium">{user.email}</p>
+                  <p className="text-xs text-gray-500">View Profile</p>
+                </div>
+              </Link>
+            </div>
+            <DropdownMenuSeparator />
+          </>
         )}
         
-        <div className="px-4 py-2">
-          <div className="space-y-1">
-            {mainNavLinks.map((link) => (
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Main Navigation
+          </DropdownMenuLabel>
+          {mainNavLinks.map((link) => (
+            <DropdownMenuItem key={link.path} asChild>
               <Link
-                key={link.path}
                 to={link.path}
                 className={cn(
                   "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
@@ -123,24 +124,24 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     ? "bg-artijam-purple-light text-artijam-purple"
                     : "text-gray-700 hover:bg-gray-100"
                 )}
-                onClick={() => setOpen(false)}
               >
                 <link.icon size={18} className="mr-3" />
                 {link.label}
               </Link>
-            ))}
-          </div>
-          
-          {user && (
-            <>
-              <Separator className="my-3" />
-              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+        
+        {user && myContentLinks.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 My Content
-              </p>
-              <div className="space-y-1">
-                {myContentLinks.map((link) => (
+              </DropdownMenuLabel>
+              {myContentLinks.map((link) => (
+                <DropdownMenuItem key={link.path} asChild>
                   <Link
-                    key={link.path}
                     to={link.path}
                     className={cn(
                       "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
@@ -148,26 +149,26 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         ? "bg-artijam-purple-light text-artijam-purple"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
-                    onClick={() => setOpen(false)}
                   >
                     <link.icon size={18} className="mr-3" />
                     {link.label}
                   </Link>
-                ))}
-              </div>
-            </>
-          )}
-          
-          {isVendor && (
-            <>
-              <Separator className="my-3" />
-              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </>
+        )}
+        
+        {isVendor && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Vendor
-              </p>
-              <div className="space-y-1">
-                {vendorNavLinks.map((link) => (
+              </DropdownMenuLabel>
+              {vendorNavLinks.map((link) => (
+                <DropdownMenuItem key={link.path} asChild>
                   <Link
-                    key={link.path}
                     to={link.path}
                     className={cn(
                       "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
@@ -181,24 +182,24 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         ? "bg-artijam-purple-light text-artijam-purple"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
-                    onClick={() => setOpen(false)}
                   >
                     <link.icon size={18} className="mr-3" />
                     {link.label}
                   </Link>
-                ))}
-              </div>
-            </>
-          )}
-          
-          <Separator className="my-3" />
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </>
+        )}
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             More
-          </p>
-          <div className="space-y-1">
-            {secondaryNavLinks.map((link) => (
+          </DropdownMenuLabel>
+          {secondaryNavLinks.map((link) => (
+            <DropdownMenuItem key={link.path} asChild>
               <Link
-                key={link.path}
                 to={link.path}
                 className={cn(
                   "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
@@ -206,24 +207,24 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     ? "bg-artijam-purple-light text-artijam-purple"
                     : "text-gray-700 hover:bg-gray-100"
                 )}
-                onClick={() => setOpen(false)}
               >
                 <link.icon size={18} className="mr-3" />
                 {link.label}
               </Link>
-            ))}
-          </div>
-          
-          {isAdmin && isAdmin() && (
-            <>
-              <Separator className="my-3" />
-              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+        
+        {isAdmin && isAdmin() && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Administration
-              </p>
-              <div className="space-y-1">
-                {adminNavLinks.map((link) => (
+              </DropdownMenuLabel>
+              {adminNavLinks.map((link) => (
+                <DropdownMenuItem key={link.path} asChild>
                   <Link
-                    key={link.path}
                     to={link.path}
                     className={cn(
                       "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
@@ -231,29 +232,28 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         ? "bg-artijam-purple-light text-artijam-purple"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
-                    onClick={() => setOpen(false)}
                   >
                     <link.icon size={18} className="mr-3" />
                     {link.label}
                   </Link>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </>
+        )}
         
-        <div className="p-4 mt-auto border-t border-gray-200">
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
           <Link
             to="/settings"
             className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
-            onClick={() => setOpen(false)}
           >
             <Settings size={18} className="mr-3" />
             Settings
           </Link>
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
