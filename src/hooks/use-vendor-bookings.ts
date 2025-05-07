@@ -58,7 +58,7 @@ export const useVendorBookings = () => {
           .in('id', serviceIds),
         supabase
           .from('profiles')
-          .select('id, email, full_name')
+          .select('id, full_name')
           .in('id', customerIds)
       ]);
       
