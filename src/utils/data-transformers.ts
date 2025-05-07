@@ -34,6 +34,7 @@ export function transformBookingDataForApi(bookingData: {
 export function transformBookingFromApi(apiBooking: ApiBooking): Booking {
   if (!apiBooking) return null as unknown as Booking;
   
+  // Create the transformed booking with camelCase properties
   const transformed: Booking = {
     id: apiBooking.id,
     serviceId: apiBooking.service_id,
@@ -47,9 +48,11 @@ export function transformBookingFromApi(apiBooking: ApiBooking): Booking {
     bookingReference: apiBooking.booking_reference,
     qrCode: apiBooking.qr_code,
     createdAt: apiBooking.created_at,
+    service: undefined,
+    customer: undefined
   };
 
-  // Handle nested objects if they exist
+  // Handle nested service object if it exists
   if (apiBooking.service) {
     transformed.service = {
       id: apiBooking.service.id,
@@ -58,6 +61,7 @@ export function transformBookingFromApi(apiBooking: ApiBooking): Booking {
     };
   }
 
+  // Handle nested customer object if it exists
   if (apiBooking.customer) {
     transformed.customer = {
       id: apiBooking.customer.id,

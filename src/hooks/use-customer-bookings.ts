@@ -34,8 +34,11 @@ export const useCustomerBookings = () => {
         throw error;
       }
       
+      // Cast to ApiBooking[] while adding type check
+      const apiBookings = (data || []) as unknown as ApiBooking[];
+      
       // Map the response data to our Booking type
-      return (data as ApiBooking[] || []).map((item) => transformBookingFromApi(item));
+      return apiBookings.map((item) => transformBookingFromApi(item));
     }
   });
   

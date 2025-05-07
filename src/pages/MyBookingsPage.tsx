@@ -145,14 +145,14 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                         <div className="flex items-center text-sm">
                           <Clock className="h-4 w-4 mr-2 text-gray-500" />
                           <span>
-                            {format(parseISO(booking.start_time), 'MMM d, yyyy h:mm a')} - 
-                            {format(parseISO(booking.end_time), ' h:mm a')}
+                            {format(parseISO(booking.startTime), 'MMM d, yyyy h:mm a')} - 
+                            {format(parseISO(booking.endTime), ' h:mm a')}
                           </span>
                         </div>
                         
-                        {booking.special_requests && (
+                        {booking.specialRequests && (
                           <div className="text-sm text-gray-600 mt-2">
-                            <strong>Notes:</strong> {booking.special_requests}
+                            <strong>Notes:</strong> {booking.specialRequests}
                           </div>
                         )}
                       </div>
@@ -243,7 +243,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                         <div className="flex items-center text-sm">
                           <Clock className="h-4 w-4 mr-2 text-gray-500" />
                           <span>
-                            {format(parseISO(booking.start_time), 'MMM d, yyyy h:mm a')}
+                            {format(parseISO(booking.startTime), 'MMM d, yyyy h:mm a')}
                           </span>
                         </div>
                       </div>
