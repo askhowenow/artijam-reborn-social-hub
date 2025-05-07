@@ -1,10 +1,6 @@
 
-// Define the booking-related types
-export interface BookingService {
-  id: string;
-  name: string;
-  vendorId: string;
-}
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
 export interface BookingCustomer {
   id: string;
@@ -12,8 +8,11 @@ export interface BookingCustomer {
   fullName?: string;
 }
 
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
-export type PaymentStatus = 'pending' | 'paid' | 'refunded';
+export interface BookingService {
+  id: string;
+  name: string;
+  vendorId: string;
+}
 
 export interface Booking {
   id: string;
@@ -22,9 +21,9 @@ export interface Booking {
   startTime: string;
   endTime: string;
   status: BookingStatus;
+  paymentStatus: PaymentStatus;
   specialRequests?: string;
   customerNotes?: string;
-  paymentStatus: PaymentStatus;
   bookingReference?: string;
   qrCode?: string;
   createdAt: string;
@@ -32,42 +31,58 @@ export interface Booking {
   customer?: BookingCustomer;
 }
 
+// Specific form data types for different booking categories
+export interface AccommodationBookingFormValues {
+  checkInDate: Date;
+  checkOutDate: Date;
+  guests: number;
+  specialRequests?: string;
+}
+
+export interface FoodBookingFormValues {
+  reservationDate: Date;
+  reservationTime: string;
+  partySize: number;
+  dietaryRequirements?: {
+    vegetarian: boolean;
+    vegan: boolean;
+    glutenFree: boolean;
+    nutFree: boolean;
+    dairyFree: boolean;
+  };
+  specialRequests?: string;
+}
+
+export interface AttractionBookingFormValues {
+  visitDate: Date;
+  visitTime: string;
+  tickets: number;
+  ticketTypes: {
+    adult: number;
+    child: number;
+    senior: number;
+  };
+  addons?: {
+    guidedTour: boolean;
+    fastPass: boolean;
+    photoPackage: boolean;
+  };
+  specialRequests?: string;
+}
+
+export interface TravelBookingFormValues {
+  departureDate: Date;
+  departureTime: string;
+  returnDate?: Date;
+  passengers: number;
+  class: string;
+  specialRequests?: string;
+}
+
+// General booking form data for API requests
 export interface ServiceBookingFormData {
   serviceId: string;
   startTime: string;
   endTime: string;
-  specialRequests?: string;
-  customerNotes?: string;
-  status?: BookingStatus;
-  paymentStatus?: PaymentStatus;
-}
-
-// API response interfaces with snake_case
-export interface ApiBookingService {
-  id: string;
-  name: string;
-  vendor_id: string;
-}
-
-export interface ApiBookingCustomer {
-  id: string;
-  email: string;
-  full_name?: string;
-}
-
-export interface ApiBooking {
-  id: string;
-  service_id: string;
-  customer_id: string;
-  start_time: string;
-  end_time: string;
-  status: BookingStatus;
-  special_requests?: string;
-  customer_notes?: string;
-  payment_status: PaymentStatus;
-  booking_reference?: string;
-  qr_code?: string;
-  created_at: string;
-  service?: ApiBookingService;
-  customer?: ApiBookingCustomer;
+  additionalData?: any;
 }

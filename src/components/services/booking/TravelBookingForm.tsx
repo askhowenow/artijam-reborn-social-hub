@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Users, Plane } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { Service } from '@/hooks/use-services';
 
@@ -22,9 +24,11 @@ const travelBookingSchema = z.object({
     required_error: "Departure date is required",
   }),
   departureTime: z.string().min(1, "Departure time is required"),
+  returnDate: z.date().optional(),
   passengers: z.coerce.number().int().min(1, "At least 1 passenger required").max(20, "Maximum 20 passengers allowed"),
-  origin: z.string().min(1, "Origin is required"),
-  destination: z.string().min(1, "Destination is required"),
+  class: z.enum(["economy", "business", "first"], {
+    required_error: "Travel class is required",
+  }),
   specialRequests: z.string().optional(),
 });
 
@@ -47,8 +51,7 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
       departureDate: new Date(),
       departureTime: "10:00",
       passengers: 1,
-      origin: "",
-      destination: "",
+      class: "economy",
       specialRequests: "",
     },
   });
@@ -67,40 +70,24 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
     }
   }
 
+  // Calculate pricing based on class and passengers
+  const basePricePerPerson = service.price || 100;
+  const getClassMultiplier = (travelClass: string) => {
+    switch(travelClass) {
+      case 'business': return 2.5;
+      case 'first': return 4;
+      default: return 1; // economy
+    }
+  };
+
+  const classMultiplier = getClassMultiplier(form.watch('class'));
+  const passengers = form.watch('passengers');
+  const totalPrice = basePricePerPerson * classMultiplier * passengers;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Origin */}
-          <FormField
-            control={form.control}
-            name="origin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Origin</FormLabel>
-                <FormControl>
-                  <Input placeholder="City or location" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Destination */}
-          <FormField
-            control={form.control}
-            name="destination"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Destination</FormLabel>
-                <FormControl>
-                  <Input placeholder="City or location" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Departure Date */}
           <FormField
             control={form.control}
@@ -165,6 +152,44 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
             )}
           />
 
+          {/* Optional Return Date */}
+          <FormField
+            control={form.control}
+            name="returnDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Return Date (Optional)</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className="w-full pl-3 text-left font-normal"
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Select return date</span>
+                        )}
+                        <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={field.value || undefined}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < form.getValues('departureDate')}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Number of Passengers */}
           <FormField
             control={form.control}
@@ -182,7 +207,7 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map((num) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                       <SelectItem key={num} value={num.toString()}>
                         {num} {num === 1 ? 'Passenger' : 'Passengers'}
                       </SelectItem>
@@ -195,6 +220,50 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
           />
         </div>
 
+        {/* Travel Class */}
+        <FormField
+          control={form.control}
+          name="class"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Travel Class</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="economy" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Economy - ${basePricePerPerson.toFixed(2)} per person
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="business" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Business - ${(basePricePerPerson * 2.5).toFixed(2)} per person
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="first" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      First Class - ${(basePricePerPerson * 4).toFixed(2)} per person
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Special Requests */}
         <FormField
           control={form.control}
@@ -204,7 +273,7 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
               <FormLabel>Special Requests (optional)</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Any special requirements or requests..."
+                  placeholder="Any dietary requirements, assistance needs, or other requests..."
                   className="resize-none"
                   {...field}
                 />
@@ -216,19 +285,20 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
 
         {/* Booking Summary */}
         <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="font-medium mb-2">Booking Summary</h3>
+          <h3 className="font-medium mb-2">Trip Summary</h3>
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
               <span>{service.name}</span>
-              <span>${service.price} per passenger</span>
             </div>
             <div className="flex justify-between">
-              <span>Number of passengers</span>
-              <span>{form.watch('passengers')}</span>
+              <span>
+                {passengers} {passengers === 1 ? 'passenger' : 'passengers'}, {form.watch('class')} class
+              </span>
+              <span>${totalPrice.toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200 mt-2 pt-2 font-medium flex justify-between">
               <span>Total</span>
-              <span>${(service.price * form.watch('passengers')).toFixed(2)}</span>
+              <span>${totalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -238,7 +308,7 @@ const TravelBookingForm: React.FC<TravelBookingFormProps> = ({
           className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Processing..." : "Book Now"}
+          {isSubmitting ? "Processing..." : "Book Trip"}
         </Button>
       </form>
     </Form>

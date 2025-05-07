@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CalendarPlus, Filter, Search } from 'lucide-react';
 import { useServices } from '@/hooks/use-services';
 import { useVendorProfile } from '@/hooks/use-vendor-profile';
-import ServiceCard from '@/components/services/ServiceCard';
+import ServiceCardSelector from '@/components/services/ServiceCardSelector';
 import VendorServices from '@/features/vendor/VendorServices';
 import { Input } from '@/components/ui/input';
 
@@ -93,7 +93,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ vendor = false }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
-            <ServiceCard 
+            <ServiceCardSelector 
               key={service.id} 
               service={service} 
               onClick={() => navigate(`/services/${service.id}`)} 

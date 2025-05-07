@@ -3,28 +3,47 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ServiceBookingFormData } from '@/types/booking';
-import { transformBookingDataForApi } from '@/utils/data-transformers';
 
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
   
-  const createBooking = useMutation({
+  return useMutation({
     mutationFn: async (bookingData: ServiceBookingFormData) => {
       const { data: user } = await supabase.auth.getUser();
       
       if (!user.user) {
-        throw new Error('User not authenticated');
+        throw new Error('You must be logged in to book a service');
       }
       
-      // Transform booking data from camelCase to snake_case for the API
-      const apiBookingData = {
-        ...transformBookingDataForApi(bookingData),
-        customer_id: user.user.id
-      };
+      // Check availability first
+      const { data: available, error: availabilityError } = await supabase
+        .rpc('check_service_availability', {
+          p_service_id: bookingData.serviceId,
+          p_start_time: bookingData.startTime,
+          p_end_time: bookingData.endTime
+        });
+        
+      if (availabilityError) {
+        throw availabilityError;
+      }
       
+      if (!available) {
+        throw new Error('This time slot is no longer available');
+      }
+      
+      // Create the booking
       const { data, error } = await supabase
         .from('service_bookings')
-        .insert(apiBookingData)
+        .insert({
+          service_id: bookingData.serviceId,
+          customer_id: user.user.id,
+          start_time: bookingData.startTime,
+          end_time: bookingData.endTime,
+          status: 'confirmed',
+          payment_status: 'pending',
+          special_requests: bookingData.additionalData?.specialRequests,
+          additional_data: bookingData.additionalData
+        })
         .select()
         .single();
         
@@ -36,16 +55,12 @@ export const useCreateBooking = () => {
     },
     meta: {
       onSuccess: () => {
-        toast.success('Booking created successfully');
+        // Invalidate relevant queries
         queryClient.invalidateQueries({ queryKey: ['customer-bookings'] });
       },
       onError: (error: Error) => {
-        toast.error(`Failed to create booking: ${error.message}`);
+        toast.error(`Booking failed: ${error.message}`);
       }
     }
   });
-  
-  return {
-    createBooking
-  };
 };
