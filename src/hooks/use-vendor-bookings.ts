@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking, BookingStatus, PaymentStatus } from '@/types/booking';
-import { transformBookingFromApi } from '@/utils/data-transformers';
 
 // Define intermediate types for Supabase query results
 interface CustomerResult {
@@ -62,6 +61,7 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
+      // Using a simpler query structure to avoid excessive type nesting
       const { data, error } = await supabase
         .from('service_bookings')
         .select(`

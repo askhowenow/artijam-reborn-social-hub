@@ -6,7 +6,7 @@ import { useEvents } from '@/hooks/use-events';
 import CartDrawer from '@/components/shop/CartDrawer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Calendar } from 'lucide-react';
+import { ShoppingCart, Calendar, Bed, Plane, Utensils, Ticket } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,10 +26,14 @@ const categoryFilters = [
   'Digital',
   'Clothing',
   'Accessories',
-  'Home Decor'
+  'Home Decor',
+  'Accommodations',
+  'Travel',
+  'Food',
+  'Attractions'
 ];
 
-const featuredCategories = ['Events', 'Art', 'Digital', 'Clothing'];
+const featuredCategories = ['Events', 'Art', 'Accommodations', 'Travel', 'Food', 'Attractions'];
 
 const ShopPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -70,6 +74,15 @@ const ShopPage = () => {
 
   // Display events or products based on selected category
   const isEventCategory = selectedCategory === 'Events';
+
+  // Map categories to their icons
+  const categoryIcons = {
+    'Accommodations': <Bed className="h-4 w-4 mr-2" />,
+    'Travel': <Plane className="h-4 w-4 mr-2" />,
+    'Food': <Utensils className="h-4 w-4 mr-2" />,
+    'Attractions': <Ticket className="h-4 w-4 mr-2" />,
+    'Events': <Calendar className="h-4 w-4 mr-2" />
+  };
 
   return (
     <>
@@ -114,6 +127,7 @@ const ShopPage = () => {
             categories={categoryFilters}
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
+            categoryIcons={categoryIcons}
           />
         </div>
 
@@ -183,6 +197,7 @@ const ShopPage = () => {
           <FeaturedCategories 
             categories={featuredCategories}
             onCategorySelect={handleFeaturedCategorySelect}
+            categoryIcons={categoryIcons}
           />
         </div>
 

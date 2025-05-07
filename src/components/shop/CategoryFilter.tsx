@@ -8,12 +8,14 @@ interface CategoryFilterProps {
   categories: string[];
   selectedCategory: string | null;
   onCategoryChange: (category: string) => void;
+  categoryIcons?: Record<string, React.ReactNode>;
 }
 
 const CategoryFilter = ({ 
   categories, 
   selectedCategory, 
-  onCategoryChange 
+  onCategoryChange,
+  categoryIcons = {}
 }: CategoryFilterProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButtons, setShowScrollButtons] = useState({
@@ -81,7 +83,7 @@ const CategoryFilter = ({
               }`}
               onClick={() => onCategoryChange(category)}
             >
-              {category}
+              {categoryIcons[category]} {category}
             </Badge>
           ))}
         </div>
