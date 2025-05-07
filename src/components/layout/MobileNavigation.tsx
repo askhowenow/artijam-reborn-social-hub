@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, PlusCircle, User, Store, ShoppingBag, Calendar } from "lucide-react";
+import { Home, PlusCircle, User, Store, ShoppingBag, Calendar, Video } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +14,8 @@ const MobileNavigation = () => {
   const isVendor = !!vendorProfile;
 
   return (
-    <nav className="fixed md:hidden bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-200 pb-safe-area shadow-lg">
-      <div className="flex items-center justify-around h-16">
+    <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white md:hidden z-10">
+      <nav className="flex justify-around">
         <Link to="/" className={cn(
           "flex flex-col items-center justify-center w-full h-full",
           pathname === "/" ? "text-artijam-purple" : "text-gray-600"
@@ -69,8 +68,14 @@ const MobileNavigation = () => {
           <User size={20} />
           <span className="text-xs mt-1">Profile</span>
         </Link>
-      </div>
-    </nav>
+        
+        {/* Add Streams Link */}
+        <Link to="/streams" className="flex flex-col items-center py-2 px-4">
+          <Video size={24} className={location.pathname === "/streams" ? "text-artijam-purple" : ""} />
+          <span className="text-xs mt-1">Streams</span>
+        </Link>
+      </nav>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -31,6 +30,10 @@ import MyProductsPage from "@/pages/MyProductsPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
 import ServicesPage from "@/pages/ServicesPage";
 import { EventModalProvider } from "@/hooks/use-event-modal";
+import StreamsPage from "@/pages/StreamsPage";
+import StreamDetailPage from "@/pages/StreamDetailPage";
+import CreateStreamPage from "@/pages/CreateStreamPage";
+import StreamStudioPage from "@/pages/StreamStudioPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -145,6 +148,12 @@ function App() {
                 {/* Store Routes */}
                 <Route path="/store/@:storeSlug" element={<StorefrontPage />} />
                 <Route path="/store/@:storeSlug/product/:productId" element={<StorefrontPage />} />
+                
+                {/* Live Streaming Routes */}
+                <Route path="/streams" element={<StreamsPage />} />
+                <Route path="/streams/:streamId" element={<StreamDetailPage />} />
+                <Route path="/streams/new" element={<CreateStreamPage />} />
+                <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
               </Route>
 
               {/* Redirect from Index to Landing or Home */}

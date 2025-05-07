@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Bell, Search, ShoppingBag, PlusCircle } from "lucide-react";
+import { Bell, Search, ShoppingBag, PlusCircle, Video } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import CartDrawer from "@/components/shop/CartDrawer";
 import { Badge } from "@/components/ui/badge";
@@ -46,11 +46,18 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
         
         <div className="flex items-center space-x-2">
           {user && (
-            <Link to="/vendor/products/new">
-              <Button variant="ghost" size="icon" className="relative">
-                <PlusCircle size={20} />
-              </Button>
-            </Link>
+            <>
+              <Link to="/streams">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Video size={20} />
+                </Button>
+              </Link>
+              <Link to="/vendor/products/new">
+                <Button variant="ghost" size="icon" className="relative">
+                  <PlusCircle size={20} />
+                </Button>
+              </Link>
+            </>
           )}
           
           <Button variant="ghost" size="icon" className="relative">

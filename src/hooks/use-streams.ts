@@ -1,0 +1,229 @@
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Stream, ApiStream } from '@/types/stream';
+import { transformStreamFromApi } from '@/utils/stream-transformers';
+
+// Hook to fetch all live streams
+export const useLiveStreams = () => {
+  return useQuery({
+    queryKey: ['live-streams'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('streams')
+        .select(`
+          *,
+          profiles:user_id(
+            username,
+            avatar_url,
+            full_name
+          )
+        `)
+        .eq('status', 'live')
+        .order('viewer_count', { ascending: false });
+
+      if (error) {
+        toast.error('Failed to fetch live streams');
+        throw error;
+      }
+
+      return (data || []).map((item: any) => {
+        const stream = transformStreamFromApi(item as ApiStream);
+        return {
+          ...stream,
+          user: {
+            username: item.profiles?.username,
+            avatarUrl: item.profiles?.avatar_url,
+            fullName: item.profiles?.full_name
+          }
+        };
+      });
+    }
+  });
+};
+
+// Hook to fetch a single stream by ID
+export const useStream = (streamId: string | undefined) => {
+  return useQuery({
+    queryKey: ['stream', streamId],
+    queryFn: async () => {
+      if (!streamId) {
+        throw new Error('Stream ID is required');
+      }
+
+      const { data, error } = await supabase
+        .from('streams')
+        .select(`
+          *,
+          profiles:user_id(
+            username,
+            avatar_url,
+            full_name
+          )
+        `)
+        .eq('id', streamId)
+        .single();
+
+      if (error) {
+        toast.error('Failed to fetch stream');
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Stream not found');
+      }
+
+      const stream = transformStreamFromApi(data as ApiStream);
+      return {
+        ...stream,
+        user: {
+          username: data.profiles?.username,
+          avatarUrl: data.profiles?.avatar_url,
+          fullName: data.profiles?.full_name
+        }
+      };
+    },
+    enabled: !!streamId
+  });
+};
+
+// Hook to create a new stream
+export const useCreateStream = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (streamData: { title: string; description?: string; isPublic?: boolean }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('streams')
+        .insert({
+          user_id: userData.user.id,
+          title: streamData.title,
+          description: streamData.description || null,
+          is_public: streamData.isPublic !== false, // default to true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        toast.error('Failed to create stream');
+        throw error;
+      }
+
+      return transformStreamFromApi(data as ApiStream);
+    },
+    meta: {
+      onSuccess: () => {
+        toast.success('Stream created successfully');
+        queryClient.invalidateQueries({ queryKey: ['my-streams'] });
+      },
+      onError: (error: Error) => {
+        toast.error(`Failed to create stream: ${error.message}`);
+      }
+    }
+  });
+};
+
+// Hook to fetch user's streams
+export const useMyStreams = () => {
+  return useQuery({
+    queryKey: ['my-streams'],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('streams')
+        .select()
+        .eq('user_id', userData.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast.error('Failed to fetch your streams');
+        throw error;
+      }
+
+      return (data || []).map((item) => transformStreamFromApi(item as ApiStream));
+    }
+  });
+};
+
+// Hook to update stream status
+export const useUpdateStreamStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ streamId, status }: { streamId: string; status: 'offline' | 'live' | 'ended' }) => {
+      const updateData: any = { status };
+      
+      // If going live, set started_at
+      if (status === 'live') {
+        updateData.started_at = new Date().toISOString();
+      }
+      
+      // If ending, set ended_at
+      if (status === 'ended') {
+        updateData.ended_at = new Date().toISOString();
+      }
+      
+      const { error } = await supabase
+        .from('streams')
+        .update(updateData)
+        .eq('id', streamId);
+
+      if (error) {
+        throw error;
+      }
+    },
+    meta: {
+      onSuccess: (_, variables) => {
+        const actionMap = {
+          'live': 'started',
+          'ended': 'ended',
+          'offline': 'set to offline'
+        };
+        toast.success(`Stream ${actionMap[variables.status]} successfully`);
+        queryClient.invalidateQueries({ queryKey: ['stream', variables.streamId] });
+        queryClient.invalidateQueries({ queryKey: ['my-streams'] });
+        queryClient.invalidateQueries({ queryKey: ['live-streams'] });
+      },
+      onError: (error: Error) => {
+        toast.error(`Failed to update stream: ${error.message}`);
+      }
+    }
+  });
+};
+
+// Hook to delete a stream
+export const useDeleteStream = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (streamId: string) => {
+      const { error } = await supabase
+        .from('streams')
+        .delete()
+        .eq('id', streamId);
+
+      if (error) {
+        throw error;
+      }
+    },
+    meta: {
+      onSuccess: () => {
+        toast.success('Stream deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['my-streams'] });
+      },
+      onError: (error: Error) => {
+        toast.error(`Failed to delete stream: ${error.message}`);
+      }
+    }
+  });
+};

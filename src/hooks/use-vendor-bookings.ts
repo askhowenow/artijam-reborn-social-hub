@@ -59,8 +59,13 @@ export const useVendorBookings = () => {
       
       // Process each booking individually to avoid deep type instantiation
       for (const item of rawData) {
-        const transformedBooking = transformBookingFromApi(item as unknown as ApiBooking);
-        bookings.push(transformedBooking);
+        try {
+          // Using type assertion instead of deep instantiation
+          const transformedBooking = transformBookingFromApi(item as ApiBooking);
+          bookings.push(transformedBooking);
+        } catch (e) {
+          console.error('Error processing booking:', e);
+        }
       }
       
       return bookings;
