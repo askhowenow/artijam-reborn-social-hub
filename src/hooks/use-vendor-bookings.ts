@@ -5,6 +5,32 @@ import { toast } from 'sonner';
 import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
+// Define intermediate types for Supabase query results
+interface ServiceBookingQueryResult {
+  id: string;
+  service_id: string;
+  customer_id: string;
+  start_time: string;
+  end_time: string;
+  status: BookingStatus;
+  special_requests?: string;
+  customer_notes?: string;
+  payment_status: string;
+  booking_reference?: string;
+  qr_code?: string;
+  created_at: string;
+  service?: {
+    id: string;
+    name: string;
+    vendor_id: string;
+  };
+  customer?: {
+    id: string;
+    email: string;
+    full_name?: string;
+  };
+}
+
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
@@ -57,11 +83,9 @@ export const useVendorBookings = () => {
       const bookingList: Booking[] = [];
       
       if (data) {
-        for (const item of data) {
+        for (const item of data as ServiceBookingQueryResult[]) {
           try {
-            // Cast item to unknown first to avoid type errors
-            const bookingData = item as unknown;
-            const transformedBooking = transformBookingFromApi(bookingData as ApiBooking);
+            const transformedBooking = transformBookingFromApi(item as ApiBooking);
             bookingList.push(transformedBooking);
           } catch (e) {
             console.error('Error processing booking:', e);
