@@ -2,33 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, BookingStatus } from '@/types/booking';
-
-// Define simple interface for raw database results to avoid deep type nesting
-interface RawBookingData {
-  id: string;
-  service_id: string;
-  customer_id: string;
-  start_time: string;
-  end_time: string;
-  status: BookingStatus;
-  special_requests?: string;
-  customer_notes?: string;
-  payment_status: string;
-  booking_reference?: string;
-  qr_code?: string;
-  created_at: string;
-  service?: {
-    id: string;
-    name: string;
-    vendor_id: string;
-  };
-  customer?: {
-    id: string;
-    email: string;
-    full_name?: string;
-  };
-}
+import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
+import { transformBookingFromApi } from '@/utils/data-transformers';
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
@@ -56,28 +31,17 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // Using a simpler approach to avoid excessive nesting
+      // Using the same approach as in use-customer-bookings.ts
       const { data, error } = await supabase
         .from('service_bookings')
         .select(`
-          id,
-          service_id,
-          customer_id,
-          start_time,
-          end_time,
-          status,
-          special_requests,
-          customer_notes,
-          payment_status,
-          booking_reference,
-          qr_code,
-          created_at,
-          service:service_id (
+          *,
+          service:service_id(
             id,
             name,
             vendor_id
           ),
-          customer:customer_id (
+          customer:customer_id(
             id,
             email,
             full_name
@@ -90,52 +54,11 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Transform data safely with explicit typing
-      const transformedBookings: Booking[] = [];
+      // Cast to ApiBooking[] while adding type check
+      const apiBookings = (data || []) as unknown as ApiBooking[];
       
-      if (data) {
-        // Cast data to the simpler interface to break circular reference
-        const rawBookings = data as unknown as RawBookingData[];
-        
-        for (const rawBooking of rawBookings) {
-          const booking: Booking = {
-            id: rawBooking.id,
-            serviceId: rawBooking.service_id,
-            customerId: rawBooking.customer_id,
-            startTime: rawBooking.start_time,
-            endTime: rawBooking.end_time,
-            status: rawBooking.status,
-            specialRequests: rawBooking.special_requests,
-            customerNotes: rawBooking.customer_notes,
-            paymentStatus: rawBooking.payment_status as any,
-            bookingReference: rawBooking.booking_reference,
-            qrCode: rawBooking.qr_code,
-            createdAt: rawBooking.created_at,
-          };
-          
-          // Add service if available
-          if (rawBooking.service) {
-            booking.service = {
-              id: rawBooking.service.id,
-              name: rawBooking.service.name,
-              vendorId: rawBooking.service.vendor_id,
-            };
-          }
-          
-          // Add customer if available
-          if (rawBooking.customer) {
-            booking.customer = {
-              id: rawBooking.customer.id,
-              email: rawBooking.customer.email,
-              fullName: rawBooking.customer.full_name,
-            };
-          }
-          
-          transformedBookings.push(booking);
-        }
-      }
-      
-      return transformedBookings;
+      // Map the response data to our Booking type using the shared transformer
+      return apiBookings.map((item) => transformBookingFromApi(item));
     }
   });
   
