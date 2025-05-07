@@ -53,15 +53,20 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Fixed: Process raw data without excessive type instantiation
+      // Process raw data with proper type handling
       const bookingList: Booking[] = [];
       
       if (data) {
         for (const item of data) {
           try {
-            // Fixed: Check if customer is valid before transformation
-            if (typeof item.customer === 'object' && item.customer && item.customer.id) {
-              const transformedBooking = transformBookingFromApi(item as any);
+            // Safe type checking of customer object
+            const customerData = item.customer;
+            if (customerData && 
+                typeof customerData === 'object' && 
+                'id' in customerData) {
+              // Cast to any to avoid deep type instantiation issues
+              const bookingData = item as any;
+              const transformedBooking = transformBookingFromApi(bookingData);
               bookingList.push(transformedBooking);
             } else {
               console.error('Invalid customer data:', item.customer);
