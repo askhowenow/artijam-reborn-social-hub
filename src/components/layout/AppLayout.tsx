@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import MobileNavigation from "./MobileNavigation";
 import SideNavigation from "./SideNavigation";
@@ -11,6 +11,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const AppLayout = () => {
   const isMobile = useIsMobile();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const location = useLocation();
+  const isShopPage = location.pathname === '/shop' || location.pathname.startsWith('/shop/');
   
   const handleCartOpen = () => {
     setIsCartOpen(true);
@@ -31,8 +33,8 @@ const AppLayout = () => {
         
         {/* Main content area */}
         <main className="md:pl-64 pt-16 pb-24 md:pb-6 flex-1">
-          <div className="p-2 sm:p-4 mx-auto max-w-7xl">
-            <div className="bg-white rounded-lg shadow p-2 sm:p-4">
+          <div className={`p-1 sm:p-4 mx-auto max-w-7xl ${isShopPage ? 'px-0 sm:px-4' : ''}`}>
+            <div className={`bg-white rounded-lg shadow ${isShopPage ? 'p-1 sm:p-4' : 'p-2 sm:p-4'}`}>
               <Outlet />
             </div>
           </div>

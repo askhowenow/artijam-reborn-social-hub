@@ -32,7 +32,7 @@ const FeaturedCategories = ({ categories, onCategorySelect }: FeaturedCategories
       <div className="relative md:hidden">
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto hide-scrollbar gap-4 pb-4 px-1 snap-x"
+          className="flex overflow-x-auto scrollbar-hide gap-4 pb-4 px-1 snap-x"
         >
           {categories.map((category) => (
             <Card 
@@ -103,16 +103,6 @@ const FeaturedCategories = ({ categories, onCategorySelect }: FeaturedCategories
           </Card>
         ))}
       </div>
-
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </>
   );
 };

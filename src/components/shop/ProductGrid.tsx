@@ -16,7 +16,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
         {[...Array(4)].map((_, index) => (
           <Card key={index} className="h-64 animate-pulse">
             <div className="bg-gray-200 aspect-square" />
@@ -53,7 +53,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

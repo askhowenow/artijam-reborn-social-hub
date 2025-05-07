@@ -39,7 +39,7 @@ const TrendingProducts = () => {
     <Carousel className="w-full">
       <CarouselContent>
         {trendingProducts.map((product) => (
-          <CarouselItem key={product.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
+          <CarouselItem key={product.id} className="basis-full xs:basis-1/2 sm:basis-1/2 lg:basis-1/3">
             <div className="p-1">
               <ProductCard product={product} />
             </div>

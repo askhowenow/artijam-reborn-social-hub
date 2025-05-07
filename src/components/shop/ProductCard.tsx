@@ -84,10 +84,10 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
       </div>
       
       <div className={wide ? 'flex-1 flex flex-col' : ''}>
-        <CardContent className={wide ? 'flex-1 p-3 sm:p-4' : 'p-2 sm:p-4'}>
+        <CardContent className={wide ? 'flex-1 p-2 sm:p-4' : 'p-2 sm:p-4'}>
           <div className="flex items-start justify-between mb-1">
             <div className="flex items-center gap-1 text-xs text-gray-500">
-              <span className="truncate max-w-[100px]">{product.vendor?.business_name}</span>
+              <span className="truncate max-w-[80px] sm:max-w-[100px]">{product.vendor?.business_name}</span>
               {product.vendor?.is_verified && (
                 <CheckCircle className="h-3 w-3 text-blue-500 flex-shrink-0" />
               )}
@@ -106,7 +106,7 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
           </h3>
           
           {product.description && (
-            <p className="text-xs sm:text-sm text-gray-600 line-clamp-1 sm:line-clamp-2">{product.description}</p>
+            <p className="text-xs text-gray-600 line-clamp-1 sm:line-clamp-2">{product.description}</p>
           )}
           
           <div className="flex items-center justify-between mt-1">
@@ -115,7 +115,7 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
             </p>
             
             {product.category && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs hidden xs:inline-flex">
                 {product.category}
               </Badge>
             )}
@@ -142,7 +142,7 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
               disabled={!product.is_available || product.stock_quantity === 0}
               size="sm"
             >
-              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Add to Cart
             </Button>
           )}

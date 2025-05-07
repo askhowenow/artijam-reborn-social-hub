@@ -2,10 +2,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
+import { Booking, BookingStatus } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
-// Define intermediate types for Supabase query results without recursion
+// Define intermediate types for Supabase query results
 interface CustomerResult {
   id: string;
   email: string;
@@ -18,8 +18,8 @@ interface ServiceResult {
   vendor_id: string;
 }
 
-// Simplified type structure to avoid deep recursion
-interface ServiceBookingQueryResult {
+// Flattened API structure to avoid deep recursion
+interface ApiBooking {
   id: string;
   service_id: string;
   customer_id: string;

@@ -64,7 +64,7 @@ const CategoryFilter = ({
       )}
       
       <div 
-        className="overflow-x-auto hide-scrollbar flex items-center pb-2 px-1"
+        className="overflow-x-auto scrollbar-hide flex items-center pb-2 px-1"
         ref={scrollContainerRef}
         onScroll={checkScrollButtons}
       >
@@ -96,16 +96,6 @@ const CategoryFilter = ({
           <ChevronRight className="h-4 w-4 text-gray-600" />
         </button>
       )}
-      
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 };
