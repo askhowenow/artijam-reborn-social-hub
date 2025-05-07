@@ -2,6 +2,37 @@
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
+// API response types with snake_case properties
+export interface ApiBookingCustomer {
+  id: string;
+  email: string;
+  full_name?: string;
+}
+
+export interface ApiBookingService {
+  id: string;
+  name: string;
+  vendor_id: string;
+}
+
+export interface ApiBooking {
+  id: string;
+  service_id: string;
+  customer_id: string;
+  start_time: string;
+  end_time: string;
+  status: BookingStatus;
+  payment_status: PaymentStatus;
+  special_requests?: string;
+  customer_notes?: string;
+  booking_reference?: string;
+  qr_code?: string;
+  created_at: string;
+  service?: ApiBookingService;
+  customer?: ApiBookingCustomer;
+}
+
+// Frontend types with camelCase properties
 export interface BookingCustomer {
   id: string;
   email: string;
@@ -85,4 +116,5 @@ export interface ServiceBookingFormData {
   startTime: string;
   endTime: string;
   additionalData?: any;
+  specialRequests?: string;
 }

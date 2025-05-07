@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useService } from '@/hooks/use-service';
-import { useCreateBooking } from '@/hooks/use-service-bookings';
+import { useCreateBooking } from '@/hooks/use-create-booking';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -58,8 +57,7 @@ const ServiceDetailPage: React.FC = () => {
         startTime = new Date(values.checkInDate);
         startTime.setHours(15, 0, 0, 0); // Default check-in time 3 PM
         endTime = new Date(values.checkOutDate);
-        endTime.setHours(11,
-        0, 0, 0); // Default check-out time 11 AM
+        endTime.setHours(11, 0, 0, 0); // Default check-out time 11 AM
       } else if (service.category?.toLowerCase().includes('food')) {
         // For food - use reservation date and time
         const [hours, minutes] = values.reservationTime.split(':').map(Number);
@@ -124,32 +122,34 @@ const ServiceDetailPage: React.FC = () => {
       {isBookingMode ? (
         <Card>
           <CardContent className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Book {service.name}</h1>
-            <BookingFormSelector 
-              service={service}
-              onSubmit={handleBookingSubmit}
-              isSubmitting={createBooking.isPending}
-            />
+            <h1 className="text-2xl font-bold mb-4">Book {service?.name}</h1>
+            {service && (
+              <BookingFormSelector 
+                service={service}
+                onSubmit={handleBookingSubmit}
+                isSubmitting={createBooking.isPending}
+              />
+            )}
           </CardContent>
         </Card>
       ) : (
         <>
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">{service.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{service?.name}</h1>
               
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex items-center text-gray-600">
                   <Clock className="h-4 w-4 mr-1" />
-                  <span>{service.duration} minutes</span>
+                  <span>{service?.duration} minutes</span>
                 </div>
                 
                 <div className="flex items-center text-gray-600">
                   <MapPin className="h-4 w-4 mr-1" />
                   <span>
-                    {service.location_type === 'virtual' 
+                    {service?.location_type === 'virtual' 
                       ? 'Virtual Service' 
-                      : service.location_type === 'both'
+                      : service?.location_type === 'both'
                         ? 'In Person & Virtual'
                         : 'In Person'
                     }
@@ -158,7 +158,7 @@ const ServiceDetailPage: React.FC = () => {
                 
                 <div className="flex items-center text-gray-600">
                   <DollarSign className="h-4 w-4 mr-1" />
-                  <span>{formatCurrency(service.price, service.currency || 'USD')}</span>
+                  <span>{formatCurrency(service?.price || 0, service?.currency || 'USD')}</span>
                 </div>
               </div>
               
@@ -169,24 +169,24 @@ const ServiceDetailPage: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="description" className="text-gray-700">
-                  <p>{service.description || 'No description available.'}</p>
+                  <p>{service?.description || 'No description available.'}</p>
                 </TabsContent>
                 
                 <TabsContent value="details">
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-medium">Category</h3>
-                      <p className="text-gray-600">{service.category || 'Uncategorized'}</p>
+                      <p className="text-gray-600">{service?.category || 'Uncategorized'}</p>
                     </div>
                     
                     <div>
                       <h3 className="font-medium">Location</h3>
                       <p className="text-gray-600">
-                        {service.location_address || 'Location information not available'}
+                        {service?.vendor?.location || 'Location information not available'}
                       </p>
                     </div>
                     
-                    {service.created_at && (
+                    {service?.created_at && (
                       <div>
                         <h3 className="font-medium">Listed since</h3>
                         <p className="text-gray-600">{format(new Date(service.created_at), 'MMMM d, yyyy')}</p>
@@ -202,7 +202,7 @@ const ServiceDetailPage: React.FC = () => {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">Ready to book?</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Secure your booking now for {service.name}
+                    Secure your booking now for {service?.name}
                   </p>
                   <Button 
                     className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
@@ -220,7 +220,7 @@ const ServiceDetailPage: React.FC = () => {
           
           <div>
             <h2 className="text-xl font-bold mb-4">About the vendor</h2>
-            {service.vendor ? (
+            {service?.vendor ? (
               <div className="flex items-center gap-4">
                 {service.vendor.logo_url ? (
                   <img 

@@ -20,7 +20,8 @@ export const useService = (serviceId?: string) => {
             business_name,
             description,
             logo_url,
-            store_slug
+            store_slug,
+            location
           )
         `)
         .eq('id', serviceId)

@@ -2,23 +2,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, BookingStatus, PaymentStatus } from '@/types/booking';
+import { Booking, BookingStatus } from '@/types/booking';
 
-// Define intermediate types for Supabase query results
-interface CustomerResult {
-  id: string;
-  email: string;
-  full_name?: string;
-}
-
-interface ServiceResult {
-  id: string;
-  name: string;
-  vendor_id: string;
-}
-
-// Flattened API structure to avoid deep recursion
-interface RawApiBooking {
+// Define simple interface for raw database results to avoid deep type nesting
+interface RawBookingData {
   id: string;
   service_id: string;
   customer_id: string;
@@ -27,12 +14,20 @@ interface RawApiBooking {
   status: BookingStatus;
   special_requests?: string;
   customer_notes?: string;
-  payment_status: PaymentStatus;
+  payment_status: string;
   booking_reference?: string;
   qr_code?: string;
   created_at: string;
-  service?: ServiceResult;
-  customer?: CustomerResult;
+  service?: {
+    id: string;
+    name: string;
+    vendor_id: string;
+  };
+  customer?: {
+    id: string;
+    email: string;
+    full_name?: string;
+  };
 }
 
 export const useVendorBookings = () => {
@@ -61,17 +56,28 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // Using a simpler query structure to avoid excessive type nesting
+      // Using a simpler approach to avoid excessive nesting
       const { data, error } = await supabase
         .from('service_bookings')
         .select(`
-          *,
-          service:service_id(
+          id,
+          service_id,
+          customer_id,
+          start_time,
+          end_time,
+          status,
+          special_requests,
+          customer_notes,
+          payment_status,
+          booking_reference,
+          qr_code,
+          created_at,
+          service:service_id (
             id,
             name,
             vendor_id
           ),
-          customer:customer_id(
+          customer:customer_id (
             id,
             email,
             full_name
@@ -84,45 +90,52 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Process raw data with proper type handling
-      const bookingList: Booking[] = [];
+      // Transform data safely with explicit typing
+      const transformedBookings: Booking[] = [];
       
       if (data) {
-        for (const item of data as unknown[]) {
-          try {
-            const rawBooking = item as RawApiBooking;
-            const transformedBooking = {
-              id: rawBooking.id,
-              serviceId: rawBooking.service_id,
-              customerId: rawBooking.customer_id,
-              startTime: rawBooking.start_time,
-              endTime: rawBooking.end_time,
-              status: rawBooking.status,
-              specialRequests: rawBooking.special_requests,
-              customerNotes: rawBooking.customer_notes,
-              paymentStatus: rawBooking.payment_status,
-              bookingReference: rawBooking.booking_reference,
-              qrCode: rawBooking.qr_code,
-              createdAt: rawBooking.created_at,
-              service: rawBooking.service ? {
-                id: rawBooking.service.id,
-                name: rawBooking.service.name,
-                vendorId: rawBooking.service.vendor_id,
-              } : undefined,
-              customer: rawBooking.customer ? {
-                id: rawBooking.customer.id,
-                email: rawBooking.customer.email,
-                fullName: rawBooking.customer.full_name,
-              } : undefined
+        // Cast data to the simpler interface to break circular reference
+        const rawBookings = data as unknown as RawBookingData[];
+        
+        for (const rawBooking of rawBookings) {
+          const booking: Booking = {
+            id: rawBooking.id,
+            serviceId: rawBooking.service_id,
+            customerId: rawBooking.customer_id,
+            startTime: rawBooking.start_time,
+            endTime: rawBooking.end_time,
+            status: rawBooking.status,
+            specialRequests: rawBooking.special_requests,
+            customerNotes: rawBooking.customer_notes,
+            paymentStatus: rawBooking.payment_status as any,
+            bookingReference: rawBooking.booking_reference,
+            qrCode: rawBooking.qr_code,
+            createdAt: rawBooking.created_at,
+          };
+          
+          // Add service if available
+          if (rawBooking.service) {
+            booking.service = {
+              id: rawBooking.service.id,
+              name: rawBooking.service.name,
+              vendorId: rawBooking.service.vendor_id,
             };
-            bookingList.push(transformedBooking);
-          } catch (e) {
-            console.error('Error processing booking:', e);
           }
+          
+          // Add customer if available
+          if (rawBooking.customer) {
+            booking.customer = {
+              id: rawBooking.customer.id,
+              email: rawBooking.customer.email,
+              fullName: rawBooking.customer.full_name,
+            };
+          }
+          
+          transformedBookings.push(booking);
         }
       }
       
-      return bookingList;
+      return transformedBookings;
     }
   });
   

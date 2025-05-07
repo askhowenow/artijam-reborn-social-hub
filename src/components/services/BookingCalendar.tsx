@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       serviceId: service.id,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
-      specialRequests: notes
+      specialRequests: notes,
+      additionalData: { specialRequests: notes }
     };
     
     onBookingSubmit(bookingData);
