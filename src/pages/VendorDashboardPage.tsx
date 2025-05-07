@@ -156,11 +156,12 @@ const VendorDashboardPage = () => {
           <p className="text-gray-500">{vendorProfile.business_type || "Vendor"}</p>
         </div>
         
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
           <Button
             variant="outline"
             onClick={() => setQrCodeModalOpen(true)}
             disabled={!vendorProfile.store_slug}
+            className="flex-grow md:flex-grow-0"
           >
             <QrCode className="mr-2 h-4 w-4" />
             Store QR Code
@@ -168,13 +169,14 @@ const VendorDashboardPage = () => {
           <Button 
             variant="outline"
             onClick={() => navigate("/vendor/profile")}
+            className="flex-grow md:flex-grow-0"
           >
             <Settings className="mr-2 h-4 w-4" />
             Edit Profile
           </Button>
           <Button
             onClick={() => navigate("/vendor/products/new")}
-            className="bg-artijam-purple hover:bg-artijam-purple/90"
+            className="bg-artijam-purple hover:bg-artijam-purple/90 flex-grow md:flex-grow-0"
           >
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Product
@@ -183,50 +185,50 @@ const VendorDashboardPage = () => {
       </div>
       
       <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="bg-blue-50 p-4 rounded-md">
+        <CardContent className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            <div className="bg-blue-50 p-3 md:p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <Package className="h-10 w-10 text-blue-500" />
+                <Package className="h-8 w-8 text-blue-500" />
                 <div>
                   <p className="text-sm text-gray-500">Total Products</p>
-                  <p className="text-2xl font-bold">{storeStats.totalProducts}</p>
+                  <p className="text-xl md:text-2xl font-bold">{storeStats.totalProducts}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-green-50 p-4 rounded-md">
+            <div className="bg-green-50 p-3 md:p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <DollarSign className="h-10 w-10 text-green-500" />
+                <DollarSign className="h-8 w-8 text-green-500" />
                 <div>
                   <p className="text-sm text-gray-500">Total Sales</p>
-                  <p className="text-2xl font-bold">${storeStats.totalSales.toFixed(2)}</p>
+                  <p className="text-xl md:text-2xl font-bold">${storeStats.totalSales.toFixed(2)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-purple-50 p-4 rounded-md">
+            <div className="bg-purple-50 p-3 md:p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <LineChart className="h-10 w-10 text-purple-500" />
+                <LineChart className="h-8 w-8 text-purple-500" />
                 <div>
                   <p className="text-sm text-gray-500">Views</p>
-                  <p className="text-2xl font-bold">{storeStats.totalViews}</p>
+                  <p className="text-xl md:text-2xl font-bold">{storeStats.totalViews}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-amber-50 p-4 rounded-md">
+            <div className="bg-amber-50 p-3 md:p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <Calendar className="h-10 w-10 text-amber-500" />
+                <Calendar className="h-8 w-8 text-amber-500" />
                 <div>
                   <p className="text-sm text-gray-500">Services</p>
-                  <p className="text-2xl font-bold">{storeStats.totalServices}</p>
+                  <p className="text-xl md:text-2xl font-bold">{storeStats.totalServices}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-indigo-50 p-4 rounded-md">
+            <div className="bg-indigo-50 p-3 md:p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <Calendar className="h-10 w-10 text-indigo-500" />
+                <Calendar className="h-8 w-8 text-indigo-500" />
                 <div>
                   <p className="text-sm text-gray-500">Bookings</p>
-                  <p className="text-2xl font-bold">{storeStats.totalBookings}</p>
+                  <p className="text-xl md:text-2xl font-bold">{storeStats.totalBookings}</p>
                 </div>
               </div>
             </div>
@@ -235,13 +237,15 @@ const VendorDashboardPage = () => {
       </Card>
       
       <Tabs defaultValue="products">
-        <TabsList className="mb-6">
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="mb-6">
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="products">
           <VendorProducts />

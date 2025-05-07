@@ -5,39 +5,6 @@ import { toast } from 'sonner';
 import { Booking, BookingStatus } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
-// Define a simplified interface for raw booking data from the database
-interface RawBookingData {
-  id: string;
-  service_id: string;
-  customer_id: string;
-  status: BookingStatus;
-  start_time: string;
-  end_time: string;
-  customer_notes?: string;
-  special_requests?: string;
-  created_at: string;
-  booking_reference?: string;
-}
-
-// Define interfaces for service and customer data
-interface RawServiceData {
-  id: string;
-  name: string;
-  vendor_id: string;
-}
-
-interface RawCustomerData {
-  id: string;
-  full_name: string | null;
-}
-
-// Combined booking data with related entities
-interface RawBookingWithRelations {
-  bookingData: RawBookingData;
-  service: RawServiceData | null;
-  customer: RawCustomerData | null;
-}
-
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
 
@@ -64,7 +31,24 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // First get all booking IDs that belong to this vendor
+      // First get service IDs that belong to this vendor
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('id')
+        .eq('vendor_id', vendorProfile.id);
+        
+      if (servicesError) {
+        throw servicesError;
+      }
+      
+      if (!servicesData || servicesData.length === 0) {
+        return [];
+      }
+      
+      // Extract service IDs
+      const serviceIds = servicesData.map(service => service.id);
+      
+      // Get bookings for these services
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('service_bookings')
         .select(`
@@ -79,6 +63,7 @@ export const useVendorBookings = () => {
           booking_reference,
           created_at
         `)
+        .in('service_id', serviceIds)
         .eq('status', 'confirmed')
         .order('start_time', { ascending: false });
         
@@ -92,18 +77,17 @@ export const useVendorBookings = () => {
       }
 
       // Extract IDs for separate queries
-      const serviceIds = Array.from(new Set(bookingsData.map(booking => booking.service_id)));
+      const bookingServiceIds = Array.from(new Set(bookingsData.map(booking => booking.service_id)));
       const customerIds = Array.from(new Set(bookingsData.map(booking => booking.customer_id)));
       
-      // Fetch services that belong to this vendor
-      const { data: servicesData, error: servicesError } = await supabase
+      // Fetch services details
+      const { data: servicesDetailsData, error: servicesDetailsError } = await supabase
         .from('services')
         .select('id, name, vendor_id')
-        .eq('vendor_id', vendorProfile.id)
-        .in('id', serviceIds);
+        .in('id', bookingServiceIds);
         
-      if (servicesError) {
-        throw servicesError;
+      if (servicesDetailsError) {
+        throw servicesDetailsError;
       }
 
       // Fetch customers
@@ -117,49 +101,38 @@ export const useVendorBookings = () => {
       }
       
       // Create lookup maps for services and customers
-      const servicesMap: Record<string, RawServiceData> = {};
-      (servicesData || []).forEach(service => {
-        servicesMap[service.id] = service;
+      const servicesMap: Record<string, { id: string, name: string, vendorId: string }> = {};
+      (servicesDetailsData || []).forEach(service => {
+        servicesMap[service.id] = {
+          id: service.id,
+          name: service.name,
+          vendorId: service.vendor_id
+        };
       });
       
-      const customersMap: Record<string, RawCustomerData> = {};
+      const customersMap: Record<string, { id: string, fullName: string | null }> = {};
       (customersData || []).forEach(customer => {
-        customersMap[customer.id] = customer;
+        customersMap[customer.id] = {
+          id: customer.id,
+          fullName: customer.full_name
+        };
       });
-      
-      // Filter bookings to only include those for services owned by this vendor
-      const vendorBookings = bookingsData.filter(booking => 
-        servicesMap[booking.service_id]
-      );
-      
-      // Create combined data structure
-      const bookingsWithRelations: RawBookingWithRelations[] = vendorBookings.map(booking => ({
-        bookingData: booking as RawBookingData,
-        service: servicesMap[booking.service_id] || null,
-        customer: customersMap[booking.customer_id] || null
-      }));
       
       // Transform to our Booking type
-      return bookingsWithRelations.map(item => {
+      return bookingsData.map(booking => {
         return {
-          id: item.bookingData.id,
-          serviceId: item.bookingData.service_id,
-          customerId: item.bookingData.customer_id,
-          status: item.bookingData.status,
-          startTime: item.bookingData.start_time,
-          endTime: item.bookingData.end_time,
-          bookingReference: item.bookingData.booking_reference,
-          specialRequests: item.bookingData.special_requests,
-          createdAt: item.bookingData.created_at,
-          service: item.service ? {
-            id: item.service.id,
-            name: item.service.name,
-            vendorId: item.service.vendor_id
-          } : null,
-          customer: item.customer ? {
-            id: item.customer.id,
-            fullName: item.customer.full_name
-          } : null
+          id: booking.id,
+          serviceId: booking.service_id,
+          customerId: booking.customer_id,
+          status: booking.status as BookingStatus,
+          startTime: booking.start_time,
+          endTime: booking.end_time,
+          bookingReference: booking.booking_reference,
+          specialRequests: booking.special_requests,
+          createdAt: booking.created_at,
+          paymentStatus: 'pending', // We don't have this in the query, defaulting
+          service: servicesMap[booking.service_id] || null,
+          customer: customersMap[booking.customer_id] || null
         } as Booking;
       });
     }

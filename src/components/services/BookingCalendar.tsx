@@ -131,23 +131,30 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     <Card>
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Calendar */}
+          {/* Calendar - Fixed for touch events */}
           <div>
             <h3 className="font-medium mb-4">Select Date</h3>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              disabled={{ before: new Date() }}
-              className="rounded-md border"
-            />
+            <div className="touch-auto pointer-events-auto">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                disabled={{ before: new Date() }}
+                className="rounded-md border touch-auto pointer-events-auto"
+                styles={{
+                  day: { touchAction: 'manipulation' },
+                  caption: { touchAction: 'manipulation' },
+                  nav_button: { touchAction: 'manipulation' }
+                }}
+              />
+            </div>
           </div>
 
           {/* Time Slots */}
           <div>
             <h3 className="font-medium mb-4">Available Time Slots</h3>
             {availableSlots.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {availableSlots.map((slot, index) => (
                   <Button
                     key={index}

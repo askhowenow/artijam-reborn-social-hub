@@ -99,7 +99,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                       alt={user.email || "User"} />
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate max-w-[180px]" title={user.email || ""}>
+                  <p className="font-medium truncate max-w-[180px] overflow-hidden text-ellipsis" title={user.email || ""}>
                     {user.email}
                   </p>
                   <p className="text-xs text-gray-500">View Profile</p>
