@@ -16,13 +16,13 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, index) => (
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        {[...Array(4)].map((_, index) => (
           <Card key={index} className="h-64 animate-pulse">
-            <div className="bg-gray-200 h-40" />
-            <CardContent className="p-4">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-              <div className="h-4 bg-gray-200 rounded w-1/2" />
+            <div className="bg-gray-200 aspect-square" />
+            <CardContent className="p-2 sm:p-4">
+              <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
             </CardContent>
           </Card>
         ))}
@@ -33,7 +33,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
   if (error) {
     console.error("Error in ProductGrid:", error);
     return (
-      <Card className="p-8 text-center">
+      <Card className="p-4 sm:p-8 text-center">
         <p className="text-red-500">Failed to load products. Please try again later.</p>
         <p className="text-sm text-gray-500">{error.message}</p>
       </Card>
@@ -42,7 +42,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
 
   if (!products || products.length === 0) {
     return (
-      <Card className="p-8 text-center">
+      <Card className="p-4 sm:p-8 text-center">
         <p className="text-gray-500">
           {selectedCategory 
             ? `No products found in ${selectedCategory} category`
@@ -53,7 +53,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

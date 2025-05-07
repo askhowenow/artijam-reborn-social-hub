@@ -39,15 +39,15 @@ const TrendingProducts = () => {
     <Carousel className="w-full">
       <CarouselContent>
         {trendingProducts.map((product) => (
-          <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3">
+          <CarouselItem key={product.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
             <div className="p-1">
               <ProductCard product={product} />
             </div>
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="left-2 bg-white" />
-      <CarouselNext className="right-2 bg-white" />
+      <CarouselPrevious className="left-0 sm:left-2 bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-10 sm:w-10" />
+      <CarouselNext className="right-0 sm:right-2 bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-10 sm:w-10" />
     </Carousel>
   );
 };

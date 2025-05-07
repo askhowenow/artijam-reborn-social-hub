@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
   
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-10">
-      <div className="flex items-center justify-between px-4 h-full">
+      <div className="flex items-center justify-between px-2 sm:px-4 h-full">
         <div className="flex items-center">
           {/* Mobile Menu Trigger - Rendered via children prop for flexibility */}
           <div className="md:hidden mr-2">
@@ -43,12 +43,12 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
           </div>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Cart Button - Positioned for visibility */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="relative"
+            className="relative h-9 w-9"
             onClick={onCartOpen}
           >
             <ShoppingBag size={20} />
@@ -62,19 +62,19 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
           {user && (
             <>
               <Link to="/streams">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
                   <Video size={20} />
                 </Button>
               </Link>
               <Link to="/vendor/products/new">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
                   <PlusCircle size={20} />
                 </Button>
               </Link>
             </>
           )}
           
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative h-9 w-9">
             <Bell size={20} />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-artijam-purple">
               2

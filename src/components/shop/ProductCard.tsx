@@ -65,17 +65,18 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
           src={product.image_url || placeholderImage}
           alt={product.name}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
         
         {product.stock_quantity !== null && product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <Badge className="absolute top-2 left-2 bg-amber-500">
+          <Badge className="absolute top-1 left-1 bg-amber-500 text-xs">
             Only {product.stock_quantity} left
           </Badge>
         )}
         
         {product.stock_quantity === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge className="bg-red-500 text-white px-2 py-1">
+            <Badge className="bg-red-500 text-white px-2 py-1 text-xs">
               Out of Stock
             </Badge>
           </div>
@@ -83,33 +84,33 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
       </div>
       
       <div className={wide ? 'flex-1 flex flex-col' : ''}>
-        <CardContent className={wide ? 'flex-1 p-4' : 'p-4'}>
+        <CardContent className={wide ? 'flex-1 p-3 sm:p-4' : 'p-2 sm:p-4'}>
           <div className="flex items-start justify-between mb-1">
-            <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-              {product.vendor?.business_name}
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <span className="truncate max-w-[100px]">{product.vendor?.business_name}</span>
               {product.vendor?.is_verified && (
-                <CheckCircle className="h-3 w-3 text-blue-500" />
+                <CheckCircle className="h-3 w-3 text-blue-500 flex-shrink-0" />
               )}
             </div>
             
             {product.metrics && (
               <div className="flex items-center text-xs text-gray-500">
-                <Eye className="w-3 h-3 mr-1" />
+                <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
                 {product.metrics.views || 0}
               </div>
             )}
           </div>
           
-          <h3 className="font-semibold text-sm sm:text-base line-clamp-1">
+          <h3 className="font-semibold text-sm line-clamp-1">
             {product.name}
           </h3>
           
           {product.description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+            <p className="text-xs sm:text-sm text-gray-600 line-clamp-1 sm:line-clamp-2">{product.description}</p>
           )}
           
           <div className="flex items-center justify-between mt-1">
-            <p className="font-bold text-base sm:text-lg text-artijam-purple">
+            <p className="font-bold text-sm sm:text-base text-artijam-purple">
               ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
             </p>
             
@@ -137,11 +138,11 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
           ) : (
             <Button 
               onClick={(e) => handleAddToCart(e)}
-              className="w-full bg-artijam-purple hover:bg-artijam-purple/90"
+              className="w-full bg-artijam-purple hover:bg-artijam-purple/90 text-xs sm:text-sm h-8 sm:h-9"
               disabled={!product.is_available || product.stock_quantity === 0}
               size="sm"
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
+              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Add to Cart
             </Button>
           )}

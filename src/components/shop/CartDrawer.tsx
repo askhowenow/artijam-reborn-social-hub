@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Sheet,
@@ -10,7 +11,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { CartItem } from "@/types/cart";
 import { Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/string-utils";
@@ -96,17 +96,18 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               </SheetClose>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 py-3 border-b"
+                  className="flex items-center gap-2 sm:gap-4 py-3 border-b"
                 >
                   <div className="w-16 h-16 flex-shrink-0">
                     <img
                       src={item.product.image_url || "/placeholder.svg"}
                       alt={item.product.name}
                       className="w-full h-full object-cover rounded"
+                      loading="lazy"
                     />
                   </div>
 
@@ -119,11 +120,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7 sm:h-8 sm:w-8"
                       onClick={() =>
                         handleUpdateQuantity(
                           item.id,
@@ -134,11 +135,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-8 text-center">{item.quantity}</span>
+                    <span className="w-5 sm:w-8 text-center text-sm">{item.quantity}</span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7 sm:h-8 sm:w-8"
                       onClick={() =>
                         handleUpdateQuantity(item.id, item.quantity + 1)
                       }
@@ -150,7 +151,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-red-500"
+                    className="h-7 w-7 sm:h-8 sm:w-8 text-red-500"
                     onClick={() => handleRemoveItem(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />

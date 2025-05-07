@@ -16,6 +16,7 @@ import CategoryFilter from '@/components/shop/CategoryFilter';
 import EventCard from '@/components/events/EventCard';
 import FeaturedCategories from '@/components/shop/FeaturedCategories';
 import VendorCTA from '@/components/shop/VendorCTA';
+import ProductGrid from '@/components/shop/ProductGrid';
 
 const categoryFilters = [
   'All',
@@ -43,6 +44,16 @@ const ShopPage = () => {
     filterByStatus: ['published']
   });
 
+  // Fetch products based on selected category
+  const {
+    data: products,
+    isLoading: isProductsLoading,
+    error: productsError
+  } = useProducts({
+    category: selectedCategory === 'All' ? undefined : selectedCategory,
+    limit: 8
+  });
+
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category === 'All' ? null : category);
   };
@@ -67,17 +78,17 @@ const ShopPage = () => {
         <meta name="description" content="Shop unique items and attend events created by the Artijam creative community." />
       </Helmet>
 
-      <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">
+      <div className="container max-w-7xl mx-auto py-3 sm:py-4 px-2 sm:px-6">
         {/* Mobile header with cart - Only shown on mobile */}
-        <div className="flex justify-between items-center md:hidden mb-4">
-          <h1 className="text-2xl font-bold">Shop</h1>
+        <div className="flex justify-between items-center md:hidden mb-3">
+          <h1 className="text-xl font-bold">Shop</h1>
           {isAuthenticated && <CartDrawer />}
         </div>
 
         {/* Hero Section with Trending Products Carousel */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Trending Now</h2>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-lg sm:text-xl font-bold">Trending Now</h2>
             {isAuthenticated && (
               <div className="hidden md:flex">
                 <CartDrawer>
@@ -97,8 +108,8 @@ const ShopPage = () => {
         </div>
 
         {/* Category Filters */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Browse Categories</h2>
+        <div className="mb-6">
+          <h2 className="text-lg sm:text-xl font-bold mb-3">Browse Categories</h2>
           <CategoryFilter 
             categories={categoryFilters}
             selectedCategory={selectedCategory}
@@ -106,28 +117,40 @@ const ShopPage = () => {
           />
         </div>
 
+        {/* Products Grid (shown when not Events category) */}
+        {!isEventCategory && (
+          <div className="mb-8">
+            <ProductGrid 
+              products={products} 
+              isLoading={isProductsLoading} 
+              error={productsError} 
+              selectedCategory={selectedCategory}
+            />
+          </div>
+        )}
+
         {/* Events Grid (only shown when Events category is selected) */}
         {isEventCategory && (
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Upcoming Events</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Upcoming Events</h2>
               <Button 
                 variant="link" 
                 className="text-artijam-purple"
                 onClick={() => navigate('/events')}
               >
-                View All Events
+                View All
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {isEventsLoading ? (
                 <div className="col-span-full flex justify-center py-10">
                   <div className="animate-spin h-10 w-10 rounded-full border-4 border-artijam-purple border-t-transparent"></div>
                 </div>
               ) : events.length === 0 ? (
                 <div className="col-span-full text-center py-10">
-                  <h3 className="text-xl font-medium">No upcoming events found</h3>
+                  <h3 className="text-lg sm:text-xl font-medium">No upcoming events found</h3>
                   <p className="text-gray-500 mt-1">Check back later for new events</p>
                 </div>
               ) : (
@@ -137,7 +160,7 @@ const ShopPage = () => {
                     <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                       <div className="h-40 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
                         {event.featuredImage ? (
-                          <img src={event.featuredImage} alt={event.title} className="w-full h-full object-cover" />
+                          <img src={event.featuredImage} alt={event.title} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
                           <Calendar className="h-16 w-16 text-white" />
                         )}
@@ -156,10 +179,12 @@ const ShopPage = () => {
         )}
 
         {/* Featured Categories */}
-        <FeaturedCategories 
-          categories={featuredCategories}
-          onCategorySelect={handleFeaturedCategorySelect}
-        />
+        <div className="mb-8">
+          <FeaturedCategories 
+            categories={featuredCategories}
+            onCategorySelect={handleFeaturedCategorySelect}
+          />
+        </div>
 
         {/* Become a Vendor CTA */}
         <VendorCTA isAuthenticated={isAuthenticated} />

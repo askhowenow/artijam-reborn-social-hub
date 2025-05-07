@@ -30,9 +30,9 @@ const AppLayout = () => {
         </Header>
         
         {/* Main content area */}
-        <main className="md:pl-64 pt-16 pb-20 md:pb-6 flex-1">
+        <main className="md:pl-64 pt-16 pb-24 md:pb-6 flex-1">
           <div className="p-2 sm:p-4 mx-auto max-w-7xl">
-            <div className="bg-white rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-2 sm:p-4">
               <Outlet />
             </div>
           </div>

@@ -12,17 +12,17 @@ const VendorCTA = ({ isAuthenticated }: VendorCTAProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="mb-8">
+    <div className="mb-6">
       <Card className="bg-gradient-to-r from-artijam-purple/20 to-artijam-purple/5">
-        <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <CardContent className="p-4 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="text-xl font-bold mb-2">Become a Vendor</h3>
-            <p className="text-gray-700 mb-4">
-              Start selling your creations on Artijam's marketplace and reach our creative community
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Become a Vendor</h3>
+            <p className="text-sm sm:text-base text-gray-700 mb-4">
+              Start selling your creations on Artijam's marketplace
             </p>
           </div>
           <Button 
-            className="bg-artijam-purple hover:bg-artijam-purple/90"
+            className="bg-artijam-purple hover:bg-artijam-purple/90 w-full sm:w-auto"
             onClick={() => {
               if (!isAuthenticated) {
                 navigate('/login');
