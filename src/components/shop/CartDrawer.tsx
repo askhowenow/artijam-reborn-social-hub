@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Sheet,
@@ -61,7 +60,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     }
     setIsOpen(false);
   };
-
+  
   // Default trigger if none provided
   const defaultTrigger = (
     <Button variant="outline" size="sm" className="flex items-center gap-2">

@@ -53,18 +53,22 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Transform the raw data to our Booking type
-      const rawData = data || [];
+      // Process raw data without excessive type instantiation
       const bookings: Booking[] = [];
       
-      // Process each booking individually to avoid deep type instantiation
-      for (const item of rawData) {
-        try {
-          // Using type assertion instead of deep instantiation
-          const transformedBooking = transformBookingFromApi(item as ApiBooking);
-          bookings.push(transformedBooking);
-        } catch (e) {
-          console.error('Error processing booking:', e);
+      if (data) {
+        for (const item of data) {
+          try {
+            // Check if customer is valid before transformation
+            if (typeof item.customer === 'object' && item.customer && !item.customer.error) {
+              const transformedBooking = transformBookingFromApi(item as unknown as ApiBooking);
+              bookings.push(transformedBooking);
+            } else {
+              console.error('Invalid customer data:', item.customer);
+            }
+          } catch (e) {
+            console.error('Error processing booking:', e);
+          }
         }
       }
       

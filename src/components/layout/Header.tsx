@@ -44,7 +44,22 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
+          {/* Cart Button - Positioned for visibility */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative"
+            onClick={() => setIsCartOpen(true)}
+          >
+            <ShoppingBag size={20} />
+            {cartCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-artijam-purple">
+                {cartCount}
+              </Badge>
+            )}
+          </Button>
+          
           {user && (
             <>
               <Link to="/streams">
@@ -66,25 +81,10 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
               2
             </Badge>
           </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative"
-            onClick={() => setIsCartOpen(true)}
-          >
-            <ShoppingBag size={20} />
-            {cartCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-artijam-purple">
-                {cartCount}
-              </Badge>
-            )}
-          </Button>
         </div>
       </div>
       
       <CartDrawer 
-        children={undefined} 
         open={isCartOpen} 
         onOpenChange={setIsCartOpen} 
       />
