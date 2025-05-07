@@ -31,6 +31,32 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
+      // Use explicit type annotation to avoid excessive type instantiation
+      type BookingResult = {
+        id: string;
+        service_id: string;
+        customer_id: string;
+        start_time: string;
+        end_time: string;
+        status: string;
+        special_requests?: string;
+        customer_notes?: string;
+        payment_status?: string;
+        booking_reference?: string;
+        qr_code?: string;
+        created_at: string;
+        service?: {
+          id: string;
+          name: string;
+          vendor_id: string;
+        };
+        customer?: {
+          id: string;
+          email: string;
+          full_name?: string;
+        };
+      };
+      
       const { data, error } = await supabase
         .from('service_bookings')
         .select(`
@@ -57,11 +83,13 @@ export const useVendorBookings = () => {
       const bookingList: Booking[] = [];
       
       if (data) {
-        for (const item of data) {
+        for (const item of data as BookingResult[]) {
           try {
             // Safe type checking of customer object
             const customerData = item.customer;
-            if (customerData && 
+            // Fix for TS18047: Ensure customerData is not null before accessing properties
+            if (customerData !== null && 
+                customerData !== undefined &&
                 typeof customerData === 'object' && 
                 'id' in customerData) {
               // Cast to any to avoid deep type instantiation issues
