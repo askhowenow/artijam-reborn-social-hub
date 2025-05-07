@@ -14,7 +14,8 @@ export function setupContentSecurityPolicy(req: any, res: any, next: () => void)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co blob:",
-    "connect-src 'self' https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co",
+    "connect-src 'self' https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co wss://*.supabase.co wss://gqceeliuclgzjzmubywy.supabase.co",
+    "media-src 'self' blob: https://*.supabase.co",
     "frame-src 'self'",
     "object-src 'none'"
   ].join("; ");
@@ -44,7 +45,8 @@ export function getSecurityMetaTags() {
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co blob:;
-    connect-src 'self' https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co;
+    connect-src 'self' https://gqceeliuclgzjzmubywy.supabase.co https://*.supabase.co wss://*.supabase.co wss://gqceeliuclgzjzmubywy.supabase.co;
+    media-src 'self' blob: https://*.supabase.co;
     frame-src 'self';
     object-src 'none'
   `;

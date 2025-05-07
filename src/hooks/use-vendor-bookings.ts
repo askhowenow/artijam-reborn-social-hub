@@ -53,16 +53,16 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Process raw data without excessive type instantiation
-      const bookings: Booking[] = [];
+      // Fixed: Process raw data without excessive type instantiation
+      const bookingList: Booking[] = [];
       
       if (data) {
         for (const item of data) {
           try {
-            // Check if customer is valid before transformation
-            if (typeof item.customer === 'object' && item.customer && !item.customer.error) {
-              const transformedBooking = transformBookingFromApi(item as unknown as ApiBooking);
-              bookings.push(transformedBooking);
+            // Fixed: Check if customer is valid before transformation
+            if (typeof item.customer === 'object' && item.customer && item.customer.id) {
+              const transformedBooking = transformBookingFromApi(item as any);
+              bookingList.push(transformedBooking);
             } else {
               console.error('Invalid customer data:', item.customer);
             }
@@ -72,7 +72,7 @@ export const useVendorBookings = () => {
         }
       }
       
-      return bookings;
+      return bookingList;
     }
   });
   
