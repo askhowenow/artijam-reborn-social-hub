@@ -6,6 +6,7 @@ import { Home, User, Store, ShoppingBag, Calendar, Video } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
+import FloatingActionButton from "@/components/common/FloatingActionButton";
 
 const MobileNavigation = () => {
   const location = useLocation();
@@ -16,9 +17,9 @@ const MobileNavigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white md:hidden z-10">
-      <nav className="flex justify-around">
+      <nav className="grid grid-cols-5 relative">
         <Link to="/" className={cn(
-          "flex flex-col items-center justify-center w-full h-full",
+          "flex flex-col items-center justify-center py-2",
           pathname === "/" ? "text-artijam-purple" : "text-gray-600"
         )}>
           <Home size={20} />
@@ -26,7 +27,7 @@ const MobileNavigation = () => {
         </Link>
         
         <Link to="/shop" className={cn(
-          "flex flex-col items-center justify-center w-full h-full relative",
+          "flex flex-col items-center justify-center py-2 relative",
           pathname === "/shop" || pathname.startsWith("/shop/") ? "text-artijam-purple" : "text-gray-600"
         )}>
           <ShoppingBag size={20} />
@@ -38,12 +39,12 @@ const MobileNavigation = () => {
           )}
         </Link>
         
-        <div className="flex-1 invisible">
-          {/* This is a spacer for the floating action button */}
+        <div className="flex justify-center items-end">
+          <div className="h-7"></div> {/* Space for the floating button */}
         </div>
         
         <Link to="/my-bookings" className={cn(
-          "flex flex-col items-center justify-center w-full h-full",
+          "flex flex-col items-center justify-center py-2",
           pathname === "/my-bookings" || pathname.startsWith("/my-bookings/") ? "text-artijam-purple" : "text-gray-600"
         )}>
           <Calendar size={20} />
@@ -52,7 +53,7 @@ const MobileNavigation = () => {
         
         {isVendor && (
           <Link to="/vendor/dashboard" className={cn(
-            "flex flex-col items-center justify-center w-full h-full",
+            "flex flex-col items-center justify-center py-2",
             pathname.startsWith("/vendor") ? "text-artijam-purple" : "text-gray-600"
           )}>
             <Store size={20} />
@@ -60,19 +61,20 @@ const MobileNavigation = () => {
           </Link>
         )}
         
-        <Link to="/profile" className={cn(
-          "flex flex-col items-center justify-center w-full h-full",
-          pathname === "/profile" || pathname.startsWith("/profile/") ? "text-artijam-purple" : "text-gray-600"
-        )}>
-          <User size={20} />
-          <span className="text-xs mt-1">Profile</span>
-        </Link>
+        {!isVendor && (
+          <Link to="/profile" className={cn(
+            "flex flex-col items-center justify-center py-2",
+            pathname === "/profile" || pathname.startsWith("/profile/") ? "text-artijam-purple" : "text-gray-600"
+          )}>
+            <User size={20} />
+            <span className="text-xs mt-1">Profile</span>
+          </Link>
+        )}
         
-        {/* Add Streams Link */}
-        <Link to="/streams" className="flex flex-col items-center py-2 px-4">
-          <Video size={24} className={location.pathname === "/streams" ? "text-artijam-purple" : ""} />
-          <span className="text-xs mt-1">Streams</span>
-        </Link>
+        {/* The FloatingActionButton is positioned absolutely and stays in the middle */}
+        <div className="absolute left-1/2 -translate-x-1/2 -top-8">
+          <FloatingActionButton />
+        </div>
       </nav>
     </div>
   );

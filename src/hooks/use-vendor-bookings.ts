@@ -2,8 +2,41 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
+import { Booking, BookingStatus } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
+
+// Define a simplified interface for raw booking data from the database
+interface RawBookingData {
+  id: string;
+  service_id: string;
+  customer_id: string;
+  status: BookingStatus;
+  start_time: string;
+  end_time: string;
+  customer_notes?: string;
+  special_requests?: string;
+  created_at: string;
+  booking_reference?: string;
+}
+
+// Define interfaces for service and customer data
+interface RawServiceData {
+  id: string;
+  name: string;
+  vendor_id: string;
+}
+
+interface RawCustomerData {
+  id: string;
+  full_name: string | null;
+}
+
+// Combined booking data with related entities
+interface RawBookingWithRelations {
+  bookingData: RawBookingData;
+  service: RawServiceData | null;
+  customer: RawCustomerData | null;
+}
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
@@ -41,10 +74,12 @@ export const useVendorBookings = () => {
           status, 
           start_time,
           end_time,
-          additional_data,
+          customer_notes,
+          special_requests,
+          booking_reference,
           created_at
         `)
-        .eq('service.vendor_id', vendorProfile.id)
+        .eq('status', 'confirmed')
         .order('start_time', { ascending: false });
         
       if (bookingsError) {
@@ -60,41 +95,73 @@ export const useVendorBookings = () => {
       const serviceIds = Array.from(new Set(bookingsData.map(booking => booking.service_id)));
       const customerIds = Array.from(new Set(bookingsData.map(booking => booking.customer_id)));
       
-      // Fetch services and customers separately
-      const [serviceResponse, customerResponse] = await Promise.all([
-        supabase
-          .from('services')
-          .select('id, name, vendor_id')
-          .in('id', serviceIds),
-        supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', customerIds)
-      ]);
-      
-      if (serviceResponse.error) throw serviceResponse.error;
-      if (customerResponse.error) throw customerResponse.error;
+      // Fetch services that belong to this vendor
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('id, name, vendor_id')
+        .eq('vendor_id', vendorProfile.id)
+        .in('id', serviceIds);
+        
+      if (servicesError) {
+        throw servicesError;
+      }
+
+      // Fetch customers
+      const { data: customersData, error: customersError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', customerIds);
+        
+      if (customersError) {
+        throw customersError;
+      }
       
       // Create lookup maps for services and customers
-      const servicesMap = (serviceResponse.data || []).reduce((map, service) => {
-        map[service.id] = service;
-        return map;
-      }, {} as Record<string, any>);
+      const servicesMap: Record<string, RawServiceData> = {};
+      (servicesData || []).forEach(service => {
+        servicesMap[service.id] = service;
+      });
       
-      const customersMap = (customerResponse.data || []).reduce((map, customer) => {
-        map[customer.id] = customer;
-        return map;
-      }, {} as Record<string, any>);
+      const customersMap: Record<string, RawCustomerData> = {};
+      (customersData || []).forEach(customer => {
+        customersMap[customer.id] = customer;
+      });
       
-      // Merge the data
-      const apiBookings = bookingsData.map(booking => ({
-        ...booking,
+      // Filter bookings to only include those for services owned by this vendor
+      const vendorBookings = bookingsData.filter(booking => 
+        servicesMap[booking.service_id]
+      );
+      
+      // Create combined data structure
+      const bookingsWithRelations: RawBookingWithRelations[] = vendorBookings.map(booking => ({
+        bookingData: booking as RawBookingData,
         service: servicesMap[booking.service_id] || null,
         customer: customersMap[booking.customer_id] || null
       }));
       
       // Transform to our Booking type
-      return apiBookings.map(item => transformBookingFromApi(item as ApiBooking));
+      return bookingsWithRelations.map(item => {
+        return {
+          id: item.bookingData.id,
+          serviceId: item.bookingData.service_id,
+          customerId: item.bookingData.customer_id,
+          status: item.bookingData.status,
+          startTime: item.bookingData.start_time,
+          endTime: item.bookingData.end_time,
+          bookingReference: item.bookingData.booking_reference,
+          specialRequests: item.bookingData.special_requests,
+          createdAt: item.bookingData.created_at,
+          service: item.service ? {
+            id: item.service.id,
+            name: item.service.name,
+            vendorId: item.service.vendor_id
+          } : null,
+          customer: item.customer ? {
+            id: item.customer.id,
+            fullName: item.customer.full_name
+          } : null
+        } as Booking;
+      });
     }
   });
   

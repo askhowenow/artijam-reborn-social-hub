@@ -86,7 +86,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="start" 
-        className="w-64 max-h-[80vh] overflow-y-auto bg-white" 
+        className="max-h-[80vh] overflow-y-auto bg-white z-50" 
         side="bottom"
         sideOffset={8}
       >
@@ -98,8 +98,10 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                   <img src={user.user_metadata?.avatar_url || "/placeholder.svg"} 
                       alt={user.email || "User"} />
                 </Avatar>
-                <div>
-                  <p className="font-medium">{user.email}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate max-w-[180px]" title={user.email || ""}>
+                    {user.email}
+                  </p>
                   <p className="text-xs text-gray-500">View Profile</p>
                 </div>
               </Link>
@@ -125,8 +127,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     : "text-gray-700 hover:bg-gray-100"
                 )}
               >
-                <link.icon size={18} className="mr-3" />
-                {link.label}
+                <link.icon size={18} className="mr-3 flex-shrink-0" />
+                <span className="truncate">{link.label}</span>
               </Link>
             </DropdownMenuItem>
           ))}
@@ -150,8 +152,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
-                    <link.icon size={18} className="mr-3" />
-                    {link.label}
+                    <link.icon size={18} className="mr-3 flex-shrink-0" />
+                    <span className="truncate">{link.label}</span>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -183,8 +185,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
-                    <link.icon size={18} className="mr-3" />
-                    {link.label}
+                    <link.icon size={18} className="mr-3 flex-shrink-0" />
+                    <span className="truncate">{link.label}</span>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -208,8 +210,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     : "text-gray-700 hover:bg-gray-100"
                 )}
               >
-                <link.icon size={18} className="mr-3" />
-                {link.label}
+                <link.icon size={18} className="mr-3 flex-shrink-0" />
+                <span className="truncate">{link.label}</span>
               </Link>
             </DropdownMenuItem>
           ))}
@@ -233,8 +235,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
-                    <link.icon size={18} className="mr-3" />
-                    {link.label}
+                    <link.icon size={18} className="mr-3 flex-shrink-0" />
+                    <span className="truncate">{link.label}</span>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -248,8 +250,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
             to="/settings"
             className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
-            <Settings size={18} className="mr-3" />
-            Settings
+            <Settings size={18} className="mr-3 flex-shrink-0" />
+            <span className="truncate">Settings</span>
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
