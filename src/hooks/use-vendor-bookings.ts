@@ -53,11 +53,16 @@ export const useVendorBookings = () => {
         throw error;
       }
       
-      // Cast to ApiBooking[] while adding type check
-      const apiBookings = (data || []) as unknown as ApiBooking[];
+      // Transform the raw data to our Booking type
+      const rawData = data || [];
+      const bookings: Booking[] = [];
       
-      // Map the response data to our Booking type
-      return apiBookings.map((item) => transformBookingFromApi(item));
+      // Process each booking individually to avoid deep type instantiation
+      for (const item of rawData) {
+        bookings.push(transformBookingFromApi(item as unknown as ApiBooking));
+      }
+      
+      return bookings;
     }
   });
   
