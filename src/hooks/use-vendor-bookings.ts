@@ -31,10 +31,19 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // Split this into two separate queries to avoid excessive type nesting
+      // First get all booking IDs that belong to this vendor
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('service_bookings')
-        .select('*, service_id, customer_id')
+        .select(`
+          id, 
+          service_id, 
+          customer_id,
+          status, 
+          start_time,
+          end_time,
+          additional_data,
+          created_at
+        `)
         .eq('service.vendor_id', vendorProfile.id)
         .order('start_time', { ascending: false });
         
@@ -47,10 +56,11 @@ export const useVendorBookings = () => {
         return [];
       }
 
-      // Now fetch the related service and customer data separately
-      const serviceIds = bookingsData.map(booking => booking.service_id);
-      const customerIds = bookingsData.map(booking => booking.customer_id);
+      // Extract IDs for separate queries
+      const serviceIds = Array.from(new Set(bookingsData.map(booking => booking.service_id)));
+      const customerIds = Array.from(new Set(bookingsData.map(booking => booking.customer_id)));
       
+      // Fetch services and customers separately
       const [serviceResponse, customerResponse] = await Promise.all([
         supabase
           .from('services')
@@ -69,22 +79,22 @@ export const useVendorBookings = () => {
       const servicesMap = (serviceResponse.data || []).reduce((map, service) => {
         map[service.id] = service;
         return map;
-      }, {});
+      }, {} as Record<string, any>);
       
       const customersMap = (customerResponse.data || []).reduce((map, customer) => {
         map[customer.id] = customer;
         return map;
-      }, {});
+      }, {} as Record<string, any>);
       
-      // Construct the API booking objects
+      // Merge the data
       const apiBookings = bookingsData.map(booking => ({
         ...booking,
         service: servicesMap[booking.service_id] || null,
         customer: customersMap[booking.customer_id] || null
-      })) as unknown as ApiBooking[];
+      }));
       
-      // Map the response data to our Booking type using the shared transformer
-      return apiBookings.map((item) => transformBookingFromApi(item));
+      // Transform to our Booking type
+      return apiBookings.map(item => transformBookingFromApi(item as ApiBooking));
     }
   });
   

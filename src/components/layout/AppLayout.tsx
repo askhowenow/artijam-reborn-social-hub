@@ -7,6 +7,7 @@ import SideNavigation from "./SideNavigation";
 import MobileDrawer from "./MobileDrawer";
 import CartDrawer from "@/components/shop/CartDrawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import FloatingActionButton from "@/components/common/FloatingActionButton";
 
 const AppLayout = () => {
   const isMobile = useIsMobile();
@@ -39,6 +40,9 @@ const AppLayout = () => {
             </div>
           </div>
         </main>
+        
+        {/* Floating Action Button - only visible on mobile */}
+        {isMobile && <FloatingActionButton />}
         
         {/* Mobile Navigation - only visible on mobile */}
         <MobileNavigation />

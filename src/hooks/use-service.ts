@@ -43,7 +43,15 @@ export const useService = (serviceId?: string) => {
         throw error;
       }
       
-      return data as ServiceWithVendor;
+      // Ensure vendor is valid and has the expected shape before returning
+      // This prevents type errors from incorrect data structures
+      if (data && typeof data.vendor === 'object' && data.vendor !== null && !('error' in data.vendor)) {
+        return data as ServiceWithVendor;
+      }
+      
+      // If vendor data is missing or has an error, return service without vendor
+      const { vendor, ...serviceData } = data || {};
+      return serviceData as Service;
     },
     enabled: !!serviceId
   });

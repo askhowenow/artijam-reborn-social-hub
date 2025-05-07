@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, PlusCircle, User, Store, ShoppingBag, Calendar, Video } from "lucide-react";
+import { Home, User, Store, ShoppingBag, Calendar, Video } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
@@ -37,11 +38,9 @@ const MobileNavigation = () => {
           )}
         </Link>
         
-        <Link to="/post/create" className="flex flex-col items-center justify-center w-full h-full">
-          <div className="bg-artijam-purple rounded-full p-3">
-            <PlusCircle size={20} className="text-white" />
-          </div>
-        </Link>
+        <div className="flex-1 invisible">
+          {/* This is a spacer for the floating action button */}
+        </div>
         
         <Link to="/my-bookings" className={cn(
           "flex flex-col items-center justify-center w-full h-full",
