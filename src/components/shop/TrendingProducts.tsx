@@ -21,16 +21,16 @@ const TrendingProducts = () => {
 
   if (isTrendingLoading) {
     return (
-      <Card className="w-full h-64 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+      <Card className="w-full h-48 xs:h-64 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 xs:h-8 xs:w-8 animate-spin text-artijam-purple" />
       </Card>
     );
   }
 
   if (!trendingProducts || trendingProducts.length === 0) {
     return (
-      <Card className="w-full p-8 text-center">
-        <p className="text-gray-500">No trending products yet</p>
+      <Card className="w-full p-4 xs:p-8 text-center">
+        <p className="text-gray-500 text-sm xs:text-base">No trending products yet</p>
       </Card>
     );
   }
@@ -46,8 +46,8 @@ const TrendingProducts = () => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="left-0 sm:left-2 bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-10 sm:w-10" />
-      <CarouselNext className="right-0 sm:right-2 bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-10 sm:w-10" />
+      <CarouselPrevious className="left-0 sm:left-2 bg-white/80 backdrop-blur-sm h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10" />
+      <CarouselNext className="right-0 sm:right-2 bg-white/80 backdrop-blur-sm h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10" />
     </Carousel>
   );
 };

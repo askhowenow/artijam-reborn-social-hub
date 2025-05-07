@@ -69,14 +69,14 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
         />
         
         {product.stock_quantity !== null && product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <Badge className="absolute top-1 left-1 bg-amber-500 text-xs">
+          <Badge className="absolute top-1 left-1 bg-amber-500 text-2xs xs:text-xs">
             Only {product.stock_quantity} left
           </Badge>
         )}
         
         {product.stock_quantity === 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge className="bg-red-500 text-white px-2 py-1 text-xs">
+            <Badge className="bg-red-500 text-white px-1 xs:px-2 py-0.5 xs:py-1 text-2xs xs:text-xs">
               Out of Stock
             </Badge>
           </div>
@@ -84,45 +84,45 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
       </div>
       
       <div className={wide ? 'flex-1 flex flex-col' : ''}>
-        <CardContent className={wide ? 'flex-1 p-2 sm:p-4' : 'p-2 sm:p-4'}>
-          <div className="flex items-start justify-between mb-1">
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <span className="truncate max-w-[80px] sm:max-w-[100px]">{product.vendor?.business_name}</span>
+        <CardContent className={wide ? 'flex-1 p-1 xs:p-2 sm:p-4' : 'p-1 xs:p-2 sm:p-4'}>
+          <div className="flex items-start justify-between mb-0.5 xs:mb-1">
+            <div className="flex items-center gap-0.5 xs:gap-1 text-2xs xs:text-xs text-gray-500">
+              <span className="truncate max-w-[50px] xs:max-w-[80px] sm:max-w-[100px]">{product.vendor?.business_name}</span>
               {product.vendor?.is_verified && (
-                <CheckCircle className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                <CheckCircle className="h-2 w-2 xs:h-3 xs:w-3 text-blue-500 flex-shrink-0" />
               )}
             </div>
             
             {product.metrics && (
-              <div className="flex items-center text-xs text-gray-500">
-                <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
+              <div className="flex items-center text-2xs xs:text-xs text-gray-500">
+                <Eye className="w-2 h-2 xs:w-3 xs:h-3 mr-0.5 xs:mr-1 flex-shrink-0" />
                 {product.metrics.views || 0}
               </div>
             )}
           </div>
           
-          <h3 className="font-semibold text-sm line-clamp-1">
+          <h3 className="font-semibold text-xs xs:text-sm line-clamp-1">
             {product.name}
           </h3>
           
           {product.description && (
-            <p className="text-xs text-gray-600 line-clamp-1 sm:line-clamp-2">{product.description}</p>
+            <p className="text-2xs xs:text-xs text-gray-600 line-clamp-1 xs:line-clamp-1 sm:line-clamp-2">{product.description}</p>
           )}
           
-          <div className="flex items-center justify-between mt-1">
-            <p className="font-bold text-sm sm:text-base text-artijam-purple">
+          <div className="flex items-center justify-between mt-0.5 xs:mt-1">
+            <p className="font-bold text-xs xs:text-sm sm:text-base text-artijam-purple">
               ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
             </p>
             
             {product.category && (
-              <Badge variant="secondary" className="text-xs hidden xs:inline-flex">
+              <Badge variant="secondary" className="text-2xs hidden xs:inline-flex">
                 {product.category}
               </Badge>
             )}
           </div>
         </CardContent>
         
-        <CardFooter className={`bg-gray-50 p-2 ${wide ? 'mt-auto' : ''}`}>
+        <CardFooter className={`bg-gray-50 p-1 xs:p-2 ${wide ? 'mt-auto' : ''}`}>
           {isVendorView && onDelete ? (
             <Button 
               onClick={(e) => {
@@ -130,7 +130,7 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
                 setIsDeleteDialogOpen(true);
               }}
               variant="destructive"
-              className="w-full"
+              className="w-full text-2xs xs:text-xs"
               size="sm"
             >
               Delete Product
@@ -138,11 +138,11 @@ const ProductCard = ({ product, wide = false, onDelete, isVendorView = false }: 
           ) : (
             <Button 
               onClick={(e) => handleAddToCart(e)}
-              className="w-full bg-artijam-purple hover:bg-artijam-purple/90 text-xs sm:text-sm h-8 sm:h-9"
+              className="w-full bg-artijam-purple hover:bg-artijam-purple/90 text-2xs xs:text-xs sm:text-sm h-7 xs:h-8 sm:h-9"
               disabled={!product.is_available || product.stock_quantity === 0}
               size="sm"
             >
-              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <ShoppingCart className="h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 mr-0.5 xs:mr-1" />
               Add to Cart
             </Button>
           )}

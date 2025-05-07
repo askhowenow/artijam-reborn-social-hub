@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, BookingStatus } from '@/types/booking';
+import { Booking, BookingStatus, PaymentStatus } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
 // Define intermediate types for Supabase query results
@@ -19,7 +19,7 @@ interface ServiceResult {
 }
 
 // Flattened API structure to avoid deep recursion
-interface ApiBooking {
+interface RawApiBooking {
   id: string;
   service_id: string;
   customer_id: string;
@@ -28,7 +28,7 @@ interface ApiBooking {
   status: BookingStatus;
   special_requests?: string;
   customer_notes?: string;
-  payment_status: string;
+  payment_status: PaymentStatus;
   booking_reference?: string;
   qr_code?: string;
   created_at: string;
@@ -90,7 +90,31 @@ export const useVendorBookings = () => {
       if (data) {
         for (const item of data as unknown[]) {
           try {
-            const transformedBooking = transformBookingFromApi(item as ApiBooking);
+            const rawBooking = item as RawApiBooking;
+            const transformedBooking = {
+              id: rawBooking.id,
+              serviceId: rawBooking.service_id,
+              customerId: rawBooking.customer_id,
+              startTime: rawBooking.start_time,
+              endTime: rawBooking.end_time,
+              status: rawBooking.status,
+              specialRequests: rawBooking.special_requests,
+              customerNotes: rawBooking.customer_notes,
+              paymentStatus: rawBooking.payment_status,
+              bookingReference: rawBooking.booking_reference,
+              qrCode: rawBooking.qr_code,
+              createdAt: rawBooking.created_at,
+              service: rawBooking.service ? {
+                id: rawBooking.service.id,
+                name: rawBooking.service.name,
+                vendorId: rawBooking.service.vendor_id,
+              } : undefined,
+              customer: rawBooking.customer ? {
+                id: rawBooking.customer.id,
+                email: rawBooking.customer.email,
+                fullName: rawBooking.customer.full_name,
+              } : undefined
+            };
             bookingList.push(transformedBooking);
           } catch (e) {
             console.error('Error processing booking:', e);

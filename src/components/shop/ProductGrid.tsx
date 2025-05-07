@@ -16,13 +16,13 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-3 sm:gap-4">
         {[...Array(4)].map((_, index) => (
-          <Card key={index} className="h-64 animate-pulse">
+          <Card key={index} className="h-48 xs:h-64 animate-pulse">
             <div className="bg-gray-200 aspect-square" />
-            <CardContent className="p-2 sm:p-4">
-              <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            <CardContent className="p-2">
+              <div className="h-2 xs:h-3 bg-gray-200 rounded w-3/4 mb-1 xs:mb-2" />
+              <div className="h-2 xs:h-3 bg-gray-200 rounded w-1/2" />
             </CardContent>
           </Card>
         ))}
@@ -53,7 +53,7 @@ const ProductGrid = ({ products, isLoading, error, selectedCategory }: ProductGr
   }
 
   return (
-    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
