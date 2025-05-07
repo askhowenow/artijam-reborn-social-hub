@@ -83,7 +83,7 @@ export const useVendorBookings = () => {
       const bookingList: Booking[] = [];
       
       if (data) {
-        for (const item of data as ServiceBookingQueryResult[]) {
+        for (const item of data as unknown[]) {
           try {
             const transformedBooking = transformBookingFromApi(item as ApiBooking);
             bookingList.push(transformedBooking);
