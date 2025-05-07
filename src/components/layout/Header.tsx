@@ -1,12 +1,13 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Bell, Search, ShoppingBag } from "lucide-react";
+import { Bell, Search, ShoppingBag, PlusCircle } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import CartDrawer from "@/components/shop/CartDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
+import { useAuth } from "@/context/AuthProvider";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ children }) => {
   const { cartCount } = useCart();
+  const { user } = useAuth();
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   
   return (
@@ -25,10 +27,8 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
             {children}
           </div>
           
-          {/* Logo on mobile */}
-          <div className="md:hidden">
-            <Logo size="sm" />
-          </div>
+          {/* Logo - visible on both mobile and desktop */}
+          <Logo size={window.innerWidth < 768 ? "sm" : "md"} />
         </div>
 
         <div className="hidden md:flex items-center justify-center flex-1">
@@ -45,6 +45,14 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
         </div>
         
         <div className="flex items-center space-x-2">
+          {user && (
+            <Link to="/vendor/products/new">
+              <Button variant="ghost" size="icon" className="relative">
+                <PlusCircle size={20} />
+              </Button>
+            </Link>
+          )}
+          
           <Button variant="ghost" size="icon" className="relative">
             <Bell size={20} />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-artijam-purple">

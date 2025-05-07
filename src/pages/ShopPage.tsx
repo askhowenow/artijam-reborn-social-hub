@@ -13,10 +13,9 @@ import { useNavigate } from 'react-router-dom';
 // Import the components
 import TrendingProducts from '@/components/shop/TrendingProducts';
 import CategoryFilter from '@/components/shop/CategoryFilter';
-import ProductGrid from '@/components/shop/ProductGrid';
+import EventCard from '@/components/events/EventCard';
 import FeaturedCategories from '@/components/shop/FeaturedCategories';
 import VendorCTA from '@/components/shop/VendorCTA';
-import EventCard from '@/components/events/EventCard';
 
 const categoryFilters = [
   'All',
@@ -32,27 +31,11 @@ const categoryFilters = [
 const featuredCategories = ['Events', 'Art', 'Digital', 'Clothing'];
 
 const ShopPage = () => {
-  console.log("ShopPage rendering");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const { cartCount, isAuthenticated } = useCart();
   
-  // Fetch products with optional category filter
-  const { 
-    data: products, 
-    isLoading: isProductsLoading,
-    error
-  } = useProducts({ 
-    category: selectedCategory === 'All' || selectedCategory === 'Events' ? null : selectedCategory, 
-    limit: 24
-  });
-
-  // Log products after fetching
-  useEffect(() => {
-    console.log("ShopPage products data:", products);
-  }, [products]);
-
-  // Fetch published events
+  // Fetch events when Events category is selected
   const { 
     events,
     isLoading: isEventsLoading,
@@ -61,12 +44,10 @@ const ShopPage = () => {
   });
 
   const handleCategoryChange = (category: string) => {
-    console.log(`Category changed to: ${category}`);
     setSelectedCategory(category === 'All' ? null : category);
   };
 
   const handleFeaturedCategorySelect = (category: string) => {
-    console.log(`Featured category selected: ${category}`);
     setSelectedCategory(category);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,14 +55,10 @@ const ShopPage = () => {
   useEffect(() => {
     // Scroll to top when the component mounts
     window.scrollTo(0, 0);
-    console.log("ShopPage mounted");
   }, []);
 
   // Display events or products based on selected category
   const isEventCategory = selectedCategory === 'Events';
-  
-  console.log(`ShopPage rendering with selectedCategory: ${selectedCategory}, isEventCategory: ${isEventCategory}`);
-  console.log(`Products count: ${products?.length || 0}, Events count: ${events?.length || 0}`);
 
   return (
     <>
@@ -91,13 +68,11 @@ const ShopPage = () => {
       </Helmet>
 
       <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">
-        {/* Mobile header with cart - Only shown in AppLayout */}
-        {isAuthenticated && (
-          <div className="flex justify-between items-center md:hidden mb-4">
-            <h1 className="text-2xl font-bold">Shop</h1>
-            <CartDrawer />
-          </div>
-        )}
+        {/* Mobile header with cart - Only shown on mobile */}
+        <div className="flex justify-between items-center md:hidden mb-4">
+          <h1 className="text-2xl font-bold">Shop</h1>
+          {isAuthenticated && <CartDrawer />}
+        </div>
 
         {/* Hero Section with Trending Products Carousel */}
         <div className="mb-8">
@@ -122,31 +97,29 @@ const ShopPage = () => {
         </div>
 
         {/* Category Filters */}
-        <CategoryFilter 
-          categories={categoryFilters}
-          selectedCategory={selectedCategory}
-          onCategoryChange={handleCategoryChange}
-        />
-
-        {/* Events Grid or Products Grid based on selection */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">
-              {isEventCategory ? 'Upcoming Events' : selectedCategory || 'All Products'}
-            </h2>
-            
-            {selectedCategory && (
+          <h2 className="text-xl font-bold mb-4">Browse Categories</h2>
+          <CategoryFilter 
+            categories={categoryFilters}
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+          />
+        </div>
+
+        {/* Events Grid (only shown when Events category is selected) */}
+        {isEventCategory && (
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Upcoming Events</h2>
               <Button 
                 variant="link" 
                 className="text-artijam-purple"
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => navigate('/events')}
               >
-                View All
+                View All Events
               </Button>
-            )}
-          </div>
+            </div>
 
-          {isEventCategory ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {isEventsLoading ? (
                 <div className="col-span-full flex justify-center py-10">
@@ -158,7 +131,7 @@ const ShopPage = () => {
                   <p className="text-gray-500 mt-1">Check back later for new events</p>
                 </div>
               ) : (
-                events.map((event) => (
+                events.slice(0, 6).map((event) => (
                   <div key={event.id} onClick={() => navigate(`/events/${event.id}`)} className="cursor-pointer">
                     {/* This is a placeholder for the EventCard component */}
                     <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -179,15 +152,8 @@ const ShopPage = () => {
                 ))
               )}
             </div>
-          ) : (
-            <ProductGrid 
-              products={products}
-              isLoading={isProductsLoading}
-              error={error}
-              selectedCategory={selectedCategory}
-            />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Featured Categories */}
         <FeaturedCategories 

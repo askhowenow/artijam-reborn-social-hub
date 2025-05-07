@@ -14,13 +14,17 @@ const CategoryFilter = ({
   onCategoryChange 
 }: CategoryFilterProps) => {
   return (
-    <div className="mb-8 overflow-x-auto pb-2">
-      <div className="flex space-x-2 min-w-max">
+    <div className="overflow-x-auto pb-2">
+      <div className="flex flex-wrap gap-2 min-w-max md:min-w-0">
         {categories.map((category) => (
           <Badge
             key={category}
             variant={selectedCategory === category || (category === 'All' && !selectedCategory) ? "default" : "outline"}
-            className="px-3 py-1 cursor-pointer bg-artijam-purple"
+            className={`px-4 py-2 cursor-pointer text-sm ${
+              selectedCategory === category || (category === 'All' && !selectedCategory)
+                ? "bg-artijam-purple"
+                : "hover:bg-artijam-purple/10"
+            }`}
             onClick={() => onCategoryChange(category)}
           >
             {category}

@@ -59,7 +59,8 @@ export const useVendorBookings = () => {
       
       // Process each booking individually to avoid deep type instantiation
       for (const item of rawData) {
-        bookings.push(transformBookingFromApi(item as unknown as ApiBooking));
+        const transformedBooking = transformBookingFromApi(item as unknown as ApiBooking);
+        bookings.push(transformedBooking);
       }
       
       return bookings;
