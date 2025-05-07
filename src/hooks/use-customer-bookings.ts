@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Booking, ApiBooking } from '@/types/booking';
+import { Booking, ApiBooking, BookingStatus } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
 export const useCustomerBookings = () => {
@@ -35,7 +35,7 @@ export const useCustomerBookings = () => {
       }
       
       // Map the response data to our Booking type
-      return (data || []).map((item: ApiBooking) => transformBookingFromApi(item));
+      return (data as ApiBooking[] || []).map((item) => transformBookingFromApi(item));
     }
   });
   

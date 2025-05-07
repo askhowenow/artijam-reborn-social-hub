@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ const VendorBookings = () => {
     
     // Date filter
     if (dateFilter) {
-      const bookingDate = parseISO(booking.start_time);
+      const bookingDate = parseISO(booking.startTime);
       
       if (dateFilter === 'today' && !isToday(bookingDate)) {
         return false;
@@ -54,8 +55,8 @@ const VendorBookings = () => {
     // Search filter - check customer name or booking reference
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const customerName = booking.customer?.full_name?.toLowerCase() || '';
-      const bookingRef = booking.booking_reference?.toLowerCase() || '';
+      const customerName = booking.customer?.fullName?.toLowerCase() || '';
+      const bookingRef = booking.bookingReference?.toLowerCase() || '';
       
       if (!customerName.includes(searchLower) && !bookingRef.includes(searchLower)) {
         return false;
@@ -67,8 +68,8 @@ const VendorBookings = () => {
   
   // Sort by start time (newest first for upcoming, oldest first for past)
   filteredBookings.sort((a, b) => {
-    const dateA = parseISO(a.start_time);
-    const dateB = parseISO(b.start_time);
+    const dateA = parseISO(a.startTime);
+    const dateB = parseISO(b.startTime);
     
     // If both are in the past, sort oldest first
     if (isBefore(dateA, new Date()) && isBefore(dateB, new Date())) {
@@ -81,18 +82,18 @@ const VendorBookings = () => {
   
   // Group bookings by status
   const upcomingBookings = filteredBookings.filter(
-    booking => isAfter(parseISO(booking.start_time), new Date()) && 
+    booking => isAfter(parseISO(booking.startTime), new Date()) && 
     booking.status !== 'cancelled'
   );
   
   const todayBookings = filteredBookings.filter(
-    booking => isToday(parseISO(booking.start_time)) && 
+    booking => isToday(parseISO(booking.startTime)) && 
     booking.status !== 'cancelled' &&
     booking.status !== 'completed'
   );
   
   const pastBookings = filteredBookings.filter(
-    booking => isBefore(parseISO(booking.start_time), new Date()) || 
+    booking => isBefore(parseISO(booking.startTime), new Date()) || 
     booking.status === 'cancelled' ||
     booking.status === 'completed'
   );
@@ -124,32 +125,32 @@ const VendorBookings = () => {
                   {booking.status}
                 </Badge>
                 
-                {booking.booking_reference && (
+                {booking.bookingReference && (
                   <span className="text-xs text-gray-500">
-                    {booking.booking_reference}
+                    {booking.bookingReference}
                   </span>
                 )}
               </div>
               
               <div className="flex items-center text-sm font-medium">
                 <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                {format(parseISO(booking.start_time), 'EEEE, MMM d, yyyy')}
+                {format(parseISO(booking.startTime), 'EEEE, MMM d, yyyy')}
               </div>
               
               <div className="flex items-center text-sm">
                 <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                {format(parseISO(booking.start_time), 'h:mm a')} - 
-                {format(parseISO(booking.end_time), ' h:mm a')}
+                {format(parseISO(booking.startTime), 'h:mm a')} - 
+                {format(parseISO(booking.endTime), ' h:mm a')}
               </div>
               
               <div className="flex items-center text-sm">
                 <User className="h-4 w-4 mr-2 text-gray-500" />
-                {booking.customer?.full_name || 'Anonymous Customer'}
+                {booking.customer?.fullName || 'Anonymous Customer'}
               </div>
               
-              {booking.special_requests && (
+              {booking.specialRequests && (
                 <div className="text-sm border-l-2 border-gray-200 pl-2 mt-2 italic">
-                  {booking.special_requests}
+                  {booking.specialRequests}
                 </div>
               )}
             </div>
@@ -285,9 +286,9 @@ const VendorBookings = () => {
             </TabsContent>
             
             <TabsContent value="upcoming" className="space-y-4">
-              {upcomingBookings.filter(b => !isToday(parseISO(b.start_time))).length > 0 ? (
+              {upcomingBookings.filter(b => !isToday(parseISO(b.startTime))).length > 0 ? (
                 upcomingBookings
-                  .filter(b => !isToday(parseISO(b.start_time)))
+                  .filter(b => !isToday(parseISO(b.startTime)))
                   .map(renderBookingCard)
               ) : (
                 <Card>

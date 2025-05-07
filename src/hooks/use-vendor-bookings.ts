@@ -54,7 +54,7 @@ export const useVendorBookings = () => {
       }
       
       // Map the response data to our Booking type
-      return (data || []).map((item: ApiBooking) => transformBookingFromApi(item));
+      return (data as ApiBooking[] || []).map((item) => transformBookingFromApi(item));
     }
   });
   

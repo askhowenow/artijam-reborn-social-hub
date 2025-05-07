@@ -3,6 +3,8 @@
  * Utility functions for transforming data between frontend and backend formats
  */
 
+import { Booking, ApiBooking, ApiBookingService, ApiBookingCustomer, BookingService, BookingCustomer } from '@/types/booking';
+
 /**
  * Transforms camelCase booking data to snake_case format for the API
  */
@@ -29,10 +31,10 @@ export function transformBookingDataForApi(bookingData: {
 /**
  * Transforms snake_case booking data from API to camelCase format for the frontend
  */
-export function transformBookingFromApi(apiBooking: any): any {
-  if (!apiBooking) return null;
+export function transformBookingFromApi(apiBooking: ApiBooking): Booking {
+  if (!apiBooking) return null as unknown as Booking;
   
-  const transformed = {
+  const transformed: Booking = {
     id: apiBooking.id,
     serviceId: apiBooking.service_id,
     customerId: apiBooking.customer_id,
