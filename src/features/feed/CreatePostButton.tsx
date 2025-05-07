@@ -66,23 +66,23 @@ const CreatePostButton = () => {
             What's on your mind?
           </Link>
         </div>
-        <div className="flex justify-between mt-4 pt-2 border-t">
-          <Link to="/post/create?type=photo" className="flex items-center text-xs text-gray-500">
-            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+        <div className="grid grid-cols-3 gap-1 mt-4 pt-2 border-t">
+          <Link to="/post/create?type=photo" className="text-center">
+            <Button variant="ghost" size="sm" className="flex items-center justify-center w-full space-x-1 px-1 sm:px-2">
               <Image size={16} />
-              <span>Photo</span>
+              <span className="text-xs">Photo</span>
             </Button>
           </Link>
-          <Link to="/post/create?type=article" className="flex items-center text-xs text-gray-500">
-            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+          <Link to="/post/create?type=article" className="text-center">
+            <Button variant="ghost" size="sm" className="flex items-center justify-center w-full space-x-1 px-1 sm:px-2">
               <FileText size={16} />
-              <span>Article</span>
+              <span className="text-xs">Article</span>
             </Button>
           </Link>
-          <Link to="/post/create" className="flex items-center text-xs text-gray-500">
-            <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+          <Link to="/post/create" className="text-center">
+            <Button variant="ghost" size="sm" className="flex items-center justify-center w-full space-x-1 px-1 sm:px-2">
               <Smile size={16} />
-              <span>Feeling</span>
+              <span className="text-xs">Feeling</span>
             </Button>
           </Link>
         </div>
