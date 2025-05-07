@@ -31,31 +31,57 @@ export const useVendorBookings = () => {
         throw new Error('No vendor profile found');
       }
       
-      // Using the same approach as in use-customer-bookings.ts
-      const { data, error } = await supabase
+      // Split this into two separate queries to avoid excessive type nesting
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('service_bookings')
-        .select(`
-          *,
-          service:service_id(
-            id,
-            name,
-            vendor_id
-          ),
-          customer:customer_id(
-            id,
-            email,
-            full_name
-          )
-        `)
+        .select('*, service_id, customer_id')
         .eq('service.vendor_id', vendorProfile.id)
         .order('start_time', { ascending: false });
         
-      if (error) {
-        throw error;
+      if (bookingsError) {
+        throw bookingsError;
       }
+
+      // If there are no bookings, return empty array
+      if (!bookingsData || bookingsData.length === 0) {
+        return [];
+      }
+
+      // Now fetch the related service and customer data separately
+      const serviceIds = bookingsData.map(booking => booking.service_id);
+      const customerIds = bookingsData.map(booking => booking.customer_id);
       
-      // Cast to ApiBooking[] while adding type check
-      const apiBookings = (data || []) as unknown as ApiBooking[];
+      const [serviceResponse, customerResponse] = await Promise.all([
+        supabase
+          .from('services')
+          .select('id, name, vendor_id')
+          .in('id', serviceIds),
+        supabase
+          .from('profiles')
+          .select('id, email, full_name')
+          .in('id', customerIds)
+      ]);
+      
+      if (serviceResponse.error) throw serviceResponse.error;
+      if (customerResponse.error) throw customerResponse.error;
+      
+      // Create lookup maps for services and customers
+      const servicesMap = (serviceResponse.data || []).reduce((map, service) => {
+        map[service.id] = service;
+        return map;
+      }, {});
+      
+      const customersMap = (customerResponse.data || []).reduce((map, customer) => {
+        map[customer.id] = customer;
+        return map;
+      }, {});
+      
+      // Construct the API booking objects
+      const apiBookings = bookingsData.map(booking => ({
+        ...booking,
+        service: servicesMap[booking.service_id] || null,
+        customer: customersMap[booking.customer_id] || null
+      })) as unknown as ApiBooking[];
       
       // Map the response data to our Booking type using the shared transformer
       return apiBookings.map((item) => transformBookingFromApi(item));

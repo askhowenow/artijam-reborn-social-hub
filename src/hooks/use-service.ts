@@ -3,6 +3,18 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Service } from './use-services';
 
+// Extended Service type that includes vendor information
+export interface ServiceWithVendor extends Service {
+  vendor?: {
+    id: string;
+    business_name: string | null;
+    description: string | null;
+    logo_url: string | null;
+    store_slug: string | null;
+    location: string | null;
+  };
+}
+
 export const useService = (serviceId?: string) => {
   const { data: service, isLoading, error } = useQuery({
     queryKey: ['service', serviceId],
@@ -31,7 +43,7 @@ export const useService = (serviceId?: string) => {
         throw error;
       }
       
-      return data as Service;
+      return data as ServiceWithVendor;
     },
     enabled: !!serviceId
   });

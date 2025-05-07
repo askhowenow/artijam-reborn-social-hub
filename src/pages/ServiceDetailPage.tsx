@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useService } from '@/hooks/use-service';
+import { useService, ServiceWithVendor } from '@/hooks/use-service';
 import { useCreateBooking } from '@/hooks/use-create-booking';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -225,7 +225,7 @@ const ServiceDetailPage: React.FC = () => {
                 {service.vendor.logo_url ? (
                   <img 
                     src={service.vendor.logo_url} 
-                    alt={service.vendor.business_name} 
+                    alt={service.vendor.business_name || ''} 
                     className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (
