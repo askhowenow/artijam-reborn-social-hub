@@ -12,7 +12,7 @@ export interface ServiceWithVendor extends Service {
     logo_url: string | null;
     store_slug: string | null;
     location: string | null;
-  };
+  } | null;
 }
 
 export const useService = (serviceId?: string) => {
@@ -37,21 +37,25 @@ export const useService = (serviceId?: string) => {
           )
         `)
         .eq('id', serviceId)
-        .single();
+        .maybeSingle();
         
       if (error) {
         throw error;
       }
       
-      // Ensure vendor is valid and has the expected shape before returning
-      // This prevents type errors from incorrect data structures
-      if (data && typeof data.vendor === 'object' && data.vendor !== null && !('error' in data.vendor)) {
-        return data as ServiceWithVendor;
+      if (!data) {
+        return null;
       }
       
-      // If vendor data is missing or has an error, return service without vendor
-      const { vendor, ...serviceData } = data || {};
-      return serviceData as Service;
+      // Ensure vendor data is properly structured or set to null if there's an issue
+      const vendorData = data.vendor && typeof data.vendor === 'object' && !('error' in data.vendor) 
+        ? data.vendor 
+        : null;
+      
+      return {
+        ...data,
+        vendor: vendorData
+      } as ServiceWithVendor;
     },
     enabled: !!serviceId
   });

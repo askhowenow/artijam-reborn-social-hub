@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 import { useAuth } from "@/context/AuthProvider";
+import { useVendorProfile } from "@/hooks/use-vendor-profile";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { FileText, Calendar, Store } from "lucide-react";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -16,6 +24,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
   const { cartCount } = useCart();
   const { user } = useAuth();
+  const { vendorProfile } = useVendorProfile();
+  const isVendor = !!vendorProfile;
   
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-10">
@@ -66,11 +76,65 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
                   <Video size={20} />
                 </Button>
               </Link>
-              <Link to="/vendor/products/new">
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                  <PlusCircle size={20} />
-                </Button>
-              </Link>
+              
+              {/* Replace direct link with dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                    <PlusCircle size={20} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  alignOffset={-5}
+                  sideOffset={10} 
+                  className="bg-white w-48"
+                >
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer" 
+                    onClick={() => window.location.href = '/post/create'}
+                  >
+                    <FileText className="h-4 w-4 text-artijam-purple" />
+                    <span>Add Post</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => window.location.href = '/events/create'}
+                  >
+                    <Calendar className="h-4 w-4 text-artijam-purple" />
+                    <span>Add Event</span>
+                  </DropdownMenuItem>
+                  
+                  {isVendor && (
+                    <>
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => window.location.href = '/vendor/products/new'}
+                      >
+                        <ShoppingBag className="h-4 w-4 text-artijam-purple" />
+                        <span>Add Product</span>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => window.location.href = '/vendor/services'}
+                      >
+                        <Store className="h-4 w-4 text-artijam-purple" />
+                        <span>Add Service</span>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => window.location.href = '/vendor/streams/create'}
+                      >
+                        <Video className="h-4 w-4 text-artijam-purple" />
+                        <span>Start Stream</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           )}
           
