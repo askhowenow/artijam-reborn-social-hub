@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Bell, Search, ShoppingBag, PlusCircle, Video } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
-import CartDrawer from "@/components/shop/CartDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
@@ -11,12 +10,12 @@ import { useAuth } from "@/context/AuthProvider";
 
 interface HeaderProps {
   children?: React.ReactNode;
+  onCartOpen: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ children }) => {
+const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
   const { cartCount } = useCart();
   const { user } = useAuth();
-  const [isCartOpen, setIsCartOpen] = React.useState(false);
   
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-10">
@@ -50,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
             variant="ghost" 
             size="icon" 
             className="relative"
-            onClick={() => setIsCartOpen(true)}
+            onClick={onCartOpen}
           >
             <ShoppingBag size={20} />
             {cartCount > 0 && (
@@ -83,11 +82,6 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           </Button>
         </div>
       </div>
-      
-      <CartDrawer 
-        open={isCartOpen} 
-        onOpenChange={setIsCartOpen} 
-      />
     </header>
   );
 };

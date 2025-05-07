@@ -5,7 +5,20 @@ import { toast } from 'sonner';
 import { Booking, BookingStatus, ApiBooking } from '@/types/booking';
 import { transformBookingFromApi } from '@/utils/data-transformers';
 
-// Define intermediate types for Supabase query results
+// Define intermediate types for Supabase query results without recursion
+interface CustomerResult {
+  id: string;
+  email: string;
+  full_name?: string;
+}
+
+interface ServiceResult {
+  id: string;
+  name: string;
+  vendor_id: string;
+}
+
+// Simplified type structure to avoid deep recursion
 interface ServiceBookingQueryResult {
   id: string;
   service_id: string;
@@ -19,16 +32,8 @@ interface ServiceBookingQueryResult {
   booking_reference?: string;
   qr_code?: string;
   created_at: string;
-  service?: {
-    id: string;
-    name: string;
-    vendor_id: string;
-  };
-  customer?: {
-    id: string;
-    email: string;
-    full_name?: string;
-  };
+  service?: ServiceResult;
+  customer?: CustomerResult;
 }
 
 export const useVendorBookings = () => {
