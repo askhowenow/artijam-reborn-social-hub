@@ -1,6 +1,9 @@
 
 project_id = "gqceeliuclgzjzmubywy"
 
+[auth.external.google]
+enabled = true
+
 [functions.send-ticket-email]
 verify_jwt = true
 

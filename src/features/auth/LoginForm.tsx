@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Facebook, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -19,29 +20,25 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     
     if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      setAuthError("Please fill in all fields");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      const result = await signIn(email, password);
+      
+      if (result.error) throw result.error;
 
       toast({
         title: "Success",
@@ -49,6 +46,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       });
       onSuccess();
     } catch (error: any) {
+      setAuthError(error.message || "Failed to log in. Please try again.");
       toast({
         title: "Error",
         description: error.message || "Failed to log in. Please try again.",
@@ -60,18 +58,23 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    setAuthError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        setAuthError(`${error.message} (Provider: ${provider})`);
+        throw error;
+      }
     } catch (error: any) {
+      setAuthError(error.message || `Failed to login with ${provider}`);
       toast({
-        title: "Error",
+        title: "Authentication Error",
         description: error.message || `Failed to login with ${provider}`,
         variant: "destructive",
       });
@@ -87,6 +90,13 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {authError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{authError}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>

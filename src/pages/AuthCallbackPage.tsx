@@ -10,7 +10,11 @@ const AuthCallbackPage = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      const { error } = await supabase.auth.getSession();
+      // Get the URL hash fragment
+      const hashFragment = window.location.hash;
+      
+      // Handle the auth session
+      const { data, error } = await supabase.auth.getSession();
       
       if (error) {
         toast({
@@ -22,12 +26,22 @@ const AuthCallbackPage = () => {
         return;
       }
 
-      // Successfully authenticated
-      toast({
-        title: "Success",
-        description: "You have successfully logged in",
-      });
-      navigate("/");
+      // Check if there's a valid session
+      if (data?.session) {
+        toast({
+          title: "Success",
+          description: "You have successfully logged in",
+        });
+        navigate("/");
+      } else {
+        // This could happen if the callback didn't result in a session
+        toast({
+          title: "Authentication Error",
+          description: "Authentication failed. Please try again.",
+          variant: "destructive",
+        });
+        navigate("/login");
+      }
     };
 
     handleAuthCallback();

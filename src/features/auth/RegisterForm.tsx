@@ -21,26 +21,20 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     
     if (!username || !fullName || !email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      setAuthError("Please fill in all fields");
       return;
     }
 
     if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+      setAuthError("Password must be at least 6 characters long");
       return;
     }
 
@@ -56,6 +50,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             username,
             full_name: fullName,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -69,6 +64,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
       
       onSuccess();
     } catch (error: any) {
+      setAuthError(error.message || "Failed to create account. Please try again.");
       toast({
         title: "Error",
         description: error.message || "Failed to create account. Please try again.",
@@ -80,18 +76,23 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   };
 
   const handleSocialSignUp = async (provider: 'google' | 'facebook') => {
+    setAuthError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        setAuthError(`${error.message} (Provider: ${provider})`);
+        throw error;
+      }
     } catch (error: any) {
+      setAuthError(error.message || `Failed to sign up with ${provider}`);
       toast({
-        title: "Error",
+        title: "Authentication Error",
         description: error.message || `Failed to sign up with ${provider}`,
         variant: "destructive",
       });
@@ -107,6 +108,13 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {authError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{authError}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
