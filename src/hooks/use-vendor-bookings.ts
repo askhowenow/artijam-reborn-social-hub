@@ -1,12 +1,23 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking, BookingStatus } from '@/types/booking';
 
-// Simple lookup type to avoid deep recursion in type instantiation
-type ServiceLookup = Record<string, { id: string, name: string, vendorId: string }>;
-type CustomerLookup = Record<string, { id: string, fullName: string | null }>;
+// Use type aliases to avoid deep recursion in type instantiation
+interface ServiceInfo {
+  id: string;
+  name: string;
+  vendorId: string;
+}
+
+interface CustomerInfo {
+  id: string;
+  fullName: string | null;
+}
+
+// Simple lookup types to avoid deep recursion in type instantiation
+type ServiceLookup = Record<string, ServiceInfo>;
+type CustomerLookup = Record<string, CustomerInfo>;
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
