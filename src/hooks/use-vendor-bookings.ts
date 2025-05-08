@@ -34,34 +34,19 @@ export const useVendorBookings = (filters?: {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
-      // Using the query builder with type safety
-      let query = supabase
-        .from('vendor_bookings_view')
-        .select('*')
-        .eq("vendor_id", user.user.id);
-
-      // Apply filters if provided
-      if (filters?.status) {
-        query = query.eq("status", filters.status);
-      }
-
-      if (filters?.startDate) {
-        query = query.gte("start_time", filters.startDate.toISOString());
-      }
-
-      if (filters?.endDate) {
-        query = query.lte("start_time", filters.endDate.toISOString());
-      }
-
-      // Add pagination
-      const from = (currentPage - 1) * pageSize;
-      query = query.range(from, from + pageSize - 1);
-
-      const { data, error } = await query.order("start_time", { ascending: true });
+      // Using the RPC function instead of direct table access to avoid TypeScript issues
+      const { data, error } = await supabase
+        .rpc('get_vendor_bookings', { 
+          vendor_id_param: user.user.id,
+          status_filter: filters?.status,
+          start_date_filter: filters?.startDate?.toISOString(),
+          end_date_filter: filters?.endDate?.toISOString(),
+          page_number: currentPage,
+          items_per_page: pageSize
+        });
 
       if (error) throw error;
       
-      // Use type assertion since we know the shape matches VendorBooking
       return (data as unknown) as VendorBooking[];
     } catch (error: any) {
       console.error("Error fetching vendor bookings:", error);

@@ -16,11 +16,11 @@ const MobileNavigation = () => {
   const isVendor = !!vendorProfile;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white md:hidden z-10">
+    <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 md:hidden z-10">
       <nav className="grid grid-cols-5 relative">
         <Link to="/" className={cn(
           "flex flex-col items-center justify-center py-2",
-          pathname === "/" ? "text-artijam-purple" : "text-gray-600"
+          pathname === "/" ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
         )}>
           <Home size={20} />
           <span className="text-xs mt-1">Home</span>
@@ -28,7 +28,7 @@ const MobileNavigation = () => {
         
         <Link to="/shop" className={cn(
           "flex flex-col items-center justify-center py-2 relative",
-          pathname === "/shop" || pathname.startsWith("/shop/") ? "text-artijam-purple" : "text-gray-600"
+          pathname === "/shop" || pathname.startsWith("/shop/") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
         )}>
           <ShoppingBag size={20} />
           <span className="text-xs mt-1">Shop</span>
@@ -45,7 +45,7 @@ const MobileNavigation = () => {
         
         <Link to="/my-bookings" className={cn(
           "flex flex-col items-center justify-center py-2",
-          pathname === "/my-bookings" || pathname.startsWith("/my-bookings/") ? "text-artijam-purple" : "text-gray-600"
+          pathname === "/my-bookings" || pathname.startsWith("/my-bookings/") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
         )}>
           <Calendar size={20} />
           <span className="text-xs mt-1">Bookings</span>
@@ -54,7 +54,7 @@ const MobileNavigation = () => {
         {isVendor && (
           <Link to="/vendor/dashboard" className={cn(
             "flex flex-col items-center justify-center py-2",
-            pathname.startsWith("/vendor") ? "text-artijam-purple" : "text-gray-600"
+            pathname.startsWith("/vendor") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
           )}>
             <Store size={20} />
             <span className="text-xs mt-1">Vendor</span>
@@ -64,7 +64,7 @@ const MobileNavigation = () => {
         {!isVendor && (
           <Link to="/profile" className={cn(
             "flex flex-col items-center justify-center py-2",
-            pathname === "/profile" || pathname.startsWith("/profile/") ? "text-artijam-purple" : "text-gray-600"
+            pathname === "/profile" || pathname.startsWith("/profile/") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
           )}>
             <User size={20} />
             <span className="text-xs mt-1">Profile</span>

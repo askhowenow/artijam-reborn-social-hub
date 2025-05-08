@@ -15,14 +15,14 @@ const SideNavigation = () => {
   const { isAdmin, isModerator } = useUserRole();
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r border-gray-200 bg-white z-10 overflow-y-auto hidden md:block">
+    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-10 overflow-y-auto hidden md:block">
       <nav className="p-4 space-y-6">
         <div className="space-y-1">
-          <h3 className="font-medium text-sm text-gray-500 px-3">Dashboard</h3>
+          <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 px-3">Dashboard</h3>
           <Link
             to="/"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 ${
-              location.pathname === "/" ? "text-artijam-purple font-medium" : ""
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              location.pathname === "/" ? "text-artijam-purple dark:text-artijam-purple font-medium" : "text-gray-700 dark:text-gray-300"
             }`}
           >
             <Home size={18} />
@@ -320,11 +320,11 @@ const SideNavigation = () => {
         )}
 
         <div className="space-y-1">
-          <h3 className="font-medium text-sm text-gray-500 px-3">Account</h3>
+          <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 px-3">Account</h3>
           <Link
             to="/profile"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 ${
-              location.pathname === "/profile" ? "text-artijam-purple font-medium" : ""
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              location.pathname === "/profile" ? "text-artijam-purple dark:text-artijam-purple font-medium" : "text-gray-700 dark:text-gray-300"
             }`}
           >
             <User size={18} />
@@ -332,8 +332,8 @@ const SideNavigation = () => {
           </Link>
           <Link
             to="/settings"
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 ${
-              location.pathname === "/settings" ? "text-artijam-purple font-medium" : ""
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+              location.pathname === "/settings" ? "text-artijam-purple dark:text-artijam-purple font-medium" : "text-gray-700 dark:text-gray-300"
             }`}
           >
             <Settings size={18} />

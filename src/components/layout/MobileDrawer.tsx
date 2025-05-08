@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -86,32 +85,32 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="start" 
-        className="max-h-[80vh] overflow-y-auto bg-white z-50" 
+        className="max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-800 z-50 border dark:border-gray-700" 
         side="bottom"
         sideOffset={8}
       >
         {user && (
           <>
             <div className="p-2">
-              <Link to="/profile" className="flex items-center space-x-3 mb-1 p-2 rounded-md hover:bg-gray-100">
+              <Link to="/profile" className="flex items-center space-x-3 mb-1 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Avatar>
                   <img src={user.user_metadata?.avatar_url || "/placeholder.svg"} 
                       alt={user.email || "User"} />
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate max-w-[180px] overflow-hidden text-ellipsis" title={user.email || ""}>
+                  <p className="font-medium truncate max-w-[180px] overflow-hidden text-ellipsis text-gray-900 dark:text-gray-100" title={user.email || ""}>
                     {user.email}
                   </p>
-                  <p className="text-xs text-gray-500">View Profile</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">View Profile</p>
                 </div>
               </Link>
             </div>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="dark:border-gray-700" />
           </>
         )}
         
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             Main Navigation
           </DropdownMenuLabel>
           {mainNavLinks.map((link) => (
@@ -123,8 +122,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                   currentPath === link.path || 
                   (link.path === '/shop' && currentPath.startsWith('/shop')) || 
                   (link.path === '/events' && currentPath.startsWith('/events'))
-                    ? "bg-artijam-purple-light text-artijam-purple"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-artijam-purple-light text-artijam-purple dark:bg-purple-900/30 dark:text-purple-300"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 )}
               >
                 <link.icon size={18} className="mr-3 flex-shrink-0" />
@@ -138,7 +137,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 My Content
               </DropdownMenuLabel>
               {myContentLinks.map((link) => (
@@ -148,8 +147,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     className={cn(
                       "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
                       currentPath === link.path || currentPath.startsWith(link.path)
-                        ? "bg-artijam-purple-light text-artijam-purple"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-artijam-purple-light text-artijam-purple dark:bg-purple-900/30 dark:text-purple-300"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     )}
                   >
                     <link.icon size={18} className="mr-3 flex-shrink-0" />
@@ -165,7 +164,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Vendor
               </DropdownMenuLabel>
               {vendorNavLinks.map((link) => (
@@ -181,8 +180,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                         link.path === "/vendor/bookings" && 
                         currentPath.startsWith("/vendor/bookings")
                       )
-                        ? "bg-artijam-purple-light text-artijam-purple"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-artijam-purple-light text-artijam-purple dark:bg-purple-900/30 dark:text-purple-300"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     )}
                   >
                     <link.icon size={18} className="mr-3 flex-shrink-0" />
@@ -194,9 +193,9 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           </>
         )}
         
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="dark:border-gray-700" />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             More
           </DropdownMenuLabel>
           {secondaryNavLinks.map((link) => (
@@ -206,8 +205,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                 className={cn(
                   "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   currentPath === link.path
-                    ? "bg-artijam-purple-light text-artijam-purple"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-artijam-purple-light text-artijam-purple dark:bg-purple-900/30 dark:text-purple-300"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 )}
               >
                 <link.icon size={18} className="mr-3 flex-shrink-0" />
@@ -221,7 +220,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <DropdownMenuLabel className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Administration
               </DropdownMenuLabel>
               {adminNavLinks.map((link) => (
@@ -231,8 +230,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
                     className={cn(
                       "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
                       currentPath === link.path
-                        ? "bg-artijam-purple-light text-artijam-purple"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-artijam-purple-light text-artijam-purple dark:bg-purple-900/30 dark:text-purple-300"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     )}
                   >
                     <link.icon size={18} className="mr-3 flex-shrink-0" />
@@ -244,11 +243,11 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ children }) => {
           </>
         )}
         
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="dark:border-gray-700" />
         <DropdownMenuItem asChild>
           <Link
             to="/settings"
-            className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <Settings size={18} className="mr-3 flex-shrink-0" />
             <span className="truncate">Settings</span>

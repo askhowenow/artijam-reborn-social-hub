@@ -50,7 +50,7 @@ const UserMenuDropdown: React.FC = () => {
         variant="ghost" 
         size="icon"
         onClick={handleLogout}
-        className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+        className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
         title="Sign Out"
       >
         <LogOut className="h-5 w-5" />
@@ -59,29 +59,29 @@ const UserMenuDropdown: React.FC = () => {
       {/* User menu dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <Avatar className="h-8 w-8">
               <AvatarImage 
                 src={user.user_metadata?.avatar_url || ""} 
                 alt={user.email || "User"} 
               />
-              <AvatarFallback>
+              <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                 {user.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator className="dark:border-gray-700" />
-          <DropdownMenuItem onClick={() => navigate("/profile")}>
+        <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator className="border-gray-200 dark:border-gray-700" />
+          <DropdownMenuItem onClick={() => navigate("/profile")} className="text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-gray-700">
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate("/settings")}>
+          <DropdownMenuItem onClick={() => navigate("/settings")} className="text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-gray-700">
             Settings
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="dark:border-gray-700" />
-          <DropdownMenuItem onClick={handleLogout}>
+          <DropdownMenuSeparator className="border-gray-200 dark:border-gray-700" />
+          <DropdownMenuItem onClick={handleLogout} className="text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-gray-700">
             Logout
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -16,7 +16,7 @@ const CartButton: React.FC<CartButtonProps> = ({ onClick }) => {
     <Button 
       variant="ghost" 
       size="icon" 
-      className="relative"
+      className="relative text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       onClick={onClick}
     >
       <ShoppingBag className="h-5 w-5" />
