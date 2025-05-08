@@ -1,7 +1,12 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking, BookingStatus } from '@/types/booking';
+
+// Simple lookup type to avoid deep recursion in type instantiation
+type ServiceLookup = Record<string, { id: string, name: string, vendorId: string }>;
+type CustomerLookup = Record<string, { id: string, fullName: string | null }>;
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
@@ -99,7 +104,7 @@ export const useVendorBookings = () => {
       }
       
       // Create lookup maps for services and customers
-      const servicesMap: Record<string, { id: string, name: string, vendorId: string }> = {};
+      const servicesMap: ServiceLookup = {};
       (servicesDetailsData || []).forEach(service => {
         servicesMap[service.id] = {
           id: service.id,
@@ -108,7 +113,7 @@ export const useVendorBookings = () => {
         };
       });
       
-      const customersMap: Record<string, { id: string, fullName: string | null }> = {};
+      const customersMap: CustomerLookup = {};
       (customersData || []).forEach(customer => {
         customersMap[customer.id] = {
           id: customer.id,

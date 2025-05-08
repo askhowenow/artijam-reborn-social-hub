@@ -11,8 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, ImageIcon, Save, ArrowLeft } from 'lucide-react';
+import { Loader2, ImageIcon, Save, ArrowLeft, Plus } from 'lucide-react';
 import { formatPrice } from '@/utils/string-utils';
+import { useProductCategories } from '@/hooks/use-product-categories';
 
 // Define product interface
 interface ProductFormData {
@@ -32,6 +33,27 @@ const ProductForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const isEditMode = !!id;
+  
+  // Fetch product categories
+  const { data: databaseCategories = [], isLoading: isCategoriesLoading } = useProductCategories();
+  
+  // Predefined categories (fallback and additional options)
+  const predefinedCategories = [
+    'Art & Crafts',
+    'Clothing',
+    'Digital Products',
+    'Food & Beverage',
+    'Home Decor',
+    'Jewelry',
+    'Accessories',
+    'Services',
+    'Accommodations',
+    'Travel',
+    'Attractions'
+  ];
+  
+  // Combine database categories with predefined ones, remove duplicates
+  const allCategories = [...new Set([...databaseCategories, ...predefinedCategories])].sort();
   
   // Form state
   const [formData, setFormData] = useState<ProductFormData>({
@@ -53,6 +75,8 @@ const ProductForm: React.FC = () => {
   const [profitMargin, setProfitMargin] = useState<number>(0);
   const [profitPercentage, setProfitPercentage] = useState<number>(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [customCategory, setCustomCategory] = useState<string>('');
+  const [isAddingCustomCategory, setIsAddingCustomCategory] = useState<boolean>(false);
 
   // Fetch product data for edit mode
   const { isLoading } = useQuery({
@@ -281,7 +305,26 @@ const ProductForm: React.FC = () => {
 
   // Handle category selection
   const handleCategoryChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, category: value }));
+    if (value === 'other') {
+      setIsAddingCustomCategory(true);
+    } else {
+      setFormData((prev) => ({ ...prev, category: value }));
+      setIsAddingCustomCategory(false);
+    }
+  };
+
+  // Handle custom category input
+  const handleCustomCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomCategory(e.target.value);
+  };
+
+  // Handle adding custom category
+  const handleAddCustomCategory = () => {
+    if (customCategory.trim()) {
+      setFormData((prev) => ({ ...prev, category: customCategory.trim() }));
+      setIsAddingCustomCategory(false);
+      setCustomCategory('');
+    }
   };
 
   // Handle currency selection
@@ -374,17 +417,6 @@ const ProductForm: React.FC = () => {
       </div>
     );
   }
-
-  const categories = [
-    'Art & Crafts',
-    'Clothing',
-    'Digital Products',
-    'Food & Beverage',
-    'Home Decor',
-    'Jewelry',
-    'Services',
-    'Other'
-  ];
 
   const currencies = [
     'USD',
@@ -504,19 +536,45 @@ const ProductForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={handleCategoryChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isAddingCustomCategory ? (
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-category"
+                      value={customCategory}
+                      onChange={handleCustomCategoryChange}
+                      placeholder="Enter custom category"
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button"
+                      size="sm"
+                      onClick={handleAddCustomCategory}
+                      className="bg-artijam-purple hover:bg-artijam-purple/90"
+                    >
+                      Add
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={formData.category}
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={isCategoriesLoading ? "Loading categories..." : "Select a category"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allCategories.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                      <SelectItem value="other">
+                        <span className="flex items-center">
+                          <Plus className="h-3.5 w-3.5 mr-1.5" />
+                          Add Custom Category
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               
               <div>
