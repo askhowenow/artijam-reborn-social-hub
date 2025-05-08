@@ -4,24 +4,38 @@ import React from 'react';
 import App from './App.tsx';
 import './index.css';
 import { HelmetProvider } from 'react-helmet-async';
+import { toast } from 'sonner';
 
 // Global error boundary
 class GlobalErrorBoundary extends React.Component<
   { children: React.ReactNode }, 
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; errorInfo: React.ErrorInfo | null }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Global error caught:", error);
-    console.error("Error info:", info);
+    console.error("Error info:", errorInfo);
+    
+    this.setState({
+      errorInfo: errorInfo
+    });
+    
+    toast.error("Application Error", {
+      description: error.message || "An unexpected error occurred",
+      duration: 5000,
+    });
+  }
+
+  handleReload = () => {
+    window.location.reload();
   }
 
   render() {
@@ -34,15 +48,22 @@ class GlobalErrorBoundary extends React.Component<
               The application encountered an error. Please try reloading the page.
             </p>
             {this.state.error && (
-              <div className="bg-gray-100 p-3 rounded mb-4">
+              <div className="bg-gray-100 p-3 rounded mb-4 overflow-auto">
                 <p className="font-mono text-sm text-gray-800">
                   {this.state.error.toString()}
                 </p>
               </div>
             )}
+            {this.state.errorInfo && (
+              <div className="bg-gray-100 p-3 rounded mb-4 overflow-auto max-h-52">
+                <p className="font-mono text-xs text-gray-800 whitespace-pre-wrap">
+                  {this.state.errorInfo.componentStack}
+                </p>
+              </div>
+            )}
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-artijam-purple text-white rounded hover:bg-artijam-purple-dark"
+              onClick={this.handleReload}
             >
               Reload Page
             </button>
@@ -68,6 +89,9 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
   console.log('Unhandled promise rejection:', event.reason);
 });
+
+// Delete the src/hooks/use-auth.tsx file since we're using AuthProvider from context/AuthProvider.tsx
+// This will resolve the conflict between the two auth providers
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

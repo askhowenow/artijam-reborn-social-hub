@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -31,7 +32,6 @@ import MyPagesPage from "@/pages/MyPagesPage";
 import MyProductsPage from "@/pages/MyProductsPage";
 import MyBookingsPage from "@/pages/MyBookingsPage";
 import ServicesPage from "@/pages/ServicesPage";
-import { EventModalProvider } from "@/hooks/use-event-modal";
 import StreamsPage from "@/pages/StreamsPage";
 import StreamDetailPage from "@/pages/StreamDetailPage";
 import CreateStreamPage from "@/pages/CreateStreamPage";
@@ -43,6 +43,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -62,7 +64,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!user) {
     console.log("ProtectedRoute: No user, redirecting to /login");
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   console.log("ProtectedRoute: User authenticated, rendering protected content");
@@ -84,7 +86,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (user) {
     console.log("PublicRoute: User is authenticated, redirecting to /");
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   
   console.log("PublicRoute: Not authenticated, rendering public content");
@@ -99,6 +101,7 @@ function App() {
       <BrowserRouter>
         <ThemeProvider defaultTheme="system">
           <AuthProvider>
+            <SonnerToaster position="bottom-right" />
             <Routes>
               {/* Public Routes */}
               <Route path="/landing" element={
@@ -132,42 +135,42 @@ function App() {
               }>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/shop" element={<ShopPage />} />
-                  <Route path="/product/:id" element={<ProductDetailPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/profile/edit" element={<ProfileEditPage />} />
-                  <Route path="/vendor/profile" element={<VendorProfilePage />} />
-                  <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
-                  <Route path="/vendor/products" element={<MyProductsPage />} />
-                  <Route path="/vendor/products/new" element={<ProductFormPage />} />
-                  <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
-                  <Route path="/vendor/services" element={<ServicesPage vendor />} />
-                  <Route path="/vendor/bookings" element={<MyBookingsPage vendor />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
-                  <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
-                  <Route path="/my-bookings" element={<MyBookingsPage />} />
-                  <Route path="/services" element={<ServicesPage />} />
-                  
-                  {/* Events Routes */}
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/events/:id" element={<EventDetailPage />} />
-                  <Route path="/my-events" element={<MyEventsPage />} />
-                  
-                  {/* Pages Routes - Fixed to work correctly */}
-                  <Route path="/my-pages" element={<MyPagesPage />} />
-                  <Route path="/@:slug" element={<PageViewPage />} />
-                  <Route path="/page/new" element={<PageEditor isNew={true} />} />
-                  <Route path="/page/:id/edit" element={<PageEditor />} />
-                  
-                  {/* Store Routes */}
-                  <Route path="/store/@:storeSlug" element={<StorefrontPage />} />
-                  <Route path="/store/@:storeSlug/product/:productId" element={<StorefrontPage />} />
-                  
-                  {/* Live Streaming Routes */}
-                  <Route path="/streams" element={<StreamsPage />} />
-                  <Route path="/streams/:streamId" element={<StreamDetailPage />} />
-                  <Route path="/streams/new" element={<CreateStreamPage />} />
-                  <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
+                <Route path="/shop/product/:id" element={<ProductDetailPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/edit" element={<ProfileEditPage />} />
+                <Route path="/vendor/profile" element={<VendorProfilePage />} />
+                <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
+                <Route path="/vendor/products" element={<MyProductsPage />} />
+                <Route path="/vendor/products/new" element={<ProductFormPage />} />
+                <Route path="/vendor/products/:id/edit" element={<ProductFormPage />} />
+                <Route path="/vendor/services" element={<ServicesPage vendor />} />
+                <Route path="/vendor/bookings" element={<MyBookingsPage vendor />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard/create-storefront" element={<StorefrontCreation />} />
+                <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+                <Route path="/my-bookings" element={<MyBookingsPage />} />
+                <Route path="/services" element={<ServicesPage />} />
+                
+                {/* Events Routes */}
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/my-events" element={<MyEventsPage />} />
+                
+                {/* Pages Routes */}
+                <Route path="/my-pages" element={<MyPagesPage />} />
+                <Route path="/@:slug" element={<PageViewPage />} />
+                <Route path="/page/new" element={<PageEditor isNew={true} />} />
+                <Route path="/page/:id/edit" element={<PageEditor />} />
+                
+                {/* Store Routes */}
+                <Route path="/store/@:storeSlug" element={<StorefrontPage />} />
+                <Route path="/store/@:storeSlug/product/:productId" element={<StorefrontPage />} />
+                
+                {/* Live Streaming Routes */}
+                <Route path="/streams" element={<StreamsPage />} />
+                <Route path="/streams/:streamId" element={<StreamDetailPage />} />
+                <Route path="/streams/new" element={<CreateStreamPage />} />
+                <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
               </Route>
               
               {/* Default redirect from root to landing or home */}

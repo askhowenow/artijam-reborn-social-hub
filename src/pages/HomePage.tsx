@@ -18,23 +18,26 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { toast } from "sonner";
 
 // Error boundary component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback: React.ReactNode }, 
-  { hasError: boolean }
+  { hasError: boolean; errorMessage: string }
 > {
   constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, errorMessage: '' };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorMessage: error.message || "Unknown error" };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("HomePage error boundary caught an error:", error, info);
+    console.error("HomePage error boundary caught an error:", error);
+    console.error("Component stack:", info.componentStack);
+    toast.error("Error in HomePage", { description: error.message });
   }
 
   render() {
@@ -64,7 +67,7 @@ const HomePage = () => {
   console.log("HomePage data:", { 
     hasUser: !!user, 
     postsLoading, 
-    postsError: !!postsError,
+    postsError: postsError ? String(postsError) : null,
     productsLoading,
     postCount: posts?.length || 0,
     productCount: trendingProducts?.length || 0
@@ -85,11 +88,14 @@ const HomePage = () => {
 
   // Handle posts error state
   if (postsError) {
-    console.log("HomePage: Showing error state");
+    console.log("HomePage: Showing error state", postsError);
     return (
       <div className="container max-w-7xl mx-auto py-8 flex flex-col items-center justify-center min-h-[60vh]">
         <h3 className="text-xl font-semibold text-red-500 mb-4">Failed to load posts</h3>
         <p className="text-gray-600 mb-6">There was an error loading your feed</p>
+        <pre className="text-xs bg-gray-100 p-4 rounded mb-4 overflow-auto max-w-full">
+          {String(postsError)}
+        </pre>
         <Button onClick={() => window.location.reload()}>Try Again</Button>
       </div>
     );

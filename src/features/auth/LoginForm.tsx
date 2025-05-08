@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,22 +39,15 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     try {
       const result = await signIn(email, password);
       
-      if (result.error) throw result.error;
-
-      console.log("Login successful, calling onSuccess");
-      toast({
-        title: "Success",
-        description: "You have successfully logged in",
-      });
-      onSuccess();
+      if (result.error) {
+        throw result.error;
+      } else {
+        console.log("Login successful, calling onSuccess");
+        onSuccess();
+      }
     } catch (error: any) {
       console.error("Login failed:", error.message);
       setAuthError(error.message || "Failed to log in. Please try again.");
-      toast({
-        title: "Error",
-        description: error.message || "Failed to log in. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsSubmitting(false);
     }
