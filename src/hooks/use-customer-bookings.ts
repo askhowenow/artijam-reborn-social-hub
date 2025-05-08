@@ -17,6 +17,9 @@ export type Booking = {
   status: BookingStatus;
   price: number;
   notes?: string;
+  customer_name?: string; // Added to match VendorBooking
+  vendor_name?: string; // Added to match VendorBooking
+  total_price?: number; // Added to match VendorBooking
 };
 
 export const useCustomerBookings = (filters?: {
@@ -58,52 +61,69 @@ export const useCustomerBookings = (filters?: {
       if (bookingError) throw bookingError;
       if (!bookingData || bookingData.length === 0) return [];
       
-      // Create a transformed array of bookings
-      const bookings: Booking[] = [];
+      // Get all service IDs at once
+      const serviceIds = [...new Set(bookingData.map(booking => booking.service_id))];
       
-      // Fetch service information for each booking
-      for (const booking of bookingData) {
-        // Get service details
-        const { data: serviceData, error: serviceError } = await supabase
-          .from('services')
-          .select('name, price, vendor_id')
-          .eq('id', booking.service_id)
-          .single();
+      // Fetch all services in one go
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('id, name, price, vendor_id')
+        .in('id', serviceIds);
         
-        if (serviceError) {
-          console.error("Error fetching service:", serviceError);
-          continue;
-        }
+      if (servicesError) {
+        console.error("Error fetching services:", servicesError);
+        return [];
+      }
+      
+      // Create a service lookup map
+      const serviceMap = (servicesData || []).reduce((map, service) => {
+        map[service.id] = {
+          name: service.name,
+          price: service.price,
+          vendorId: service.vendor_id
+        };
+        return map;
+      }, {} as Record<string, { name: string; price: number; vendorId: string }>);
+      
+      // Get all vendor IDs
+      const vendorIds = [...new Set(servicesData.map(service => service.vendor_id))];
+      
+      // Fetch all vendors in one go
+      const { data: vendorsData, error: vendorError } = await supabase
+        .from('vendor_profiles')
+        .select('id, business_name')
+        .in('id', vendorIds);
         
-        // Get vendor details
-        const { data: vendorData, error: vendorError } = await supabase
-          .from('vendor_profiles')
-          .select('business_name')
-          .eq('id', serviceData.vendor_id)
-          .single();
+      if (vendorError) {
+        console.error("Error fetching vendors:", vendorError);
+      }
+      
+      // Create vendor lookup map
+      const vendorMap = (vendorsData || []).reduce((map, vendor) => {
+        map[vendor.id] = vendor.business_name || 'Unknown Vendor';
+        return map;
+      }, {} as Record<string, string>);
+      
+      // Transform bookings with the joined data
+      return bookingData.map(booking => {
+        const service = serviceMap[booking.service_id] || { name: 'Unknown Service', price: 0, vendorId: '' };
+        const vendorName = vendorMap[service.vendorId] || 'Unknown Vendor';
         
-        if (vendorError) {
-          console.error("Error fetching vendor:", vendorError);
-          continue;
-        }
-        
-        // Add the booking with all related information
-        bookings.push({
+        return {
           id: booking.id,
           created_at: booking.created_at,
           service_id: booking.service_id,
-          service_name: serviceData?.name || 'Unknown Service',
-          vendor_id: serviceData?.vendor_id || '',
-          vendor_name: vendorData?.business_name || 'Unknown Vendor',
+          service_name: service.name,
+          vendor_id: service.vendorId,
+          vendor_name: vendorName,
           start_time: booking.start_time,
           end_time: booking.end_time,
           status: booking.status as BookingStatus,
-          price: serviceData?.price || 0,
-          notes: booking.customer_notes
-        });
-      }
-      
-      return bookings;
+          price: service.price,
+          notes: booking.customer_notes,
+          total_price: service.price // Added to match VendorBooking
+        };
+      });
     } catch (error: any) {
       console.error("Error fetching customer bookings:", error);
       toast.error("Failed to load bookings");

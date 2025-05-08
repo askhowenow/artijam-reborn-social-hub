@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { useVendorBookings } from '@/hooks/use-vendor-bookings';
-import { useCustomerBookings } from '@/hooks/use-customer-bookings';
+import { useVendorBookings, VendorBooking } from '@/hooks/use-vendor-bookings';
+import { useCustomerBookings, Booking } from '@/hooks/use-customer-bookings';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface MyBookingsPageProps {
   vendor?: boolean;
 }
+
+type CombinedBookingType = VendorBooking | Booking;
 
 const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
   const queryClient = useQueryClient();
@@ -98,6 +100,26 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
     );
   }
 
+  // Helper function to safely access booking properties
+  const getBookingName = (booking: CombinedBookingType, isVendor: boolean) => {
+    if (isVendor) {
+      // Return customer name for vendor view
+      return (booking as VendorBooking).customer_name || 'Unknown Customer';
+    } else {
+      // Return vendor name for customer view
+      return (booking as Booking).vendor_name || 'Unknown Vendor';
+    }
+  };
+
+  // Helper function to get price based on booking type
+  const getBookingPrice = (booking: CombinedBookingType, isVendor: boolean) => {
+    if (isVendor) {
+      return (booking as VendorBooking).total_price;
+    } else {
+      return (booking as Booking).price;
+    }
+  };
+
   return (
     <div className="container max-w-7xl mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">
@@ -131,9 +153,9 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                 <div>
                   <h3 className="font-medium text-lg">{booking.service_name}</h3>
                   {vendor ? (
-                    <p className="text-gray-500">Customer: {booking.customer_name}</p>
+                    <p className="text-gray-500">Customer: {getBookingName(booking, true)}</p>
                   ) : (
-                    <p className="text-gray-500">Provider: {booking.vendor_name}</p>
+                    <p className="text-gray-500">Provider: {getBookingName(booking, false)}</p>
                   )}
                 </div>
                 <div className={`px-3 py-1 rounded-full text-sm font-medium 
@@ -168,7 +190,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                     {booking.notes}
                   </p>
                 )}
-                <p className="text-sm font-medium">${vendor ? booking.total_price : booking.price}</p>
+                <p className="text-sm font-medium">${getBookingPrice(booking, vendor)}</p>
               </div>
               
               {/* Action buttons */}
@@ -179,7 +201,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                     variant="outline"
                     className="border-green-500 text-green-500 hover:bg-green-50"
                     onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'confirmed' })}
-                    disabled={updateBookingStatus.isLoading}
+                    disabled={updateBookingStatus.isPending}
                   >
                     Confirm
                   </Button>
@@ -188,7 +210,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                     variant="outline"
                     className="border-red-500 text-red-500 hover:bg-red-50"
                     onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'cancelled' })}
-                    disabled={updateBookingStatus.isLoading}
+                    disabled={updateBookingStatus.isPending}
                   >
                     Reject
                   </Button>
@@ -202,7 +224,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                     variant="outline"
                     className="border-blue-500 text-blue-500 hover:bg-blue-50"
                     onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'completed' })}
-                    disabled={updateBookingStatus.isLoading}
+                    disabled={updateBookingStatus.isPending}
                   >
                     Mark Complete
                   </Button>
@@ -216,7 +238,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor = false }) => {
                     variant="outline"
                     className="border-red-500 text-red-500 hover:bg-red-50"
                     onClick={() => updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'cancelled' })}
-                    disabled={updateBookingStatus.isLoading}
+                    disabled={updateBookingStatus.isPending}
                   >
                     Cancel Booking
                   </Button>

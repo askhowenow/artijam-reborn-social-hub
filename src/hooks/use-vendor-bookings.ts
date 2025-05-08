@@ -83,18 +83,17 @@ export const useVendorBookings = (filters?: {
       
       const { data: customers, error: customersError } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
-        .in('id', customerIds);
+        .select('id, username, avatar_url');
         
       if (customersError) {
         console.error("Error fetching customer details:", customersError);
       }
       
-      // Create customer lookup map
+      // Create customer lookup map with fallback values
       const customerMap = (customers || []).reduce((map, customer) => {
         map[customer.id] = { 
-          name: customer.full_name || 'Unknown Customer', 
-          email: customer.email || 'No email provided' 
+          name: customer.username || 'Unknown Customer', 
+          email: 'No email provided' 
         };
         return map;
       }, {} as Record<string, { name: string; email: string }>);
