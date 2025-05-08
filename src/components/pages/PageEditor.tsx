@@ -2,12 +2,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePages } from "@/hooks/use-pages";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import PageForm from "./PageForm";
 
 interface PageEditorProps {
   isNew?: boolean;
@@ -63,9 +60,21 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
     }
   }, [title, autoSlug]);
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAutoSlug(false);
     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+  };
+  
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  };
+  
+  const handlePublishedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPublished(e.target.checked);
   };
 
   const handleSave = useCallback(async () => {
@@ -140,68 +149,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col space-y-4">
-        <div>
-          <Label htmlFor="title">Page Title</Label>
-          <Input
-            id="title"
-            placeholder="My Awesome Page"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="slug">URL Slug</Label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                @/
-              </span>
-              <Input
-                id="slug"
-                className="rounded-l-none"
-                placeholder="my-awesome-page"
-                value={slug}
-                onChange={handleSlugChange}
-              />
-            </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Input
-            type="checkbox"
-            id="published"
-            className="w-4 h-4"
-            checked={published}
-            onChange={(e) => setPublished(e.target.checked)}
-          />
-          <Label htmlFor="published">Published</Label>
-        </div>
-      </div>
-
-      <div className="flex-1 mt-4">
-        <Label htmlFor="content">Content</Label>
-        <Textarea 
-          id="content"
-          className="min-h-[300px] p-4 w-full"
-          placeholder="Type your content here..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-      </div>
-
-      <div className="mt-4">
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "Save Page"
-          )}
-        </Button>
-      </div>
-    </div>
+    <PageForm
+      title={title}
+      slug={slug}
+      content={content}
+      published={published}
+      isSaving={isSaving}
+      onTitleChange={handleTitleChange}
+      onSlugChange={handleSlugChange}
+      onContentChange={handleContentChange}
+      onPublishedChange={handlePublishedChange}
+      onSave={handleSave}
+      autoSlug={autoSlug}
+    />
   );
 };
 
