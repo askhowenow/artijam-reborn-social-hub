@@ -33,18 +33,21 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     }
 
     setIsSubmitting(true);
+    console.log("Login form submitted", { email });
 
     try {
       const result = await signIn(email, password);
       
       if (result.error) throw result.error;
 
+      console.log("Login successful, calling onSuccess");
       toast({
         title: "Success",
         description: "You have successfully logged in",
       });
       onSuccess();
     } catch (error: any) {
+      console.error("Login failed:", error.message);
       setAuthError(error.message || "Failed to log in. Please try again.");
       toast({
         title: "Error",

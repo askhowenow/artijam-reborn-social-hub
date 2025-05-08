@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -53,6 +52,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
+    console.log("ProtectedRoute: Auth is loading");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
@@ -61,9 +61,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    return <Navigate to="/landing" />;
+    console.log("ProtectedRoute: No user, redirecting to /login");
+    return <Navigate to="/login" />;
   }
   
+  console.log("ProtectedRoute: User authenticated, rendering protected content");
   return <>{children}</>;
 };
 
@@ -72,6 +74,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
+    console.log("PublicRoute: Auth is loading");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-artijam-purple border-t-transparent rounded-full"></div>
@@ -80,52 +83,55 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (user) {
+    console.log("PublicRoute: User is authenticated, redirecting to /");
     return <Navigate to="/" />;
   }
   
+  console.log("PublicRoute: Not authenticated, rendering public content");
   return <>{children}</>;
 };
 
 function App() {
+  console.log("App rendering");
+  
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ThemeProvider defaultTheme="system">
           <AuthProvider>
-            <EventModalProvider>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/landing" element={
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/landing" element={
+                <PublicRoute>
+                  <LandingPage />
+                </PublicRoute>
+              } />
+              
+              {/* Auth Callback Route for OAuth - Must be outside the layouts */}
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              
+              {/* Guest Layout Routes */}
+              <Route element={<GuestLayout />}>
+                <Route path="/login" element={
                   <PublicRoute>
-                    <LandingPage />
+                    <LoginPage />
                   </PublicRoute>
                 } />
-                
-                {/* Auth Callback Route for OAuth - Must be outside the layouts */}
-                <Route path="/auth/callback" element={<AuthCallbackPage />} />
-                
-                {/* Guest Layout Routes */}
-                <Route element={<GuestLayout />}>
-                  <Route path="/login" element={
-                    <PublicRoute>
-                      <LoginPage />
-                    </PublicRoute>
-                  } />
-                  <Route path="/register" element={
-                    <PublicRoute>
-                      <RegisterPage />
-                    </PublicRoute>
-                  } />
-                </Route>
-                
-                {/* App Layout Routes - Protected */}
-                <Route element={
-                  <ProtectedRoute>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/shop" element={<ShopPage />} />
+                <Route path="/register" element={
+                  <PublicRoute>
+                    <RegisterPage />
+                  </PublicRoute>
+                } />
+              </Route>
+              
+              {/* App Layout Routes - Protected */}
+              <Route element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
                   <Route path="/product/:id" element={<ProductDetailPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/profile/edit" element={<ProfileEditPage />} />
@@ -162,23 +168,16 @@ function App() {
                   <Route path="/streams/:streamId" element={<StreamDetailPage />} />
                   <Route path="/streams/new" element={<CreateStreamPage />} />
                   <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
-                </Route>
-                
-                {/* Default redirect from root to landing or home */}
-                <Route index element={
-                  <AuthCheck 
-                    authenticatedRoute="/" 
-                    unauthenticatedRoute="/landing" 
-                  />
-                } />
-                
-                {/* 404 Page */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+              </Route>
               
-              <Toaster />
-              <SonnerToaster position="top-right" />
-            </EventModalProvider>
+              {/* Default redirect from root to landing or home */}
+              <Route path="" element={<AuthCheck authenticatedRoute="/" unauthenticatedRoute="/login" />} />
+              
+              {/* 404 Page */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+            
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
@@ -196,6 +195,8 @@ const AuthCheck = ({
 }) => {
   const { user, isLoading } = useAuth();
   
+  console.log("AuthCheck: checking authentication", { isLoading, hasUser: !!user });
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -204,7 +205,13 @@ const AuthCheck = ({
     );
   }
   
-  return <Navigate to={user ? authenticatedRoute : unauthenticatedRoute} replace />;
+  if (user) {
+    console.log("AuthCheck: User authenticated, navigating to", authenticatedRoute);
+    return <Navigate to={authenticatedRoute} replace />;
+  }
+  
+  console.log("AuthCheck: User not authenticated, navigating to", unauthenticatedRoute);
+  return <Navigate to={unauthenticatedRoute} replace />;
 };
 
 export default App;
