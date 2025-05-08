@@ -23,7 +23,7 @@ const MyBookingsPage: React.FC<MyBookingsPageProps> = ({ vendor }) => {
       newStatus: string;
     }) => {
       const { error } = await supabase
-        .from('bookings')
+        .from('service_bookings')
         .update({ status: newStatus })
         .eq('id', bookingId);
 

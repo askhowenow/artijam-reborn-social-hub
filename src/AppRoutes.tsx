@@ -41,6 +41,19 @@ import AdminDashboardPage from '@/features/admin/AdminDashboardPage';
 import AdminUsersPage from '@/features/admin/AdminUsersPage';
 import AdminProductsPage from '@/features/admin/AdminProductsPage';
 
+// New Pages for 404s
+import ShopPage from '@/pages/ShopPage';
+import BlogsPage from '@/pages/BlogsPage';
+import CoursesPage from '@/pages/CoursesPage';
+import ReelsPage from '@/pages/ReelsPage';
+import MessagesPage from '@/pages/MessagesPage';
+import GroupsPage from '@/pages/GroupsPage';
+import JobsPage from '@/pages/JobsPage';
+import MyApplicationsPage from '@/pages/MyApplicationsPage';
+import WalletPage from '@/pages/WalletPage';
+import FundingPage from '@/pages/FundingPage';
+import SettingsPage from '@/pages/SettingsPage';
+
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
   
@@ -65,12 +78,38 @@ const AppRoutes = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/streams/:id" element={<StreamingPage />} />
         
+        {/* New Public Routes */}
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/blogs" element={<BlogsPage />} />
+        <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/reels" element={<ReelsPage />} />
+        <Route path="/jobs" element={<JobsPage />} />
+        <Route path="/people" element={<PeoplePage />} />
+        <Route path="/groups" element={
+          user ? <GroupsPage /> : <Navigate to="/login" />
+        } />
+        
         {/* Protected Customer Routes */}
         <Route path="/my-bookings" element={
           user ? <MyBookingsPage /> : <Navigate to="/login" />
         } />
         <Route path="/profile" element={
           user ? <ProfilePage /> : <Navigate to="/login" />
+        } />
+        <Route path="/messages" element={
+          user ? <MessagesPage /> : <Navigate to="/login" />
+        } />
+        <Route path="/my-applications" element={
+          user ? <MyApplicationsPage /> : <Navigate to="/login" />
+        } />
+        <Route path="/wallet" element={
+          user ? <WalletPage /> : <Navigate to="/login" />
+        } />
+        <Route path="/funding" element={
+          user ? <FundingPage /> : <Navigate to="/login" />
+        } />
+        <Route path="/settings" element={
+          user ? <SettingsPage /> : <Navigate to="/login" />
         } />
       </Route>
 

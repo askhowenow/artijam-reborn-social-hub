@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, User, Store, ShoppingBag, Calendar, Video } from "lucide-react";
+import { Home, User, Store, ShoppingBag, Calendar, Video, MessageSquare, Briefcase } from "lucide-react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "@/components/ui/badge";
@@ -43,16 +43,16 @@ const MobileNavigation = () => {
           <div className="h-7"></div> {/* Space for the floating button */}
         </div>
         
-        <Link to="/my-bookings" className={cn(
+        <Link to="/messages" className={cn(
           "flex flex-col items-center justify-center py-2",
-          pathname === "/my-bookings" || pathname.startsWith("/my-bookings/") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
+          pathname === "/messages" || pathname.startsWith("/messages/") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
         )}>
-          <Calendar size={20} />
-          <span className="text-xs mt-1">Bookings</span>
+          <MessageSquare size={20} />
+          <span className="text-xs mt-1">Messages</span>
         </Link>
         
         {isVendor && (
-          <Link to="/vendor/dashboard" className={cn(
+          <Link to="/vendor" className={cn(
             "flex flex-col items-center justify-center py-2",
             pathname.startsWith("/vendor") ? "text-artijam-purple" : "text-gray-600 dark:text-gray-400"
           )}>

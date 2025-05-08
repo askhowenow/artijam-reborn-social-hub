@@ -34,20 +34,59 @@ export const useVendorBookings = (filters?: {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
-      // Using the RPC function instead of direct table access to avoid TypeScript issues
-      const { data, error } = await supabase
-        .rpc('get_vendor_bookings', { 
-          vendor_id_param: user.user.id,
-          status_filter: filters?.status,
-          start_date_filter: filters?.startDate?.toISOString(),
-          end_date_filter: filters?.endDate?.toISOString(),
-          page_number: currentPage,
-          items_per_page: pageSize
-        });
-
+      // Query service_bookings table directly instead of using RPC
+      let query = supabase
+        .from('service_bookings')
+        .select(`
+          id,
+          created_at,
+          service_id,
+          services:service_id (name),
+          customer_id,
+          profiles:customer_id (full_name, avatar_url, email),
+          start_time,
+          end_time,
+          status,
+          customer_notes
+        `)
+        .eq('services.vendor_id', user.user.id)
+        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1)
+        .order('created_at', { ascending: false });
+      
+      // Apply filters if provided
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+      
+      if (filters?.startDate) {
+        query = query.gte('start_time', filters.startDate.toISOString());
+      }
+      
+      if (filters?.endDate) {
+        query = query.lte('end_time', filters.endDate.toISOString());
+      }
+      
+      const { data, error } = await query;
+      
       if (error) throw error;
       
-      return data as VendorBooking[];
+      // Transform the data to match VendorBooking type
+      const bookings: VendorBooking[] = data.map(booking => ({
+        id: booking.id,
+        created_at: booking.created_at,
+        service_id: booking.service_id,
+        service_name: booking.services?.name || 'Unknown Service',
+        customer_id: booking.customer_id,
+        customer_name: booking.profiles?.full_name || 'Unknown Customer',
+        customer_email: booking.profiles?.email || 'No email provided',
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status as BookingStatus,
+        total_price: 0, // We'll need to fetch this separately or calculate it
+        notes: booking.customer_notes
+      }));
+      
+      return bookings;
     } catch (error: any) {
       console.error("Error fetching vendor bookings:", error);
       toast.error("Failed to load bookings");

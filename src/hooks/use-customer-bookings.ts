@@ -1,73 +1,102 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Booking, ApiBooking, BookingStatus } from '@/types/booking';
-import { transformBookingFromApi } from '@/utils/data-transformers';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
+import { BookingStatus } from "./use-vendor-bookings";
 
-export const useCustomerBookings = () => {
-  const queryClient = useQueryClient();
+export type Booking = {
+  id: string;
+  created_at: string;
+  service_id: string;
+  service_name: string;
+  vendor_id: string;
+  vendor_name: string;
+  start_time: string;
+  end_time: string;
+  status: BookingStatus;
+  price: number;
+  notes?: string;
+};
 
-  const { data: bookings = [], isLoading, error } = useQuery({
-    queryKey: ['customer-bookings'],
-    queryFn: async () => {
+export const useCustomerBookings = (filters?: {
+  status?: BookingStatus;
+  startDate?: Date;
+  endDate?: Date;
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  
+  const fetchCustomerBookings = async (): Promise<Booking[]> => {
+    try {
       const { data: user } = await supabase.auth.getUser();
-      
-      if (!user.user) {
-        throw new Error('User not authenticated');
-      }
-      
-      const { data, error } = await supabase
+      if (!user.user) throw new Error("Not authenticated");
+
+      // Query service_bookings table directly
+      let query = supabase
         .from('service_bookings')
         .select(`
-          *,
-          service:service_id(
-            id,
-            name,
-            vendor_id
-          )
+          id,
+          created_at,
+          service_id,
+          services:service_id (name, price, vendor_id),
+          vendor:services.vendor_id (business_name),
+          start_time,
+          end_time,
+          status,
+          customer_notes
         `)
         .eq('customer_id', user.user.id)
-        .order('start_time', { ascending: false });
-        
-      if (error) {
-        throw error;
+        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1)
+        .order('created_at', { ascending: false });
+      
+      // Apply filters if provided
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
       }
       
-      // Cast to ApiBooking[] while adding type check
-      const apiBookings = (data || []) as unknown as ApiBooking[];
+      if (filters?.startDate) {
+        query = query.gte('start_time', filters.startDate.toISOString());
+      }
       
-      // Map the response data to our Booking type
-      return apiBookings.map((item) => transformBookingFromApi(item));
-    }
-  });
-  
-  const cancelBooking = useMutation({
-    mutationFn: async (bookingId: string) => {
-      const { error } = await supabase
-        .from('service_bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
-        
-      if (error) {
-        throw error;
+      if (filters?.endDate) {
+        query = query.lte('end_time', filters.endDate.toISOString());
       }
-    },
-    meta: {
-      onSuccess: () => {
-        toast.success('Booking cancelled successfully');
-        queryClient.invalidateQueries({ queryKey: ['customer-bookings'] });
-      },
-      onError: (error: Error) => {
-        toast.error(`Failed to cancel booking: ${error.message}`);
-      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      // Transform the data to match Booking type
+      const bookings: Booking[] = data.map(booking => ({
+        id: booking.id,
+        created_at: booking.created_at,
+        service_id: booking.service_id,
+        service_name: booking.services?.name || 'Unknown Service',
+        vendor_id: booking.services?.vendor_id || '',
+        vendor_name: booking.vendor?.business_name || 'Unknown Vendor',
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status as BookingStatus,
+        price: booking.services?.price || 0,
+        notes: booking.customer_notes
+      }));
+      
+      return bookings;
+    } catch (error: any) {
+      console.error("Error fetching customer bookings:", error);
+      toast.error("Failed to load bookings");
+      return [] as Booking[];
     }
-  });
+  };
 
   return {
-    bookings,
-    isLoading,
-    error,
-    cancelBooking
+    ...useQuery({
+      queryKey: ["customer-bookings", filters?.status, filters?.startDate, filters?.endDate, currentPage, pageSize],
+      queryFn: fetchCustomerBookings,
+    }),
+    currentPage,
+    setCurrentPage,
+    pageSize
   };
 };
