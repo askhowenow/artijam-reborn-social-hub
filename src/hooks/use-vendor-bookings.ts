@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking, BookingStatus } from '@/types/booking';
 
-// Use type aliases to avoid deep recursion in type instantiation
+// Define simplified interfaces to avoid deep recursion in type instantiation
 interface ServiceInfo {
   id: string;
   name: string;

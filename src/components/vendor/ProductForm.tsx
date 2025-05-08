@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, ImageIcon, Save, ArrowLeft, Plus } from 'lucide-react';
-import { formatPrice } from '@/utils/string-utils';
-import { useProductCategories } from '@/hooks/use-product-categories';
+import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { uploadProductImage, checkStorageBuckets } from '@/utils/product-image-upload';
+import ProductImageUpload from './ProductImageUpload';
+import ProductCategorySelector from './ProductCategorySelector';
+import ProductPricingSection from './ProductPricingSection';
 
 // Define product interface
 interface ProductFormData {
@@ -34,27 +35,6 @@ const ProductForm: React.FC = () => {
   const queryClient = useQueryClient();
   const isEditMode = !!id;
   
-  // Fetch product categories
-  const { data: databaseCategories = [], isLoading: isCategoriesLoading } = useProductCategories();
-  
-  // Predefined categories (fallback and additional options)
-  const predefinedCategories = [
-    'Art & Crafts',
-    'Clothing',
-    'Digital Products',
-    'Food & Beverage',
-    'Home Decor',
-    'Jewelry',
-    'Accessories',
-    'Services',
-    'Accommodations',
-    'Travel',
-    'Attractions'
-  ];
-  
-  // Combine database categories with predefined ones, remove duplicates
-  const allCategories = [...new Set([...databaseCategories, ...predefinedCategories])].sort();
-  
   // Form state
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -72,11 +52,8 @@ const ProductForm: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [profitMargin, setProfitMargin] = useState<number>(0);
-  const [profitPercentage, setProfitPercentage] = useState<number>(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [customCategory, setCustomCategory] = useState<string>('');
-  const [isAddingCustomCategory, setIsAddingCustomCategory] = useState<boolean>(false);
+  const [storageChecked, setStorageChecked] = useState(false);
 
   // Fetch product data for edit mode
   const { isLoading } = useQuery({
@@ -121,64 +98,15 @@ const ProductForm: React.FC = () => {
     }
   });
 
-  // Calculate profit margin when prices change
+  // Verify storage bucket exists
   useEffect(() => {
-    const salesPrice = formData.price;
-    const purchasePrice = formData.purchase_price;
-    
-    const margin = salesPrice - purchasePrice;
-    setProfitMargin(margin);
-    
-    const percentage = purchasePrice > 0 
-      ? ((salesPrice - purchasePrice) / purchasePrice) * 100 
-      : 0;
-    setProfitPercentage(percentage);
-  }, [formData.price, formData.purchase_price]);
-
-  // Helper function to upload image safely
-  async function uploadProductImage(file: File): Promise<string | null> {
-    try {
-      setUploadError(null);
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create a unique file name with user ID path
-      const userId = session.session.user.id;
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
-      console.log('Attempting to upload to product-images bucket...');
-      
-      // Upload the file
-      const { error: uploadError, data } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-        
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw new Error(`Image upload failed: ${uploadError.message}`);
-      }
-      
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-
-      console.log('Upload successful, public URL:', urlData.publicUrl);
-      return urlData.publicUrl;
-    } catch (error: any) {
-      console.error('Error in image upload function:', error);
-      setUploadError(error.message);
-      toast.error(`Failed to upload image: ${error.message}`);
-      return null;
+    if (!storageChecked) {
+      checkStorageBuckets().then(exists => {
+        setStorageChecked(true);
+      });
     }
-  }
-
+  }, [storageChecked]);
+  
   // Create product mutation
   const createProduct = useMutation({
     mutationFn: async (productData: ProductFormData) => {
@@ -305,26 +233,7 @@ const ProductForm: React.FC = () => {
 
   // Handle category selection
   const handleCategoryChange = (value: string) => {
-    if (value === 'other') {
-      setIsAddingCustomCategory(true);
-    } else {
-      setFormData((prev) => ({ ...prev, category: value }));
-      setIsAddingCustomCategory(false);
-    }
-  };
-
-  // Handle custom category input
-  const handleCustomCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomCategory(e.target.value);
-  };
-
-  // Handle adding custom category
-  const handleAddCustomCategory = () => {
-    if (customCategory.trim()) {
-      setFormData((prev) => ({ ...prev, category: customCategory.trim() }));
-      setIsAddingCustomCategory(false);
-      setCustomCategory('');
-    }
+    setFormData((prev) => ({ ...prev, category: value }));
   };
 
   // Handle currency selection
@@ -350,32 +259,13 @@ const ProductForm: React.FC = () => {
       return () => URL.revokeObjectURL(objectUrl);
     }
   };
-  
-  // Verify storage bucket exists
-  useEffect(() => {
-    const checkStorageBuckets = async () => {
-      try {
-        const { data: buckets, error } = await supabase.storage.listBuckets();
-        
-        if (error) {
-          console.error("Error checking buckets:", error);
-          return;
-        }
-        
-        const productImagesBucketExists = buckets?.some(bucket => bucket.name === 'product-images');
-        
-        if (!productImagesBucketExists) {
-          console.warn('Product images bucket does not exist! Form uploads may fail.');
-        } else {
-          console.log('Product images bucket found and ready.');
-        }
-      } catch (err) {
-        console.error("Failed to check buckets:", err);
-      }
-    };
-    
-    checkStorageBuckets();
-  }, []);
+
+  // Handle removing image
+  const handleRemoveImage = () => {
+    setImage(null);
+    setPreviewUrl(null);
+    setFormData(prev => ({ ...prev, image_url: null }));
+  };
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -418,14 +308,6 @@ const ProductForm: React.FC = () => {
     );
   }
 
-  const currencies = [
-    'USD',
-    'JMD',
-    'EUR',
-    'GBP',
-    'CAD'
-  ];
-
   return (
     <div className="container max-w-3xl mx-auto py-8">
       <Button 
@@ -445,68 +327,11 @@ const ProductForm: React.FC = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Product Image */}
-            <div className="space-y-2">
-              <Label htmlFor="image">Product Image</Label>
-              <div className="border border-dashed rounded-md p-4">
-                {previewUrl ? (
-                  <div className="space-y-3">
-                    <div className="relative aspect-square w-full max-w-[200px] overflow-hidden rounded-md bg-gray-100">
-                      <img 
-                        src={previewUrl} 
-                        alt="Product Preview" 
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setImage(null);
-                          setPreviewUrl(null);
-                          setFormData(prev => ({ ...prev, image_url: null }));
-                        }}
-                      >
-                        Remove Image
-                      </Button>
-                      <label className="cursor-pointer">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="cursor-pointer"
-                          asChild
-                        >
-                          <span>Change Image</span>
-                        </Button>
-                        <input
-                          id="image"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center cursor-pointer py-6">
-                    <ImageIcon className="h-12 w-12 text-gray-300 mb-2" />
-                    <span className="text-sm text-gray-500">
-                      Click to upload a product image
-                    </span>
-                    <input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
+            <ProductImageUpload 
+              previewUrl={previewUrl} 
+              onImageUpload={handleImageUpload}
+              onRemoveImage={handleRemoveImage}
+            />
             
             {/* Basic Info */}
             <div>
@@ -534,48 +359,10 @@ const ProductForm: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Category</Label>
-                {isAddingCustomCategory ? (
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-category"
-                      value={customCategory}
-                      onChange={handleCustomCategoryChange}
-                      placeholder="Enter custom category"
-                      className="flex-1"
-                    />
-                    <Button 
-                      type="button"
-                      size="sm"
-                      onClick={handleAddCustomCategory}
-                      className="bg-artijam-purple hover:bg-artijam-purple/90"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                ) : (
-                  <Select
-                    value={formData.category}
-                    onValueChange={handleCategoryChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={isCategoriesLoading ? "Loading categories..." : "Select a category"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allCategories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                      <SelectItem value="other">
-                        <span className="flex items-center">
-                          <Plus className="h-3.5 w-3.5 mr-1.5" />
-                          Add Custom Category
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+              <ProductCategorySelector
+                selectedCategory={formData.category}
+                onCategoryChange={handleCategoryChange}
+              />
               
               <div>
                 <Label htmlFor="stock_quantity">Stock Quantity *</Label>
@@ -592,84 +379,14 @@ const ProductForm: React.FC = () => {
             </div>
             
             {/* Pricing Section */}
-            <div className="border p-4 rounded-md bg-gray-50">
-              <h3 className="font-medium text-lg mb-4">Pricing Information</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select
-                    value={formData.currency}
-                    onValueChange={handleCurrencyChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencies.map(currency => (
-                        <SelectItem key={currency} value={currency}>{currency}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="purchase_price">
-                    Purchase Price *
-                    <span className="text-xs text-gray-500 ml-1">(Only visible to you)</span>
-                  </Label>
-                  <Input
-                    type="number"
-                    id="purchase_price"
-                    name="purchase_price"
-                    value={formData.purchase_price}
-                    onChange={handleNumberChange}
-                    step="0.01"
-                    min="0"
-                    required
-                    placeholder="Your cost price"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="price">
-                    Sales Price *
-                    <span className="text-xs text-gray-500 ml-1">(Public price)</span>
-                  </Label>
-                  <Input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleNumberChange}
-                    step="0.01"
-                    min="0"
-                    required
-                    placeholder="Public selling price"
-                  />
-                </div>
-              </div>
-              
-              {/* Profit calculation */}
-              {formData.purchase_price > 0 && formData.price > 0 && (
-                <div className="mt-4 p-2 rounded bg-white">
-                  <div className="flex justify-between text-sm">
-                    <span>Profit Margin:</span>
-                    <span className={profitMargin >= 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                      {formatPrice(profitMargin, formData.currency)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Profit Percentage:</span>
-                    <span className={profitPercentage >= 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                      {profitPercentage.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ProductPricingSection
+              price={formData.price}
+              purchasePrice={formData.purchase_price}
+              currency={formData.currency}
+              onPriceChange={handleNumberChange}
+              onPurchasePriceChange={handleNumberChange}
+              onCurrencyChange={handleCurrencyChange}
+            />
             
             {/* Availability */}
             <div className="flex items-center space-x-2">
