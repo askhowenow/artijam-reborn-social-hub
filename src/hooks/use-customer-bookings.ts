@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,9 +16,8 @@ export type Booking = {
   status: BookingStatus;
   price: number;
   notes?: string;
-  customer_name?: string; // Added to match VendorBooking
-  vendor_name?: string; // Added to match VendorBooking
-  total_price?: number; // Added to match VendorBooking
+  customer_name?: string; // Only keep this one
+  total_price: number; // Make this required
 };
 
 export const useCustomerBookings = (filters?: {
