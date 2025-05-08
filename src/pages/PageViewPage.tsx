@@ -100,7 +100,9 @@ const PageViewPage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-6">{page.title}</h1>
         
         {page.content ? (
-          <div className="whitespace-pre-wrap">{page.content}</div>
+          <div className="whitespace-pre-wrap">
+            {page.content}
+          </div>
         ) : (
           <p className="text-gray-500 italic">No content has been added to this page yet.</p>
         )}

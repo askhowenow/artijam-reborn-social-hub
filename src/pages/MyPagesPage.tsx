@@ -195,7 +195,7 @@ const MyPagesPage = () => {
         )}
       </div>
       
-      {/* Add CreatePageModal component */}
+      {/* Make sure the CreatePageModal component is properly included */}
       <CreatePageModal 
         isOpen={isCreateModalOpen} 
         onOpenChange={setIsCreateModalOpen} 

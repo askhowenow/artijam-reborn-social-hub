@@ -1,16 +1,11 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePages } from "@/hooks/use-pages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Editor } from "@tiptap/react";
-import EditorMenuBar from "@/components/editor/EditorMenuBar";
-import { useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import Link from "@tiptap/extension-link";
-import Image from '@tiptap/extension-image'
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -73,32 +68,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
   };
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        history: true,
-      }),
-      Placeholder.configure({
-        placeholder: "Type something...",
-      }),
-      Link.configure({
-        openOnClick: false,
-      }),
-      Image.configure({
-        inline: false,
-      }),
-    ],
-    content: content,
-    onUpdate: ({ editor }) => {
-      setContent(editor.getHTML());
-    },
-  });
-
   const handleSave = useCallback(async () => {
-    if (!editor) {
-      return;
-    }
-
     setIsSaving(true);
 
     try {
@@ -109,13 +79,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
             description: "Title and Slug cannot be empty.",
             variant: "destructive",
           });
+          setIsSaving(false);
           return;
         }
 
         const newPage = await createPage({
           title: title.trim(),
           slug: slug.trim(),
-          content: editor.getHTML(),
+          content: content,
           published: published,
         });
 
@@ -132,6 +103,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
             description: "Page ID is missing.",
             variant: "destructive",
           });
+          setIsSaving(false);
           return;
         }
 
@@ -139,7 +111,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
           id: id,
           title: title.trim(),
           slug: slug.trim(),
-          content: editor.getHTML(),
+          content: content,
           published: published,
         });
 
@@ -157,13 +129,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
     } finally {
       setIsSaving(false);
     }
-  }, [editor, isNew, id, title, slug, published, createPage, updatePage, navigate, toast]);
-
-  useEffect(() => {
-    if (editor) {
-      editor.commands.setContent(content);
-    }
-  }, [editor, content]);
+  }, [isNew, id, title, slug, content, published, createPage, updatePage, navigate, toast]);
 
   if (isLoading) {
     return (
@@ -201,29 +167,26 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
             </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Label htmlFor="published">Published</Label>
           <Input
             type="checkbox"
             id="published"
+            className="w-4 h-4"
             checked={published}
             onChange={(e) => setPublished(e.target.checked)}
           />
+          <Label htmlFor="published">Published</Label>
         </div>
       </div>
 
       <div className="flex-1 mt-4">
-        {editor && (
-          <EditorMenuBar editor={editor} />
-        )}
-        <div className="border rounded-md">
-          <div className="min-h-[300px] p-4">
-            {editor && (
-              <div className="ProseMirror max-w-none">
-                <EditorContent editor={editor} />
-              </div>
-            )}
-          </div>
-        </div>
+        <Label htmlFor="content">Content</Label>
+        <Textarea 
+          id="content"
+          className="min-h-[300px] p-4 w-full"
+          placeholder="Type your content here..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
       </div>
 
       <div className="mt-4">
@@ -243,5 +206,3 @@ const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
 };
 
 export default PageEditor;
-
-import { useEditor, EditorContent } from "@tiptap/react";

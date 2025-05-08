@@ -8,6 +8,7 @@ const NotFoundPage = () => {
 
   useEffect(() => {
     console.error("404 Error: Route not found:", location.pathname);
+    console.log("Current routes defined in App.tsx should include this path");
   }, [location]);
 
   return (
@@ -20,9 +21,14 @@ const NotFoundPage = () => {
       <p className="text-gray-500 mb-6 text-sm">
         Path: {location.pathname}
       </p>
-      <Button asChild>
-        <Link to="/">Return Home</Link>
-      </Button>
+      <div className="flex space-x-4">
+        <Button asChild>
+          <Link to="/">Return Home</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link to="/my-pages">My Pages</Link>
+        </Button>
+      </div>
     </div>
   );
 };
