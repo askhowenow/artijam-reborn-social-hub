@@ -17,7 +17,7 @@ const LoginPage = () => {
         <div className="flex justify-center mb-2">
           <Logo size="lg" />
         </div>
-        <p className="text-gray-600">The social commerce hub for creators</p>
+        <p className="text-gray-600">A Cultural Marketplace Empowering the Creative Economy</p>
       </div>
       
       <LoginForm onSuccess={handleLoginSuccess} />

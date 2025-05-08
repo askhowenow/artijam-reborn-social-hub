@@ -66,7 +66,6 @@ const RunningBanner = ({
         opts={{
           align: "start",
           loop: true,
-          draggable: false,
         }}
         className="w-full"
         setApi={(api) => {
