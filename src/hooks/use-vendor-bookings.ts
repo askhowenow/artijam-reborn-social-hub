@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Booking, BookingStatus } from '@/types/booking';
-import { transformBookingFromApi } from '@/utils/data-transformers';
 
 export const useVendorBookings = () => {
   const queryClient = useQueryClient();
@@ -77,8 +76,8 @@ export const useVendorBookings = () => {
       }
 
       // Extract IDs for separate queries
-      const bookingServiceIds = Array.from(new Set(bookingsData.map(booking => booking.service_id)));
-      const customerIds = Array.from(new Set(bookingsData.map(booking => booking.customer_id)));
+      const bookingServiceIds = [...new Set(bookingsData.map(booking => booking.service_id))];
+      const customerIds = [...new Set(bookingsData.map(booking => booking.customer_id))];
       
       // Fetch services details
       const { data: servicesDetailsData, error: servicesDetailsError } = await supabase

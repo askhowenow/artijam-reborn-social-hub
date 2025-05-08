@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +9,7 @@ import HomePage from "@/pages/HomePage";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import ShopPage from "@/pages/ShopPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
@@ -95,6 +97,9 @@ function App() {
                   <LandingPage />
                 </PublicRoute>
               } />
+              
+              {/* Auth Callback Route for OAuth - Must be outside the layouts */}
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               
               {/* Guest Layout Routes */}
               <Route element={<GuestLayout />}>

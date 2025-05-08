@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Facebook, Mail } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/context/AuthProvider";
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -58,27 +57,12 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
-    setAuthError(null);
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setAuthError(`${error.message} (Provider: ${provider})`);
-        throw error;
-      }
-    } catch (error: any) {
-      setAuthError(error.message || `Failed to login with ${provider}`);
-      toast({
-        title: "Authentication Error",
-        description: error.message || `Failed to login with ${provider}`,
-        variant: "destructive",
-      });
-    }
+    setAuthError("Social login is currently disabled");
+    toast({
+      title: "Feature Disabled",
+      description: "Social login is currently disabled",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -157,6 +141,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             variant="outline" 
             onClick={() => handleSocialLogin('google')}
             type="button"
+            disabled={true}
+            className="opacity-50 cursor-not-allowed"
           >
             <Mail className="mr-2 h-4 w-4" />
             Google
@@ -165,6 +151,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             variant="outline" 
             onClick={() => handleSocialLogin('facebook')}
             type="button"
+            disabled={true}
+            className="opacity-50 cursor-not-allowed"
           >
             <Facebook className="mr-2 h-4 w-4" />
             Facebook
