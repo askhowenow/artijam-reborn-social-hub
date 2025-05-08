@@ -19,7 +19,7 @@ const AppLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex w-full overflow-x-hidden">
       {/* Desktop Side Navigation - hidden on mobile */}
       <SideNavigation />
       
@@ -34,7 +34,7 @@ const AppLayout = () => {
         {/* Main content area */}
         <main className="md:pl-64 pt-16 pb-24 md:pb-6 flex-1 overflow-x-hidden w-full">
           <div className={`p-1 sm:p-4 mx-auto max-w-7xl w-full ${isShopPage ? 'px-0 xs:px-2 sm:px-4' : ''}`}>
-            <div className={`bg-white rounded-lg shadow ${isShopPage ? 'p-1 xs:p-2 sm:p-4' : 'p-2 sm:p-4'}`}>
+            <div className={`bg-white dark:bg-gray-800 rounded-lg shadow ${isShopPage ? 'p-1 xs:p-2 sm:p-4' : 'p-2 sm:p-4'}`}>
               <Outlet />
             </div>
           </div>

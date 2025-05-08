@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Logo from "./Logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -55,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-20">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-20">
       <div className="flex items-center justify-between h-full px-4 md:px-6">
         <div className="flex items-center gap-4">
           {/* Mobile menu button or custom children */}
@@ -75,13 +76,16 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <Input 
               placeholder="Search for products, services, or artists..." 
-              className="pl-10 pr-4 py-2 w-full"
+              className="pl-10 pr-4 py-2 w-full dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
         </div>
         
         {/* Right side actions */}
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -95,8 +99,8 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <div className="flex items-center justify-between px-4 py-2 border-b">
+            <DropdownMenuContent align="end" className="w-80 dark:bg-gray-800 dark:text-white dark:border-gray-700">
+              <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-700">
                 <h3 className="font-medium">Notifications</h3>
                 {notifications.length > 0 && (
                   <Button variant="ghost" size="sm" onClick={handleClearAllNotifications}>
@@ -110,16 +114,16 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
                     <DropdownMenuItem
                       key={notification.id}
                       onClick={() => handleNotificationClick(notification.id)}
-                      className="p-4 border-b last:border-0 cursor-pointer"
+                      className="p-4 border-b last:border-0 cursor-pointer dark:hover:bg-gray-700 dark:border-gray-700"
                     >
                       <div>
                         <p className="text-sm">{notification.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
                       </div>
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                     <p>No new notifications</p>
                   </div>
                 )}
@@ -148,7 +152,7 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
               variant="ghost" 
               size="icon"
               onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
               title="Sign Out"
             >
               <LogOut className="h-5 w-5" />
@@ -171,16 +175,16 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="dark:border-gray-700" />
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/settings")}>
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="dark:border-gray-700" />
                 <DropdownMenuItem onClick={handleLogout}>
                   Logout
                 </DropdownMenuItem>
@@ -190,7 +194,7 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
             <Button 
               variant="default" 
               size="sm"
-              className="bg-artijam-purple hover:bg-artijam-purple-dark"
+              className="bg-artijam-purple hover:bg-artijam-purple-dark dark:bg-artijam-purple-dark dark:hover:bg-artijam-purple"
               onClick={() => navigate("/login")}
             >
               Login

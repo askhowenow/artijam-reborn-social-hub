@@ -63,6 +63,16 @@
     @apply bg-background text-foreground;
     overflow-x: hidden; /* Prevent horizontal scrolling */
   }
+  
+  /* Additional dark mode styles */
+  .dark .glass {
+    @apply bg-gray-800/30 backdrop-blur-lg border border-gray-700/30;
+  }
+  
+  /* Card styles for dark mode */
+  .dark .card-gradient {
+    @apply bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-sm;
+  }
 }
 
 @layer utilities {
@@ -89,5 +99,10 @@
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+  
+  /* Dark mode text gradient */
+  .dark .text-gradient {
+    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
   }
 }
