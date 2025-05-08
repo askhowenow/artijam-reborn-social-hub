@@ -34,26 +34,27 @@ export const useVendorBookings = (filters?: {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
-      // Query service_bookings table directly instead of using RPC
+      // First get the vendor's services
+      const { data: services, error: servicesError } = await supabase
+        .from('services')
+        .select('id, name, price')
+        .eq('vendor_id', user.user.id);
+
+      if (servicesError) throw servicesError;
+      if (!services || services.length === 0) return [];
+
+      // Get the service IDs
+      const serviceIds = services.map(service => service.id);
+
+      // Get bookings for these services
       let query = supabase
         .from('service_bookings')
-        .select(`
-          id,
-          created_at,
-          service_id,
-          services:service_id (name),
-          customer_id,
-          profiles:customer_id (full_name, avatar_url, email),
-          start_time,
-          end_time,
-          status,
-          customer_notes
-        `)
-        .eq('services.vendor_id', user.user.id)
+        .select('id, created_at, service_id, customer_id, start_time, end_time, status, customer_notes')
+        .in('service_id', serviceIds)
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1)
         .order('created_at', { ascending: false });
       
-      // Apply filters if provided
+      // Apply filters
       if (filters?.status) {
         query = query.eq('status', filters.status);
       }
@@ -66,27 +67,61 @@ export const useVendorBookings = (filters?: {
         query = query.lte('end_time', filters.endDate.toISOString());
       }
       
-      const { data, error } = await query;
+      const { data: bookings, error: bookingsError } = await query;
       
-      if (error) throw error;
+      if (bookingsError) throw bookingsError;
+      if (!bookings || bookings.length === 0) return [];
+      
+      // Create service lookup map for quick access
+      const serviceMap = services.reduce((map, service) => {
+        map[service.id] = { name: service.name, price: service.price };
+        return map;
+      }, {} as Record<string, { name: string; price: number }>);
+      
+      // Get customer details for each booking
+      const customerIds = [...new Set(bookings.map(booking => booking.customer_id))];
+      
+      const { data: customers, error: customersError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', customerIds);
+        
+      if (customersError) {
+        console.error("Error fetching customer details:", customersError);
+      }
+      
+      // Create customer lookup map
+      const customerMap = (customers || []).reduce((map, customer) => {
+        map[customer.id] = { 
+          name: customer.full_name || 'Unknown Customer', 
+          email: customer.email || 'No email provided' 
+        };
+        return map;
+      }, {} as Record<string, { name: string; email: string }>);
       
       // Transform the data to match VendorBooking type
-      const bookings: VendorBooking[] = data.map(booking => ({
-        id: booking.id,
-        created_at: booking.created_at,
-        service_id: booking.service_id,
-        service_name: booking.services?.name || 'Unknown Service',
-        customer_id: booking.customer_id,
-        customer_name: booking.profiles?.full_name || 'Unknown Customer',
-        customer_email: booking.profiles?.email || 'No email provided',
-        start_time: booking.start_time,
-        end_time: booking.end_time,
-        status: booking.status as BookingStatus,
-        total_price: 0, // We'll need to fetch this separately or calculate it
-        notes: booking.customer_notes
-      }));
-      
-      return bookings;
+      return bookings.map(booking => {
+        const service = serviceMap[booking.service_id] || { name: 'Unknown Service', price: 0 };
+        const customer = customerMap[booking.customer_id] || { 
+          name: 'Unknown Customer', 
+          email: 'No email provided' 
+        };
+        
+        return {
+          id: booking.id,
+          created_at: booking.created_at,
+          service_id: booking.service_id,
+          service_name: service.name,
+          customer_id: booking.customer_id,
+          customer_name: customer.name,
+          customer_email: customer.email,
+          start_time: booking.start_time,
+          end_time: booking.end_time,
+          status: booking.status as BookingStatus,
+          total_price: service.price,
+          notes: booking.customer_notes
+        };
+      });
     } catch (error: any) {
       console.error("Error fetching vendor bookings:", error);
       toast.error("Failed to load bookings");

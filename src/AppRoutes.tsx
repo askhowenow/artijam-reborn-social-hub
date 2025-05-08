@@ -41,7 +41,7 @@ import AdminDashboardPage from '@/features/admin/AdminDashboardPage';
 import AdminUsersPage from '@/features/admin/AdminUsersPage';
 import AdminProductsPage from '@/features/admin/AdminProductsPage';
 
-// New Pages for 404s
+// New Pages
 import ShopPage from '@/pages/ShopPage';
 import BlogsPage from '@/pages/BlogsPage';
 import CoursesPage from '@/pages/CoursesPage';
@@ -53,6 +53,7 @@ import MyApplicationsPage from '@/pages/MyApplicationsPage';
 import WalletPage from '@/pages/WalletPage';
 import FundingPage from '@/pages/FundingPage';
 import SettingsPage from '@/pages/SettingsPage';
+import PeoplePage from '@/pages/PeoplePage';
 
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();

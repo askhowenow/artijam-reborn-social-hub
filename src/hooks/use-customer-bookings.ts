@@ -32,20 +32,10 @@ export const useCustomerBookings = (filters?: {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
-      // Query service_bookings table directly
+      // First, fetch the basic booking information
       let query = supabase
         .from('service_bookings')
-        .select(`
-          id,
-          created_at,
-          service_id,
-          services:service_id (name, price, vendor_id),
-          vendor:services.vendor_id (business_name),
-          start_time,
-          end_time,
-          status,
-          customer_notes
-        `)
+        .select('id, created_at, service_id, start_time, end_time, status, customer_notes')
         .eq('customer_id', user.user.id)
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1)
         .order('created_at', { ascending: false });
@@ -63,24 +53,55 @@ export const useCustomerBookings = (filters?: {
         query = query.lte('end_time', filters.endDate.toISOString());
       }
       
-      const { data, error } = await query;
+      const { data: bookingData, error: bookingError } = await query;
       
-      if (error) throw error;
+      if (bookingError) throw bookingError;
+      if (!bookingData || bookingData.length === 0) return [];
       
-      // Transform the data to match Booking type
-      const bookings: Booking[] = data.map(booking => ({
-        id: booking.id,
-        created_at: booking.created_at,
-        service_id: booking.service_id,
-        service_name: booking.services?.name || 'Unknown Service',
-        vendor_id: booking.services?.vendor_id || '',
-        vendor_name: booking.vendor?.business_name || 'Unknown Vendor',
-        start_time: booking.start_time,
-        end_time: booking.end_time,
-        status: booking.status as BookingStatus,
-        price: booking.services?.price || 0,
-        notes: booking.customer_notes
-      }));
+      // Create a transformed array of bookings
+      const bookings: Booking[] = [];
+      
+      // Fetch service information for each booking
+      for (const booking of bookingData) {
+        // Get service details
+        const { data: serviceData, error: serviceError } = await supabase
+          .from('services')
+          .select('name, price, vendor_id')
+          .eq('id', booking.service_id)
+          .single();
+        
+        if (serviceError) {
+          console.error("Error fetching service:", serviceError);
+          continue;
+        }
+        
+        // Get vendor details
+        const { data: vendorData, error: vendorError } = await supabase
+          .from('vendor_profiles')
+          .select('business_name')
+          .eq('id', serviceData.vendor_id)
+          .single();
+        
+        if (vendorError) {
+          console.error("Error fetching vendor:", vendorError);
+          continue;
+        }
+        
+        // Add the booking with all related information
+        bookings.push({
+          id: booking.id,
+          created_at: booking.created_at,
+          service_id: booking.service_id,
+          service_name: serviceData?.name || 'Unknown Service',
+          vendor_id: serviceData?.vendor_id || '',
+          vendor_name: vendorData?.business_name || 'Unknown Vendor',
+          start_time: booking.start_time,
+          end_time: booking.end_time,
+          status: booking.status as BookingStatus,
+          price: serviceData?.price || 0,
+          notes: booking.customer_notes
+        });
+      }
       
       return bookings;
     } catch (error: any) {
