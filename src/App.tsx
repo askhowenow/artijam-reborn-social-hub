@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -36,6 +37,7 @@ import StreamsPage from "@/pages/StreamsPage";
 import StreamDetailPage from "@/pages/StreamDetailPage";
 import CreateStreamPage from "@/pages/CreateStreamPage";
 import StreamStudioPage from "@/pages/StreamStudioPage";
+import { Toaster as SonnerToaster } from "sonner";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -145,11 +147,11 @@ function App() {
                   <Route path="/events/:id" element={<EventDetailPage />} />
                   <Route path="/my-events" element={<MyEventsPage />} />
                   
-                  {/* Page Routes */}
-                  <Route path="/page/new" element={<PageEditor />} />
-                  <Route path="/page/:id/edit" element={<PageEditor />} />
-                  <Route path="/@:slug" element={<PageViewPage />} />
+                  {/* Pages Routes - Fixed to work correctly */}
                   <Route path="/my-pages" element={<MyPagesPage />} />
+                  <Route path="/@:slug" element={<PageViewPage />} />
+                  <Route path="/page/new" element={<PageEditor isNew={true} />} />
+                  <Route path="/page/:id/edit" element={<PageEditor />} />
                   
                   {/* Store Routes */}
                   <Route path="/store/@:storeSlug" element={<StorefrontPage />} />
@@ -161,9 +163,9 @@ function App() {
                   <Route path="/streams/new" element={<CreateStreamPage />} />
                   <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
                 </Route>
-
-                {/* Redirect from Index to Landing or Home */}
-                <Route path="/" element={
+                
+                {/* Default redirect from root to landing or home */}
+                <Route index element={
                   <AuthCheck 
                     authenticatedRoute="/" 
                     unauthenticatedRoute="/landing" 
@@ -173,7 +175,9 @@ function App() {
                 {/* 404 Page */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
+              
               <Toaster />
+              <SonnerToaster position="top-right" />
             </EventModalProvider>
           </AuthProvider>
         </ThemeProvider>

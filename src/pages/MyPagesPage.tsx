@@ -24,9 +24,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import CreatePageModal from "@/components/pages/CreatePageModal";
 
 const MyPagesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { pages, isLoading, deletePage, updatePage } = usePages();
@@ -37,7 +39,7 @@ const MyPagesPage = () => {
   );
 
   const handleCreatePage = () => {
-    navigate("/page/new");
+    setIsCreateModalOpen(true);
   };
 
   const handleEditPage = (pageId: string) => {
@@ -192,6 +194,12 @@ const MyPagesPage = () => {
           </div>
         )}
       </div>
+      
+      {/* Add CreatePageModal component */}
+      <CreatePageModal 
+        isOpen={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen} 
+      />
     </>
   );
 };

@@ -1,207 +1,247 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { usePages } from "@/hooks/use-pages";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Editor } from "@tiptap/react";
+import EditorMenuBar from "@/components/editor/EditorMenuBar";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import Link from "@tiptap/extension-link";
+import Image from '@tiptap/extension-image'
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { usePages } from '@/hooks/use-pages';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Save, Eye, ArrowLeft } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+interface PageEditorProps {
+  isNew?: boolean;
+}
 
-const PageEditor: React.FC = () => {
+const PageEditor: React.FC<PageEditorProps> = ({ isNew = false }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { pages, pageBySlugQuery, createPage, updatePage } = usePages();
   const { toast } = useToast();
-  const { pages, updatePage, isLoading } = usePages();
-  
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [content, setContent] = useState('');
-  const [isPublished, setIsPublished] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [content, setContent] = useState("");
+  const [published, setPublished] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
-  // Find the page in the loaded pages
-  const page = pages.find(p => p.id === id);
+  const [autoSlug, setAutoSlug] = useState(true);
+
+  const page = pages.find((p) => p.id === id);
+  const { data: pageData, isLoading: isPageLoading } = pageBySlugQuery(slug);
 
   useEffect(() => {
-    if (page) {
-      setTitle(page.title || '');
-      setSlug(page.slug || '');
-      setContent(page.content || '');
-      setIsPublished(page.published || false);
+    if (!isNew && page) {
+      setTitle(page.title);
+      setSlug(page.slug);
+      setContent(page.content || "");
+      setPublished(page.published);
     }
-  }, [page]);
+  }, [isNew, page]);
+
+  useEffect(() => {
+    if (isNew) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (isPageLoading) {
+      setIsLoading(true);
+      return;
+    }
+
+    setIsLoading(false);
+  }, [isNew, isPageLoading]);
+
+  useEffect(() => {
+    if (autoSlug && title) {
+      const newSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      setSlug(newSlug);
+    }
+  }, [title, autoSlug]);
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAutoSlug(false);
     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
   };
 
-  const handleSave = async () => {
-    if (!id) return;
-    
-    if (!title.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a title',
-        variant: 'destructive',
-      });
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        history: true,
+      }),
+      Placeholder.configure({
+        placeholder: "Type something...",
+      }),
+      Link.configure({
+        openOnClick: false,
+      }),
+      Image.configure({
+        inline: false,
+      }),
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML());
+    },
+  });
+
+  const handleSave = useCallback(async () => {
+    if (!editor) {
       return;
     }
-    
-    if (!slug.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a URL slug',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
+
     setIsSaving(true);
-    
+
     try {
-      await updatePage({
-        id,
-        title: title.trim(),
-        slug: slug.trim(),
-        content,
-        published: isPublished
-      });
-    } catch (error) {
-      console.error('Error saving page:', error);
+      if (isNew) {
+        if (!title.trim() || !slug.trim()) {
+          toast({
+            title: "Error",
+            description: "Title and Slug cannot be empty.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const newPage = await createPage({
+          title: title.trim(),
+          slug: slug.trim(),
+          content: editor.getHTML(),
+          published: published,
+        });
+
+        toast({
+          title: "Success",
+          description: "Page created successfully.",
+        });
+
+        navigate(`/page/${newPage.id}/edit`);
+      } else {
+        if (!id) {
+          toast({
+            title: "Error",
+            description: "Page ID is missing.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        await updatePage({
+          id: id,
+          title: title.trim(),
+          slug: slug.trim(),
+          content: editor.getHTML(),
+          published: published,
+        });
+
+        toast({
+          title: "Success",
+          description: "Page updated successfully.",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: 'Error',
-        description: 'Failed to save page. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: error?.message || "Failed to save page.",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [editor, isNew, id, title, slug, published, createPage, updatePage, navigate, toast]);
+
+  useEffect(() => {
+    if (editor) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!page && !isLoading) {
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold">Page not found</h2>
-        <p className="mt-2 text-gray-600">The page you're looking for doesn't exist.</p>
-        <Button 
-          variant="default" 
-          className="mt-4"
-          onClick={() => navigate('/')}
-        >
-          Back to Home
-        </Button>
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container py-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate('/profile')}
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">Edit Page</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/@${slug}`)}
-            disabled={isSaving}
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            Preview
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="space-y-2">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col space-y-4">
+        <div>
           <Label htmlFor="title">Page Title</Label>
           <Input
             id="title"
+            placeholder="My Awesome Page"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Page Title"
           />
         </div>
-
-        <div className="space-y-2">
+        <div>
           <Label htmlFor="slug">URL Slug</Label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-              @/
-            </span>
-            <Input
-              id="slug"
-              className="rounded-l-none"
-              value={slug}
-              onChange={handleSlugChange}
-              placeholder="page-url-slug"
-            />
-          </div>
-          <p className="text-xs text-gray-500">
-            Your page will be available at artijam.com/@/{slug || 'page-url'}
-          </p>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                @/
+              </span>
+              <Input
+                id="slug"
+                className="rounded-l-none"
+                placeholder="my-awesome-page"
+                value={slug}
+                onChange={handleSlugChange}
+              />
+            </div>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="content">Content</Label>
-          <Textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Enter your page content here..."
-            className="min-h-[300px]"
-          />
-          <p className="text-xs text-gray-500">
-            Simple text content for now. Rich editing will be available soon.
-          </p>
-        </div>
-
         <div className="flex items-center space-x-2">
-          <Switch
-            checked={isPublished}
-            onCheckedChange={setIsPublished}
+          <Label htmlFor="published">Published</Label>
+          <Input
+            type="checkbox"
             id="published"
+            checked={published}
+            onChange={(e) => setPublished(e.target.checked)}
           />
-          <Label htmlFor="published">Publish this page</Label>
         </div>
+      </div>
+
+      <div className="flex-1 mt-4">
+        {editor && (
+          <EditorMenuBar editor={editor} />
+        )}
+        <div className="border rounded-md">
+          <div className="min-h-[300px] p-4">
+            {editor && (
+              <div className="ProseMirror max-w-none">
+                <EditorContent editor={editor} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Page"
+          )}
+        </Button>
       </div>
     </div>
   );
 };
 
 export default PageEditor;
+
+import { useEditor, EditorContent } from "@tiptap/react";
