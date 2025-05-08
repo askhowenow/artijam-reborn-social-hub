@@ -20,7 +20,7 @@ const Logo = ({ className = "", size = "md" }: LogoProps) => {
         <img
           src="/lovable-uploads/b7e91f04-f838-4ada-bbfa-4d9e6af5067c.png"
           alt="Artijam Logo"
-          className={`${sizeClasses[size]} mr-1`}
+          className={`${sizeClasses[size]} mr-0`}
         />
         <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} text-artijam-purple`}>
           rtijam

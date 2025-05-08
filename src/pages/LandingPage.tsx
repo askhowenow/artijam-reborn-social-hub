@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/layout/Logo";
 import { Calendar } from "lucide-react";
-import TrendingProducts from "@/components/shop/TrendingProducts";
 import CategoryFilter from "@/components/shop/CategoryFilter";
 import ProductGrid from "@/components/shop/ProductGrid";
 import FeaturedCategories from "@/components/shop/FeaturedCategories";
 import EventCard from "@/components/events/EventCard";
+import RunningBanner from "@/components/shop/RunningBanner";
 import type { Event, TicketType } from "@/types/event";
 
 const LandingPage = () => {
@@ -131,6 +130,27 @@ const LandingPage = () => {
     }
   ];
 
+  // Create banner data combining products and events
+  const bannerItems = [
+    ...featuredProducts.map(product => ({
+      id: product.id,
+      type: 'product' as const,
+      title: product.name,
+      image: product.image_url || '',
+      price: product.price,
+      category: product.category || 'Art',
+      path: `/login` // In a real app, would be `/products/${product.id}`
+    })),
+    ...mockEvents.map(event => ({
+      id: event.id,
+      type: 'event' as const,
+      title: event.title,
+      image: event.featuredImage || '',
+      category: 'Events',
+      path: `/login` // In a real app, would be `/events/${event.id}`
+    }))
+  ];
+
   // Categories same as shop page
   const categoryFilters = [
     'All',
@@ -165,11 +185,10 @@ const LandingPage = () => {
           <Logo size="lg" className="scale-150 mb-6" />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-indigo-500">
-          Welcome to Artijam
+          A Cultural Marketplace Empowering the Creative Economy
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          The creative marketplace for artists and art enthusiasts. 
-          Discover unique handmade products or sell your own creations.
+          Join a vibrant, community-driven ecosystem where artists, artisans, and culture enthusiasts connect, trade, and thrive. Celebrate heritage, fuel innovation, and build sustainable creative businesses at the heart of the orange economy.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -190,50 +209,13 @@ const LandingPage = () => {
       </section>
 
       <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">
-        {/* Trending Now Section */}
+        {/* Running Banner for Trending Items */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Trending Now</h2>
-          </div>
-          
-          {/* Custom implementation for unauthenticated users */}
-          <div className="w-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {featuredProducts.slice(0, 3).map((product) => (
-                <Card 
-                  key={product.id}
-                  className="overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer group"
-                  onClick={() => navigate("/login")}
-                >
-                  <div className="relative bg-gray-100 aspect-square w-full">
-                    <img 
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                        {product.vendor?.business_name}
-                      </div>
-                    </div>
-                    
-                    <h3 className="font-medium text-sm sm:text-base line-clamp-1">
-                      {product.name}
-                    </h3>
-                    
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="font-bold text-base sm:text-lg text-artijam-purple">
-                        ${product.price.toFixed(2)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <RunningBanner 
+            data={bannerItems}
+            slideDuration={5000}
+            className="bg-white rounded-lg shadow-sm p-4"
+          />
         </div>
 
         {/* Category Filters */}
