@@ -58,11 +58,11 @@ const CategoryFilter = ({
       {showScrollButtons.left && (
         <button 
           onClick={() => scrollCategories('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md p-1 md:hidden"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray-800 dark:bg-gray-800 rounded-full shadow-md p-1 md:hidden text-gray-200 dark:text-gray-200"
           aria-label="Scroll left"
           style={{ touchAction: 'manipulation' }}
         >
-          <ChevronLeft className="h-4 w-4 text-gray-600" />
+          <ChevronLeft className="h-4 w-4" />
         </button>
       )}
       
@@ -72,20 +72,23 @@ const CategoryFilter = ({
         onScroll={checkScrollButtons}
       >
         <div className="flex gap-1 xs:gap-2 min-w-max pb-1">
-          {categories.map((category) => (
-            <Badge
-              key={category}
-              variant={selectedCategory === category || (category === 'All' && !selectedCategory) ? "default" : "outline"}
-              className={`cursor-pointer text-2xs xs:text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2 whitespace-nowrap min-h-[32px] flex items-center justify-center ${
-                selectedCategory === category || (category === 'All' && !selectedCategory)
-                  ? "bg-artijam-purple"
-                  : "hover:bg-artijam-purple/10"
-              }`}
-              onClick={() => onCategoryChange(category)}
-            >
-              {categoryIcons[category]} {category}
-            </Badge>
-          ))}
+          {categories.map((category) => {
+            const isSelected = selectedCategory === category || (category === 'All' && !selectedCategory);
+            return (
+              <Badge
+                key={category}
+                variant={isSelected ? "default" : "outline"}
+                className={`cursor-pointer text-2xs xs:text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2 whitespace-nowrap min-h-[32px] flex items-center justify-center ${
+                  isSelected
+                    ? "bg-artijam-purple"
+                    : "hover:bg-artijam-purple/10 text-gray-300 dark:text-gray-300 border-gray-600 dark:border-gray-600"
+                }`}
+                onClick={() => onCategoryChange(category)}
+              >
+                {categoryIcons[category]} {category}
+              </Badge>
+            );
+          })}
         </div>
       </div>
       
@@ -93,11 +96,11 @@ const CategoryFilter = ({
       {showScrollButtons.right && (
         <button 
           onClick={() => scrollCategories('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-md p-1 md:hidden"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-800 dark:bg-gray-800 rounded-full shadow-md p-1 md:hidden text-gray-200 dark:text-gray-200"
           aria-label="Scroll right"
           style={{ touchAction: 'manipulation' }}
         >
-          <ChevronRight className="h-4 w-4 text-gray-600" />
+          <ChevronRight className="h-4 w-4" />
         </button>
       )}
     </div>

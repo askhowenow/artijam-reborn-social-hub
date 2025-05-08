@@ -13,34 +13,34 @@ const FeaturedCategories = ({
   onCategorySelect,
   categoryIcons = {}
 }: FeaturedCategoriesProps) => {
-  // Define background colors for each category
+  // Define background colors for each category - Jamaican inspired
   const categoryColors = {
-    'Art': 'from-blue-500 to-purple-500',
-    'Events': 'from-green-500 to-teal-500',
-    'Digital': 'from-indigo-500 to-blue-500',
-    'Clothing': 'from-pink-500 to-rose-500',
-    'Accessories': 'from-amber-500 to-orange-500',
-    'Accommodations': 'from-cyan-500 to-blue-500',
-    'Travel': 'from-sky-500 to-indigo-500',
-    'Food': 'from-amber-400 to-orange-600',
-    'Attractions': 'from-emerald-500 to-green-600'
+    'Art': 'from-green-600 to-green-800',
+    'Events': 'from-yellow-500 to-amber-700',
+    'Digital': 'from-black to-gray-800',
+    'Clothing': 'from-black to-green-900',
+    'Accessories': 'from-yellow-600 to-amber-800',
+    'Accommodations': 'from-green-700 to-green-900',
+    'Travel': 'from-amber-600 to-yellow-800',
+    'Food': 'from-green-500 to-yellow-600',
+    'Attractions': 'from-black to-green-800'
   };
   
   return (
     <div className="space-y-4">
-      <h2 className="text-lg sm:text-xl font-bold">Explore Categories</h2>
+      <h2 className="text-lg sm:text-xl font-bold text-gray-100 dark:text-gray-100">Explore Categories</h2>
       
       <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 xs:gap-3 sm:gap-4">
         {categories.map((category) => {
-          const bgGradient = categoryColors[category as keyof typeof categoryColors] || 'from-purple-500 to-pink-500';
+          const bgGradient = categoryColors[category as keyof typeof categoryColors] || 'from-green-600 to-yellow-600';
           
           return (
             <Card
               key={category}
-              className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+              className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-gray-800/20 dark:bg-gray-800/20 border-gray-700/30"
               onClick={() => onCategorySelect(category)}
             >
-              <div className={`h-24 bg-gradient-to-r ${bgGradient} flex items-center justify-center`}>
+              <div className={`h-24 bg-gradient-to-br ${bgGradient} flex items-center justify-center`}>
                 <div className="text-white">
                   {categoryIcons[category] ? (
                     React.cloneElement(categoryIcons[category] as React.ReactElement, { 
@@ -51,8 +51,8 @@ const FeaturedCategories = ({
                   )}
                 </div>
               </div>
-              <div className="p-2 text-center">
-                <p className="font-medium text-xs xs:text-sm">{category}</p>
+              <div className="p-2 text-center bg-gray-800/60 backdrop-blur-sm">
+                <p className="font-medium text-xs xs:text-sm text-gray-100">{category}</p>
               </div>
             </Card>
           );

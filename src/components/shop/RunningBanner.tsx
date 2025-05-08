@@ -59,7 +59,7 @@ const RunningBanner = ({
     <div className={`relative overflow-hidden ${className}`}>
       <div className="flex items-center gap-2 mb-2">
         <TrendingUp className="h-5 w-5 text-artijam-purple" />
-        <h2 className="text-lg font-bold">Trending Now</h2>
+        <h2 className="text-lg font-bold text-gray-100 dark:text-gray-100">Trending Now</h2>
       </div>
       
       <Carousel 
@@ -79,30 +79,30 @@ const RunningBanner = ({
             <CarouselItem key={item.id} className="basis-full">
               <div className="p-1">
                 <Card 
-                  className="overflow-hidden cursor-pointer group"
+                  className="overflow-hidden cursor-pointer group bg-gray-800/70 dark:bg-gray-800/70 backdrop-blur-md border-gray-700/30 hover:bg-gray-700/70"
                   onClick={() => handleItemClick(item.path)}
                 >
                   <div className="flex items-center">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-100">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 dark:bg-gray-900">
                       <img 
                         src={item.image} 
                         alt={item.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                       />
                     </div>
                     <CardContent className="py-3 px-4">
-                      <Badge variant="outline" className="mb-2 bg-gray-50">
+                      <Badge variant="outline" className="mb-2 bg-gray-700/50 dark:bg-gray-700/50 text-gray-200 border-gray-600">
                         {item.type} • {item.category}
                       </Badge>
-                      <h3 className="font-medium line-clamp-2">{item.title}</h3>
+                      <h3 className="font-medium line-clamp-2 text-gray-100 dark:text-gray-100">{item.title}</h3>
                       {item.price !== undefined && (
-                        <p className="font-bold text-artijam-purple mt-1">
+                        <p className="font-bold text-yellow-400 dark:text-yellow-400 mt-1">
                           ${item.price.toFixed(2)}
                         </p>
                       )}
                       <div className="flex items-center mt-2 text-sm text-artijam-purple">
-                        <span className="group-hover:underline">View details</span>
-                        <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        <span className="group-hover:underline text-artijam-purple-light dark:text-artijam-purple-light">View details</span>
+                        <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform text-artijam-purple-light dark:text-artijam-purple-light" />
                       </div>
                     </CardContent>
                   </div>
@@ -119,7 +119,7 @@ const RunningBanner = ({
             key={idx}
             onClick={() => setActiveIndex(idx)}
             className={`w-2 h-2 rounded-full transition-all ${
-              idx === activeIndex ? 'bg-artijam-purple w-4' : 'bg-gray-300'
+              idx === activeIndex ? 'bg-artijam-purple w-4' : 'bg-gray-600/50 dark:bg-gray-600/50'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
           />

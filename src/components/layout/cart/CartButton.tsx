@@ -21,7 +21,7 @@ const CartButton: React.FC<CartButtonProps> = ({ onClick }) => {
     >
       <ShoppingBag className="h-5 w-5" />
       {cartCount > 0 && (
-        <Badge className="absolute -top-1 -right-1 scale-75 bg-artijam-purple">
+        <Badge className="absolute -top-1 -right-1 scale-75 bg-artijam-purple dark:bg-artijam-purple">
           {cartCount}
         </Badge>
       )}

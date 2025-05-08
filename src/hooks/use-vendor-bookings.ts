@@ -47,7 +47,7 @@ export const useVendorBookings = (filters?: {
 
       if (error) throw error;
       
-      return (data as unknown) as VendorBooking[];
+      return data as VendorBooking[];
     } catch (error: any) {
       console.error("Error fetching vendor bookings:", error);
       toast.error("Failed to load bookings");

@@ -1,100 +1,180 @@
 
-import React from 'react';
-import { useVendorBookings } from '@/hooks/use-vendor-bookings';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue, 
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Check, X, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useVendorBookings, BookingStatus } from "@/hooks/use-vendor-bookings";
 
 interface VendorBookingsProps {
-  status?: string;
+  className?: string;
 }
 
-const VendorBookings: React.FC<VendorBookingsProps> = ({ status }) => {
-  const queryClient = useQueryClient();
-  const vendorBookingsQuery = useVendorBookings({ 
-    status: status as any
-  });
-
-  const updateBookingStatus = useMutation({
-    mutationFn: async ({
-      bookingId,
-      newStatus,
-    }: {
-      bookingId: string;
-      newStatus: string;
-    }) => {
-      // Use RPC function instead of direct table update
-      const { error } = await supabase
-        .rpc('update_booking_status', {
-          booking_id_param: bookingId,
-          new_status_param: newStatus
-        });
-
+const VendorBookings: React.FC<VendorBookingsProps> = ({ className }) => {
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>(undefined);
+  const { data: bookings, isLoading, refetch } = useVendorBookings({ status: statusFilter });
+  
+  const updateBookingStatus = async (bookingId: string, newStatus: BookingStatus) => {
+    try {
+      // Using the functions API with RPC call instead of direct table access
+      const { error } = await supabase.functions.invoke('update_booking_status', { 
+        body: { booking_id: bookingId, new_status: newStatus } 
+      });
+      
       if (error) throw error;
-      return { bookingId, newStatus };
-    },
-    onSuccess: () => {
-      toast.success('Booking status updated');
-      queryClient.invalidateQueries({ queryKey: ['vendor-bookings'] });
-    },
-    onError: () => {
-      toast.error('Failed to update booking status');
-    },
-  });
-
+      
+      toast.success(`Booking ${newStatus} successfully`);
+      refetch();
+    } catch (error: any) {
+      console.error("Error updating booking status:", error);
+      toast.error(error.message || "Failed to update booking status");
+    }
+  };
+  
+  const getStatusColor = (status: BookingStatus) => {
+    switch (status) {
+      case "confirmed": return "text-green-500";
+      case "cancelled": return "text-red-500";
+      case "completed": return "text-blue-500";
+      default: return "text-yellow-500";
+    }
+  };
+  
+  const getStatusIcon = (status: BookingStatus) => {
+    switch (status) {
+      case "confirmed": return <Check className="h-5 w-5 text-green-500" />;
+      case "cancelled": return <X className="h-5 w-5 text-red-500" />;
+      case "completed": return <Check className="h-5 w-5 text-blue-500" />;
+      default: return <Clock className="h-5 w-5 text-yellow-500" />;
+    }
+  };
+  
+  const renderActionButtons = (booking: any) => {
+    if (booking.status === "pending") {
+      return (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="border-green-500 text-green-500 hover:bg-green-50"
+            onClick={() => updateBookingStatus(booking.id, "confirmed")}
+          >
+            Confirm
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="border-red-500 text-red-500 hover:bg-red-50"
+            onClick={() => updateBookingStatus(booking.id, "cancelled")}
+          >
+            Cancel
+          </Button>
+        </div>
+      );
+    }
+    
+    if (booking.status === "confirmed") {
+      return (
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="border-blue-500 text-blue-500 hover:bg-blue-50"
+          onClick={() => updateBookingStatus(booking.id, "completed")}
+        >
+          Mark Complete
+        </Button>
+      );
+    }
+    
+    return null;
+  };
+  
   return (
-    <div className="space-y-4">
-      {vendorBookingsQuery.isLoading && (
-        <div className="py-4 text-center text-gray-500 dark:text-gray-400">
-          <p>Loading bookings...</p>
-        </div>
-      )}
+    <div className={className}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Recent Bookings</h2>
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value as BookingStatus || undefined)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       
-      {vendorBookingsQuery.data?.length === 0 && (
-        <div className="py-4 text-center text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-          <p>No bookings found.</p>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-48">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-artijam-purple"></div>
         </div>
+      ) : bookings && bookings.length > 0 ? (
+        <div className="space-y-4">
+          {bookings.map((booking) => (
+            <Card key={booking.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-base sm:text-lg">{booking.service_name}</CardTitle>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{booking.customer_name} • {booking.customer_email}</p>
+                  </div>
+                  <div className="flex items-center">
+                    {getStatusIcon(booking.status)}
+                    <span className={`ml-1 text-sm font-medium ${getStatusColor(booking.status)}`}>
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <time>
+                    {new Date(booking.start_time).toLocaleDateString()} • 
+                    {new Date(booking.start_time).toLocaleTimeString(undefined, { 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}
+                  </time>
+                </div>
+                
+                <div className="flex justify-between items-center mt-4">
+                  <p className="font-semibold">${booking.total_price.toFixed(2)}</p>
+                  {renderActionButtons(booking)}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="bg-gray-50 dark:bg-gray-800 border border-dashed">
+          <CardContent className="flex flex-col items-center justify-center h-48">
+            <p className="text-gray-500 dark:text-gray-400 mb-2">No bookings found</p>
+            {statusFilter && (
+              <Button 
+                variant="link" 
+                onClick={() => setStatusFilter(undefined)}
+              >
+                View all bookings
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
-      
-      {vendorBookingsQuery.data?.map(booking => (
-        <div key={booking.id} className="p-4 border rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <h3 className="font-medium text-gray-900 dark:text-white">{booking.service_name}</h3>
-          <p className="text-gray-700 dark:text-gray-300">Customer: {booking.customer_name}</p>
-          <p className="text-gray-700 dark:text-gray-300">Date: {new Date(booking.start_time).toLocaleDateString()}</p>
-          <div className="flex items-center mt-2">
-            <span className="text-gray-700 dark:text-gray-300 mr-2">Status:</span>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              booking.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
-              booking.status === 'cancelled' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
-              booking.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
-              'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-            }`}>
-              {booking.status}
-            </span>
-          </div>
-          
-          {booking.status === 'pending' && (
-            <div className="mt-3 space-x-2 flex">
-              <button 
-                onClick={() => 
-                  updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'confirmed' })
-                }
-                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm font-medium dark:bg-green-600 dark:hover:bg-green-700"
-              >
-                Confirm
-              </button>
-              <button 
-                onClick={() => 
-                  updateBookingStatus.mutate({ bookingId: booking.id, newStatus: 'cancelled' })
-                }
-                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium dark:bg-red-600 dark:hover:bg-red-700"
-              >
-                Decline
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
     </div>
   );
 };
