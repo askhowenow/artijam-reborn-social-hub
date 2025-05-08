@@ -11,6 +11,7 @@ interface QRCodeModalProps {
   storeSlug: string;
   businessName: string;
   subdomainUrl?: string | null;
+  productName?: string;
 }
 
 const QRCodeModal: React.FC<QRCodeModalProps> = ({
@@ -18,11 +19,18 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   onOpenChange,
   storeSlug,
   businessName,
-  subdomainUrl = null
+  subdomainUrl = null,
+  productName
 }) => {
   const [activeTab, setActiveTab] = useState<string>(subdomainUrl ? "subdomain" : "path");
   const pathUrl = `https://artijam.com/@${storeSlug}`;
-  const qrValue = activeTab === "subdomain" && subdomainUrl ? subdomainUrl : pathUrl;
+  const url = activeTab === "subdomain" && subdomainUrl ? subdomainUrl : pathUrl;
+  const qrCodeTitle = productName 
+    ? `${businessName} - ${productName}`
+    : `${businessName} Store`;
+  const qrDescription = productName
+    ? `Check out ${productName} at ${businessName}`
+    : `Visit ${businessName} store`;
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,18 +51,24 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
         )}
         
         <div className="flex flex-col items-center gap-4">
-          <QRDisplay value={qrValue} size={200} />
+          <QRDisplay url={url} />
           
           <div className="text-center max-w-[300px] mx-auto">
             <p className="font-medium mb-1 break-all text-sm">
-              {activeTab === "subdomain" && subdomainUrl ? subdomainUrl : pathUrl}
+              {url}
             </p>
             <p className="text-sm text-gray-500">
               Scan this QR code to visit the store
             </p>
           </div>
           
-          <QRCodeActions qrValue={qrValue} businessName={businessName} />
+          <QRCodeActions 
+            url={url} 
+            businessName={businessName} 
+            productName={productName}
+            qrCodeTitle={qrCodeTitle}
+            qrDescription={qrDescription}
+          />
         </div>
       </DialogContent>
     </Dialog>

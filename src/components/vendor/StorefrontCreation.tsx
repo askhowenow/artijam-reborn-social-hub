@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,7 +28,7 @@ const StorefrontCreation = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewSubdomainUrl, setPreviewSubdomainUrl] = useState<string | null>(null);
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Load existing data if vendor profile exists
@@ -110,7 +109,7 @@ const StorefrontCreation = () => {
       return;
     }
 
-    setIsChecking(true);
+    setIsCheckingSlug(true);
     setPreviewUrl(`/@${slug}`);
 
     try {
@@ -130,7 +129,7 @@ const StorefrontCreation = () => {
       console.error('Error checking slug availability:', error);
       setIsSlugAvailable(null);
     } finally {
-      setIsChecking(false);
+      setIsCheckingSlug(false);
     }
   };
 
@@ -251,15 +250,15 @@ const StorefrontCreation = () => {
               <div className="space-y-2">
                 <Label htmlFor="storeSlug">
                   Store URL Slug *
-                  {isChecking && (
+                  {isCheckingSlug && (
                     <span className="ml-2 text-sm text-gray-500">Checking...</span>
                   )}
-                  {isSlugAvailable === true && !isChecking && (
+                  {isSlugAvailable === true && !isCheckingSlug && (
                     <span className="ml-2 text-sm text-green-500 flex items-center">
                       <Check className="h-4 w-4 mr-1" /> Available
                     </span>
                   )}
-                  {isSlugAvailable === false && !isChecking && (
+                  {isSlugAvailable === false && !isCheckingSlug && (
                     <span className="ml-2 text-sm text-red-500 flex items-center">
                       <X className="h-4 w-4 mr-1" /> Not available
                     </span>

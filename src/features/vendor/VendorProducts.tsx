@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,8 +147,10 @@ const VendorProducts = ({ showHeader = true }: VendorProductsProps) => {
           open={qrModalOpen}
           onOpenChange={setQrModalOpen}
           storeSlug={vendorProfile.store_slug || ""}
-          productId={selectedProduct?.id}
           businessName={vendorProfile.business_name}
+          subdomainUrl={vendorProfile.uses_subdomain && vendorProfile.subdomain ? 
+                       `https://${vendorProfile.subdomain}.artijam.com` : 
+                       null}
           productName={selectedProduct?.name}
         />
       )}

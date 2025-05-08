@@ -28,7 +28,9 @@ const VendorProfilePage = () => {
     location: "",
     website: "",
     store_slug: "",
-    banner_image_url: ""
+    banner_image_url: "",
+    subdomain: "",
+    uses_subdomain: false
   });
   
   const [saving, setSaving] = useState(false);
@@ -59,7 +61,9 @@ const VendorProfilePage = () => {
         location: vendorProfile.location || "",
         website: vendorProfile.website || "",
         store_slug: vendorProfile.store_slug || "",
-        banner_image_url: vendorProfile.banner_image_url || ""
+        banner_image_url: vendorProfile.banner_image_url || "",
+        subdomain: vendorProfile.subdomain || "",
+        uses_subdomain: vendorProfile.uses_subdomain || false
       });
     }
   }, [vendorProfile]);

@@ -7,9 +7,10 @@ import { toast } from "sonner";
 
 interface QRDisplayProps {
   url: string;
+  size?: number;
 }
 
-const QRDisplay: React.FC<QRDisplayProps> = ({ url }) => {
+const QRDisplay: React.FC<QRDisplayProps> = ({ url, size = 200 }) => {
   const qrCodeRef = useRef<SVGSVGElement>(null);
   
   const handleCopyUrl = () => {
@@ -68,7 +69,7 @@ const QRDisplay: React.FC<QRDisplayProps> = ({ url }) => {
         <QRCodeSVG
           id="vendor-qr-code"
           value={url}
-          size={200}
+          size={size}
           level="H"
           includeMargin={true}
           ref={qrCodeRef}

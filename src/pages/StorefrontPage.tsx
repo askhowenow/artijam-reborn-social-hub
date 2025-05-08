@@ -208,15 +208,38 @@ const StorefrontPage: React.FC<StorefrontPageProps> = ({ vendorId: propVendorId 
             {products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    imageUrl={product.image_url}
-                    category={product.category}
-                    vendorSlug={vendor.uses_subdomain && vendor.subdomain ? undefined : slug}
-                  />
+                  <Card key={product.id} className="overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer">
+                    <div className="aspect-square w-full bg-gray-100">
+                      <img 
+                        src={product.image_url || "/placeholder.svg"}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold">{product.name}</h3>
+                      <p className="text-artijam-purple font-bold mt-1">${product.price.toFixed(2)}</p>
+                      {product.description && (
+                        <p className="text-gray-600 mt-2 text-sm line-clamp-2">{product.description}</p>
+                      )}
+                      {product.category && (
+                        <div className="mt-2">
+                          <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                            {product.category}
+                          </span>
+                        </div>
+                      )}
+                      <Button 
+                        className="w-full mt-3 bg-artijam-purple hover:bg-artijam-purple/90"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/@${slug}/${product.id}`);
+                        }}
+                      >
+                        View Product
+                      </Button>
+                    </div>
+                  </Card>
                 ))}
               </div>
             ) : (
