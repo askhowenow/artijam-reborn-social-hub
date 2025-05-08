@@ -18,6 +18,8 @@ export type VendorProfile = {
   updated_at: string | null;
   store_slug: string | null;
   banner_image_url: string | null;
+  subdomain: string | null;
+  uses_subdomain: boolean | null;
 };
 
 export type VendorProfileFormData = Omit<VendorProfile, 'id' | 'is_verified' | 'commission_rate' | 'created_at' | 'updated_at'>;

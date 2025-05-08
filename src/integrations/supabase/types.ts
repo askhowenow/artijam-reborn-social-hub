@@ -494,6 +494,24 @@ export type Database = {
         }
         Relationships: []
       }
+      reserved_subdomains: {
+        Row: {
+          created_at: string | null
+          reason: string | null
+          subdomain: string
+        }
+        Insert: {
+          created_at?: string | null
+          reason?: string | null
+          subdomain: string
+        }
+        Update: {
+          created_at?: string | null
+          reason?: string | null
+          subdomain?: string
+        }
+        Relationships: []
+      }
       service_availability: {
         Row: {
           created_at: string | null
@@ -1140,7 +1158,9 @@ export type Database = {
           is_verified: boolean | null
           location: string | null
           store_slug: string | null
+          subdomain: string | null
           updated_at: string | null
+          uses_subdomain: boolean | null
           website: string | null
         }
         Insert: {
@@ -1156,7 +1176,9 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           store_slug?: string | null
+          subdomain?: string | null
           updated_at?: string | null
+          uses_subdomain?: boolean | null
           website?: string | null
         }
         Update: {
@@ -1172,7 +1194,9 @@ export type Database = {
           is_verified?: boolean | null
           location?: string | null
           store_slug?: string | null
+          subdomain?: string | null
           updated_at?: string | null
+          uses_subdomain?: boolean | null
           website?: string | null
         }
         Relationships: [
@@ -1242,6 +1266,14 @@ export type Database = {
           increment_value?: number
         }
         Returns: undefined
+      }
+      is_subdomain_available: {
+        Args: { check_subdomain: string }
+        Returns: boolean
+      }
+      validate_subdomain: {
+        Args: { subdomain: string }
+        Returns: boolean
       }
     }
     Enums: {

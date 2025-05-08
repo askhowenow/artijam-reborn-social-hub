@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +10,8 @@ import {
   DollarSign, 
   LineChart,
   QrCode,
-  Calendar
+  Calendar,
+  Globe
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ import VendorStats from "@/features/vendor/VendorStats";
 import VendorServices from "@/features/vendor/VendorServices";
 import VendorBookings from "@/features/vendor/VendorBookings";
 import QRCodeModal from "@/components/vendor/QRCodeModal";
+import SubdomainManager from "@/components/vendor/SubdomainManager";
 
 const VendorDashboardPage = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const VendorDashboardPage = () => {
     totalServices: 0,
     totalBookings: 0
   });
+  const [activeTab, setActiveTab] = useState("products");
+  const [showSubdomainManager, setShowSubdomainManager] = useState(false);
   
   useEffect(() => {
     // Check if user is authenticated
@@ -168,6 +171,14 @@ const VendorDashboardPage = () => {
           </Button>
           <Button 
             variant="outline"
+            onClick={() => setShowSubdomainManager(!showSubdomainManager)}
+            className="flex-grow md:flex-grow-0"
+          >
+            <Globe className="mr-2 h-4 w-4" />
+            {showSubdomainManager ? "Hide Subdomain Settings" : "Subdomain Settings"}
+          </Button>
+          <Button 
+            variant="outline"
             onClick={() => navigate("/vendor/profile")}
             className="flex-grow md:flex-grow-0"
           >
@@ -183,6 +194,12 @@ const VendorDashboardPage = () => {
           </Button>
         </div>
       </div>
+      
+      {showSubdomainManager && (
+        <div className="mb-6">
+          <SubdomainManager onUpdate={() => setShowSubdomainManager(false)} />
+        </div>
+      )}
       
       <Card className="mb-6">
         <CardContent className="p-4 md:p-6">
@@ -236,7 +253,7 @@ const VendorDashboardPage = () => {
         </CardContent>
       </Card>
       
-      <Tabs defaultValue="products">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="overflow-x-auto">
           <TabsList className="mb-6">
             <TabsTrigger value="products">Products</TabsTrigger>
@@ -275,6 +292,9 @@ const VendorDashboardPage = () => {
           onOpenChange={setQrCodeModalOpen}
           storeSlug={vendorProfile.store_slug || ""}
           businessName={vendorProfile.business_name}
+          subdomainUrl={vendorProfile.uses_subdomain && vendorProfile.subdomain ? 
+                       `https://${vendorProfile.subdomain}.artijam.com` : 
+                       null}
         />
       )}
     </div>

@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 
 // Layouts
 import MainLayout from '@/layouts/MainLayout';
@@ -55,14 +56,105 @@ import FundingPage from '@/pages/FundingPage';
 import SettingsPage from '@/pages/SettingsPage';
 import PeoplePage from '@/pages/PeoplePage';
 
+// Get the hostname from the current URL
+const getHostname = () => {
+  return window.location.hostname;
+};
+
+// Check if the current URL is a subdomain
+const isSubdomain = (hostname: string) => {
+  // List of known root domains - in a real app, this would be configurable
+  const rootDomains = ['localhost', 'artijam.com', 'artijam.local'];
+  
+  // For local development testing with subdomains like vendor-name.localhost
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return false;
+  
+  // Check if the hostname is directly one of our root domains
+  if (rootDomains.includes(hostname)) return false;
+  
+  // Check if the hostname ends with any of our root domains (preceded by a dot)
+  return rootDomains.some(domain => 
+    hostname.endsWith('.' + domain) && 
+    hostname !== 'www.' + domain
+  );
+};
+
+// Extract subdomain from hostname
+const getSubdomain = (hostname: string) => {
+  // For development environment
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return null;
+  
+  // For production
+  const parts = hostname.split('.');
+  if (parts.length > 2) {
+    return parts[0];
+  }
+  return null;
+};
+
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
+  const [subdomain, setSubdomain] = useState<string | null>(null);
+  const [vendorId, setVendorId] = useState<string | null>(null);
+  const [isSubdomainLoading, setIsSubdomainLoading] = useState(true);
+  
+  useEffect(() => {
+    const hostname = getHostname();
+    if (isSubdomain(hostname)) {
+      const extractedSubdomain = getSubdomain(hostname);
+      setSubdomain(extractedSubdomain);
+      
+      // Fetch vendor ID from subdomain
+      const fetchVendorId = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('vendor_profiles')
+            .select('id')
+            .eq('subdomain', extractedSubdomain)
+            .eq('uses_subdomain', true)
+            .single();
+          
+          if (error) throw error;
+          if (data) setVendorId(data.id);
+        } catch (err) {
+          console.error('Error fetching vendor from subdomain:', err);
+          setVendorId(null);
+        } finally {
+          setIsSubdomainLoading(false);
+        }
+      };
+      
+      fetchVendorId();
+    } else {
+      setSubdomain(null);
+      setVendorId(null);
+      setIsSubdomainLoading(false);
+    }
+  }, []);
   
   // Don't render routes until auth state is resolved
-  if (isLoading) {
-    return null;
+  if (isLoading || isSubdomainLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
   }
   
+  // If this is a subdomain request and we have a vendor ID, show the storefront
+  if (subdomain && vendorId) {
+    return (
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<StorefrontPage vendorId={vendorId} />} />
+          <Route path="/:productId" element={<ProductPage />} />
+          <Route path="*" element={<StorefrontPage vendorId={vendorId} />} />
+        </Route>
+      </Routes>
+    );
+  }
+  
+  // Regular routing for main domain
   return (
     <Routes>
       {/* Public Routes */}

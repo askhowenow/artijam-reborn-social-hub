@@ -6,22 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Store, ImageIcon, Check, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Store, ImageIcon, Check, X, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
+import { useVendorSubdomain } from "@/hooks/use-vendor-subdomain";
 import { slugify } from "@/utils/string-utils";
 
 const StorefrontCreation = () => {
   const navigate = useNavigate();
   const { vendorProfile, isLoading, updateVendorProfile } = useVendorProfile();
+  const { isChecking, isAvailable, checkSubdomainAvailability } = useVendorSubdomain();
   
   const [businessName, setBusinessName] = useState("");
   const [storeSlug, setStoreSlug] = useState("");
+  const [subdomain, setSubdomain] = useState("");
+  const [usesSubdomain, setUsesSubdomain] = useState(false);
   const [businessDescription, setBusinessDescription] = useState("");
   const [bannerImage, setBannerImage] = useState<File | null>(null);
   const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewSubdomainUrl, setPreviewSubdomainUrl] = useState<string | null>(null);
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,10 +39,16 @@ const StorefrontCreation = () => {
       setBusinessDescription(vendorProfile.business_description || "");
       setBannerImageUrl(vendorProfile.banner_image_url || null);
       setStoreSlug(vendorProfile.store_slug || "");
+      setSubdomain(vendorProfile.subdomain || "");
+      setUsesSubdomain(vendorProfile.uses_subdomain || false);
       
       if (vendorProfile.store_slug) {
         setIsSlugAvailable(true);
         setPreviewUrl(`/@${vendorProfile.store_slug}`);
+      }
+      
+      if (vendorProfile.subdomain) {
+        setPreviewSubdomainUrl(`https://${vendorProfile.subdomain}.artijam.com`);
       }
     }
   }, [vendorProfile]);
@@ -55,6 +67,14 @@ const StorefrontCreation = () => {
     
     if (name.length > 2) {
       generateSlug(name);
+      
+      // Also suggest a subdomain if not already set
+      if (!subdomain) {
+        const suggestedSubdomain = slugify(name);
+        setSubdomain(suggestedSubdomain);
+        checkSubdomainAvailability(suggestedSubdomain);
+        setPreviewSubdomainUrl(`https://${suggestedSubdomain}.artijam.com`);
+      }
     } else {
       setStoreSlug("");
       setIsSlugAvailable(null);
@@ -67,6 +87,19 @@ const StorefrontCreation = () => {
     const slug = slugify(e.target.value);
     setStoreSlug(slug);
     checkSlugAvailability(slug);
+  };
+  
+  // Handle subdomain change
+  const handleSubdomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setSubdomain(value);
+    
+    if (value.length >= 3) {
+      checkSubdomainAvailability(value);
+      setPreviewSubdomainUrl(`https://${value}.artijam.com`);
+    } else {
+      setPreviewSubdomainUrl(null);
+    }
   };
 
   // Check slug availability
@@ -129,6 +162,11 @@ const StorefrontCreation = () => {
       toast.error("Please choose a unique store slug");
       return;
     }
+    
+    if (usesSubdomain && (!subdomain || isAvailable === false)) {
+      toast.error("Please choose a valid, available subdomain or disable subdomain access");
+      return;
+    }
 
     setSaving(true);
     
@@ -157,6 +195,8 @@ const StorefrontCreation = () => {
         business_description: businessDescription,
         store_slug: storeSlug,
         banner_image_url: uploadedBannerUrl,
+        subdomain: usesSubdomain ? subdomain : null,
+        uses_subdomain: usesSubdomain,
         business_type: vendorProfile?.business_type || null,
         contact_email: vendorProfile?.contact_email || null,
         contact_phone: vendorProfile?.contact_phone || null,
@@ -245,6 +285,58 @@ const StorefrontCreation = () => {
                 )}
               </div>
               
+              <div className="space-y-2 pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="subdomain" className="flex items-center">
+                    <Globe className="h-4 w-4 mr-2" /> Custom Subdomain (Optional)
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="use-subdomain"
+                      checked={usesSubdomain}
+                      onCheckedChange={setUsesSubdomain}
+                    />
+                    <Label htmlFor="use-subdomain" className="text-sm cursor-pointer">Enable</Label>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <span className="bg-gray-100 px-3 py-2 border border-r-0 rounded-l-md">
+                    https://
+                  </span>
+                  <Input
+                    id="subdomain"
+                    value={subdomain}
+                    onChange={handleSubdomainChange}
+                    placeholder="your-store"
+                    className="rounded-l-none rounded-r-none border-r-0"
+                    disabled={!usesSubdomain}
+                  />
+                  <span className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-md">
+                    .artijam.com
+                  </span>
+                </div>
+                
+                {isChecking && (
+                  <p className="text-sm text-gray-500">Checking availability...</p>
+                )}
+                {isAvailable === true && !isChecking && subdomain && (
+                  <p className="text-sm text-green-500 flex items-center">
+                    <Check className="h-4 w-4 mr-1" /> Subdomain is available
+                  </p>
+                )}
+                {isAvailable === false && !isChecking && subdomain && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <X className="h-4 w-4 mr-1" /> Subdomain is not available
+                  </p>
+                )}
+                {previewSubdomainUrl && usesSubdomain && (
+                  <p className="text-sm text-gray-500">
+                    Your store will also be available at: <span className="font-medium">{previewSubdomainUrl}</span>
+                  </p>
+                )}
+              </div>
+              
               <div>
                 <Label htmlFor="businessDescription">Store Description</Label>
                 <Textarea
@@ -312,7 +404,12 @@ const StorefrontCreation = () => {
               </Button>
               <Button 
                 type="submit"
-                disabled={saving || !isSlugAvailable || !businessName}
+                disabled={
+                  saving || 
+                  !isSlugAvailable || 
+                  !businessName || 
+                  (usesSubdomain && (!subdomain || isAvailable === false))
+                }
                 className="bg-artijam-purple hover:bg-artijam-purple/90"
               >
                 {saving ? (
