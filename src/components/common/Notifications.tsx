@@ -6,8 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuEmpty
+  DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 

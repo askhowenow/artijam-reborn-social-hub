@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, Bell, ShoppingBag, Search } from "lucide-react";
+import { Menu, Bell, ShoppingBag, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import Logo from "./Logo";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -63,11 +65,8 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
             </Button>
           )}
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="ArtiJam Logo" className="h-8 w-8" />
-            <span className="font-bold text-lg hidden sm:inline">ArtiJam</span>
-          </Link>
+          {/* Logo - using Logo component instead of direct img */}
+          <Logo size="sm" />
         </div>
         
         {/* Search - hidden on mobile */}
@@ -142,6 +141,19 @@ const Header: React.FC<HeaderProps> = ({ children, onCartOpen }) => {
               </Badge>
             )}
           </Button>
+          
+          {/* Sign Out Button - added to the right side */}
+          {user && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-gray-900"
+              title="Sign Out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
           
           {/* User menu */}
           {user ? (

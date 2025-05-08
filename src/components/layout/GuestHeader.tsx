@@ -15,9 +15,8 @@ const GuestHeader = () => {
   return (
     <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:px-8">
-        <Link to="/" className="flex items-center">
-          <Logo size="sm" />
-        </Link>
+        {/* Use the Logo component for consistent logo display */}
+        <Logo size="sm" />
 
         <div className="flex-1 hidden md:flex md:justify-center">
           <div className="max-w-md w-full">
