@@ -29,14 +29,15 @@ export const useVendorBookings = (filters?: {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   
-  const fetchVendorBookings = async () => {
+  const fetchVendorBookings = async (): Promise<VendorBooking[]> => {
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Not authenticated");
 
+      // Using the query builder with type safety
       let query = supabase
-        .from("vendor_bookings_view")
-        .select("*")
+        .from('vendor_bookings_view')
+        .select('*')
         .eq("vendor_id", user.user.id);
 
       // Apply filters if provided
@@ -60,7 +61,8 @@ export const useVendorBookings = (filters?: {
 
       if (error) throw error;
       
-      return data as VendorBooking[];
+      // Use type assertion since we know the shape matches VendorBooking
+      return (data as unknown) as VendorBooking[];
     } catch (error: any) {
       console.error("Error fetching vendor bookings:", error);
       toast.error("Failed to load bookings");
@@ -68,8 +70,13 @@ export const useVendorBookings = (filters?: {
     }
   };
 
-  return useQuery({
-    queryKey: ["vendor-bookings", filters?.status, filters?.startDate, filters?.endDate, currentPage, pageSize],
-    queryFn: fetchVendorBookings,
-  });
+  return {
+    ...useQuery({
+      queryKey: ["vendor-bookings", filters?.status, filters?.startDate, filters?.endDate, currentPage, pageSize],
+      queryFn: fetchVendorBookings,
+    }),
+    currentPage,
+    setCurrentPage,
+    pageSize
+  };
 };
