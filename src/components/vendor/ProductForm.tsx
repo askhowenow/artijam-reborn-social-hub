@@ -12,7 +12,9 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { uploadProductImage, checkStorageBuckets } from '@/utils/product-image-upload';
+import { uploadProductModel, checkModelStorageBucket } from '@/utils/model-upload';
 import ProductImageUpload from './ProductImageUpload';
+import Product3DModelUpload from './Product3DModelUpload';
 import ProductCategorySelector from './ProductCategorySelector';
 import ProductPricingSection from './ProductPricingSection';
 
@@ -27,6 +29,9 @@ interface ProductFormData {
   stock_quantity: number;
   is_available: boolean;
   currency: string;
+  model_url: string | null;
+  model_format: string | null;
+  has_ar_model: boolean;
 }
 
 const ProductForm: React.FC = () => {
@@ -45,7 +50,10 @@ const ProductForm: React.FC = () => {
     category: '',
     stock_quantity: 1,
     is_available: true,
-    currency: 'USD'
+    currency: 'USD',
+    model_url: null,
+    model_format: null,
+    has_ar_model: false
   });
   
   // UI state
@@ -54,6 +62,11 @@ const ProductForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [storageChecked, setStorageChecked] = useState(false);
+  
+  // 3D model upload state
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [modelUploadError, setModelUploadError] = useState<string | null>(null);
 
   // Fetch product data for edit mode
   const { isLoading } = useQuery({
@@ -83,7 +96,10 @@ const ProductForm: React.FC = () => {
             category: data.category || '',
             stock_quantity: data.stock_quantity || 1,
             is_available: data.is_available ?? true,
-            currency: data.currency || 'USD'
+            currency: data.currency || 'USD',
+            model_url: data.model_url || null,
+            model_format: data.model_format || null,
+            has_ar_model: data.has_ar_model || false
           });
           
           if (data.image_url) {
@@ -98,11 +114,17 @@ const ProductForm: React.FC = () => {
     }
   });
 
-  // Verify storage bucket exists
+  // Verify storage buckets exist
   useEffect(() => {
     if (!storageChecked) {
-      checkStorageBuckets().then(exists => {
+      Promise.all([
+        checkStorageBuckets(),
+        checkModelStorageBucket()
+      ]).then(([imagesExist, modelsExist]) => {
         setStorageChecked(true);
+        if (!modelsExist) {
+          console.warn('product-models bucket not found');
+        }
       });
     }
   }, [storageChecked]);
@@ -117,6 +139,9 @@ const ProductForm: React.FC = () => {
       }
       
       let imageUrl = productData.image_url;
+      let modelUrl = productData.model_url;
+      let modelFormat = productData.model_format;
+      let hasArModel = productData.has_ar_model;
       
       // Upload image if provided
       if (image) {
@@ -127,7 +152,22 @@ const ProductForm: React.FC = () => {
         }
       }
       
-      console.log('Creating product record with image URL:', imageUrl);
+      // Upload 3D model if provided
+      if (modelFile) {
+        console.log('3D model found, attempting upload...');
+        const modelData = await uploadProductModel(modelFile, session.session.user.id);
+        
+        if (modelData.error) {
+          throw new Error(modelData.error);
+        }
+        
+        modelUrl = modelData.url;
+        modelFormat = modelData.format;
+        hasArModel = !!modelUrl;
+      }
+      
+      console.log('Creating product record with image URL:', imageUrl, 'and model URL:', modelUrl);
+      
       // Insert new product
       const { data, error } = await supabase
         .from('products')
@@ -141,7 +181,10 @@ const ProductForm: React.FC = () => {
           stock_quantity: productData.stock_quantity,
           is_available: productData.is_available,
           vendor_id: session.session.user.id,
-          currency: productData.currency
+          currency: productData.currency,
+          model_url: modelUrl,
+          model_format: modelFormat,
+          has_ar_model: hasArModel
         })
         .select()
         .single();
@@ -170,6 +213,9 @@ const ProductForm: React.FC = () => {
   const updateProduct = useMutation({
     mutationFn: async (productData: ProductFormData) => {
       let imageUrl = productData.image_url;
+      let modelUrl = productData.model_url;
+      let modelFormat = productData.model_format;
+      let hasArModel = productData.has_ar_model;
       
       // Upload image if provided
       if (image) {
@@ -177,6 +223,19 @@ const ProductForm: React.FC = () => {
         if (!imageUrl && uploadError) {
           throw new Error(uploadError);
         }
+      }
+      
+      // Upload 3D model if provided
+      if (modelFile) {
+        const modelData = await uploadProductModel(modelFile, id as string);
+        
+        if (modelData.error) {
+          throw new Error(modelData.error);
+        }
+        
+        modelUrl = modelData.url;
+        modelFormat = modelData.format;
+        hasArModel = !!modelUrl;
       }
       
       // Update existing product
@@ -192,7 +251,10 @@ const ProductForm: React.FC = () => {
           stock_quantity: productData.stock_quantity,
           is_available: productData.is_available,
           updated_at: new Date().toISOString(),
-          currency: productData.currency
+          currency: productData.currency,
+          model_url: modelUrl,
+          model_format: modelFormat,
+          has_ar_model: hasArModel
         })
         .eq('id', id)
         .select()
@@ -265,6 +327,33 @@ const ProductForm: React.FC = () => {
     setImage(null);
     setPreviewUrl(null);
     setFormData(prev => ({ ...prev, image_url: null }));
+  };
+  
+  // Handle 3D model upload
+  const handleModelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setModelUploadError(null);
+    
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setModelFile(file);
+      setFormData(prev => ({ 
+        ...prev,
+        // We don't set model_url here as it's generated during submission
+        model_format: file.name.split('.').pop()?.toLowerCase() || null,
+        has_ar_model: true 
+      }));
+    }
+  };
+  
+  // Handle removing 3D model
+  const handleRemoveModel = () => {
+    setModelFile(null);
+    setFormData(prev => ({ 
+      ...prev, 
+      model_url: null,
+      model_format: null,
+      has_ar_model: false
+    }));
   };
   
   // Handle form submission
@@ -387,6 +476,18 @@ const ProductForm: React.FC = () => {
               onPurchasePriceChange={handleNumberChange}
               onCurrencyChange={handleCurrencyChange}
             />
+            
+            {/* 3D Model Upload Section */}
+            <Product3DModelUpload
+              modelUrl={formData.model_url}
+              onModelUpload={handleModelUpload}
+              onRemoveModel={handleRemoveModel}
+              isUploading={isUploadingModel}
+            />
+            
+            {modelUploadError && (
+              <div className="text-red-500 text-sm">{modelUploadError}</div>
+            )}
             
             {/* Availability */}
             <div className="flex items-center space-x-2">

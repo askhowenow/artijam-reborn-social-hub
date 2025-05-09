@@ -411,9 +411,12 @@ export type Database = {
           created_at: string | null
           currency: string
           description: string | null
+          has_ar_model: boolean | null
           id: string
           image_url: string | null
           is_available: boolean | null
+          model_format: string | null
+          model_url: string | null
           name: string
           price: number
           purchase_price: number | null
@@ -426,9 +429,12 @@ export type Database = {
           created_at?: string | null
           currency?: string
           description?: string | null
+          has_ar_model?: boolean | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          model_format?: string | null
+          model_url?: string | null
           name: string
           price: number
           purchase_price?: number | null
@@ -441,9 +447,12 @@ export type Database = {
           created_at?: string | null
           currency?: string
           description?: string | null
+          has_ar_model?: boolean | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          model_format?: string | null
+          model_url?: string | null
           name?: string
           price?: number
           purchase_price?: number | null

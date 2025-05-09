@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductDetails } from '@/hooks/use-products';
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ShoppingCart, 
   Eye, 
@@ -18,7 +19,9 @@ import {
   Share2, 
   CheckCircle,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Image as ImageIcon,
+  CubeIcon
 } from 'lucide-react';
 import CartDrawer from '@/components/shop/CartDrawer';
 import { Separator } from '@/components/ui/separator';
@@ -36,12 +39,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import Product3DViewer from '@/components/shop/Product3DViewer';
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = React.useState(1);
   const { addToCart, cartCount, isAuthenticated } = useCart();
+  const [viewMode, setViewMode] = useState<'image' | '3d'>('image');
   
   const { 
     data: product, 
@@ -53,6 +58,26 @@ const ProductDetailPage = () => {
     // Scroll to top when the component mounts
     window.scrollTo(0, 0);
   }, [productId]);
+  
+  // Check AR support
+  const [arSupported, setArSupported] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    // Check if AR is supported on this device
+    const checkARSupport = () => {
+      // iOS AR Quick Look support check
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isIOSWithAR = isIOS && 'getStartARSession' in document.createElement('a');
+      
+      // Android AR support check
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isARSupportedOnAndroid = isAndroid && 'xr' in navigator && 'isSessionSupported' in (navigator as any).xr;
+      
+      return isIOSWithAR || isARSupportedOnAndroid;
+    };
+    
+    setArSupported(checkARSupport());
+  }, []);
   
   const handleAddToCart = () => {
     if (product) {
@@ -90,17 +115,20 @@ const ProductDetailPage = () => {
     '/placeholder.svg'
   ];
   
+  // Determine if the product has a 3D model
+  const has3DModel = product.has_ar_model && product.model_url;
+  
   return (
     <>
       <Helmet>
-        <title>{product.name} | TikTokShop</title>
-        <meta name="description" content={product.description || `${product.name} - Shop unique items on TikTokShop.`} />
+        <title>{product.name} | Artijam</title>
+        <meta name="description" content={product.description || `${product.name} - Shop unique items on Artijam.`} />
         <meta property="og:title" content={product.name} />
-        <meta property="og:description" content={product.description || `${product.name} - Shop unique items on TikTokShop.`} />
+        <meta property="og:description" content={product.description || `${product.name} - Shop unique items on Artijam.`} />
         <meta property="og:image" content={product.image_url || '/placeholder.svg'} />
         <meta property="og:type" content="product" />
         <meta property="product:price:amount" content={product.price.toString()} />
-        <meta property="product:price:currency" content="USD" />
+        <meta property="product:price:currency" content={product.currency || "USD"} />
       </Helmet>
       
       <div className="container max-w-7xl mx-auto py-4 px-4 sm:px-6">
@@ -156,41 +184,129 @@ const ProductDetailPage = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          {/* Product Images */}
+          {/* Product Images / 3D Model */}
           <div>
-            <Carousel className="w-full">
-              <CarouselContent>
-                {images.map((image, index) => (
-                  <CarouselItem key={index}>
-                    <div className="aspect-square w-full rounded-md overflow-hidden bg-gray-100">
+            {has3DModel && (
+              <div className="mb-4 flex justify-center">
+                <Tabs
+                  defaultValue="image"
+                  value={viewMode}
+                  onValueChange={(value) => setViewMode(value as 'image' | '3d')}
+                  className="w-full"
+                >
+                  <div className="flex justify-center mb-2">
+                    <TabsList>
+                      <TabsTrigger value="image" className="flex items-center gap-1">
+                        <ImageIcon className="h-4 w-4" />
+                        <span>Images</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="3d" className="flex items-center gap-1">
+                        <CubeIcon className="h-4 w-4" />
+                        <span>3D View</span>
+                        {arSupported && (
+                          <Badge variant="secondary" className="ml-1">AR</Badge>
+                        )}
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                  
+                  <TabsContent value="image" className="mt-0">
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {images.map((image, index) => (
+                          <CarouselItem key={index}>
+                            <div className="aspect-square w-full rounded-md overflow-hidden bg-gray-100">
+                              <img 
+                                src={image} 
+                                alt={`${product.name} - Image ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-2" />
+                      <CarouselNext className="right-2" />
+                    </Carousel>
+                    
+                    <div className="flex mt-4 gap-2 overflow-x-auto pb-2">
+                      {images.map((image, index) => (
+                        <div 
+                          key={index}
+                          className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 border-gray-200 cursor-pointer hover:border-artijam-purple"
+                        >
+                          <img 
+                            src={image} 
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="3d" className="mt-0">
+                    <div className="aspect-square w-full rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+                      <Product3DViewer 
+                        modelUrl={product.model_url || ''}
+                        modelFormat={product.model_format}
+                        alt={product.name}
+                        className="w-full h-full min-h-[300px] md:min-h-[400px]"
+                      />
+                    </div>
+                    
+                    {arSupported && (
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600 mb-1">
+                          View this product in your space using augmented reality
+                        </p>
+                        <div className="text-xs text-gray-500">
+                          Look for the AR button in the 3D viewer
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
+            
+            {/* Standard image carousel if no 3D model */}
+            {!has3DModel && (
+              <>
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {images.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="aspect-square w-full rounded-md overflow-hidden bg-gray-100">
+                          <img 
+                            src={image} 
+                            alt={`${product.name} - Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-2" />
+                  <CarouselNext className="right-2" />
+                </Carousel>
+                
+                <div className="flex mt-4 gap-2 overflow-x-auto pb-2">
+                  {images.map((image, index) => (
+                    <div 
+                      key={index}
+                      className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 border-gray-200 cursor-pointer hover:border-artijam-purple"
+                    >
                       <img 
                         src={image} 
-                        alt={`${product.name} - Image ${index + 1}`}
+                        alt={`Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-            </Carousel>
-            
-            {/* Thumbnails */}
-            <div className="flex mt-4 gap-2 overflow-x-auto pb-2">
-              {images.map((image, index) => (
-                <div 
-                  key={index}
-                  className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 border-gray-200 cursor-pointer hover:border-artijam-purple"
-                >
-                  <img 
-                    src={image} 
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
           
           {/* Product Info */}
@@ -205,6 +321,13 @@ const ProductDetailPage = () => {
                   <Eye className="w-3 h-3 mr-1" />
                   {product.metrics.views || 0} views
                 </div>
+              )}
+              
+              {has3DModel && (
+                <Badge className="bg-artijam-purple text-xs">
+                  <CubeIcon className="h-3 w-3 mr-1" />
+                  {arSupported ? 'AR Available' : '3D View'}
+                </Badge>
               )}
             </div>
             
@@ -308,6 +431,17 @@ const ProductDetailPage = () => {
                   </Button>
                 )}
               </div>
+              
+              {has3DModel && arSupported && viewMode === 'image' && (
+                <Button 
+                  variant="secondary"
+                  onClick={() => setViewMode('3d')}
+                  className="mt-2"
+                >
+                  <CubeIcon className="mr-2 h-5 w-5" />
+                  View in 3D/AR
+                </Button>
+              )}
               
               <div className="flex justify-center gap-4 mt-2">
                 <Button variant="ghost" size="sm">
