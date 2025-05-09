@@ -1,8 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from '@/types/cart';
-import { getUserCart } from './userCart';
-import { getGuestCart, getGuestId } from './guestCart';
 
 // Add item to cart (handles both user and guest carts)
 export const addToCartOperation = async (
@@ -21,7 +19,7 @@ export const addToCartOperation = async (
       .select('id, quantity')
       .eq('cart_id', cartId)
       .eq('product_id', productId)
-      .single();
+      .maybeSingle();
     
     if (existingItem) {
       // Update quantity if item exists

@@ -242,15 +242,6 @@ export const syncGuestCartToUserCart = async (guestId: string): Promise<void> =>
 export { 
   addToCartOperation,
   removeFromCartOperation,
-  updateQuantityOperation
+  updateQuantityOperation,
+  calculateCartTotal
 } from './cartOperations';
-
-// Export other cart operations
-export * from './cartOperations';
-
-// Calculate cart total based on items
-export const calculateCartTotal = (items: CartItem[]): number => {
-  return items.reduce((total, item) => {
-    return total + (item.quantity * (item.product.price || 0));
-  }, 0);
-};
