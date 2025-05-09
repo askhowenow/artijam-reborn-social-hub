@@ -43,7 +43,7 @@ export function useCart(options?: UseCartOptions): UseCartResult {
 
         // If user just logged in and we have a guest cart, sync them
         if (authenticated && !wasAuthenticated && syncOnLogin && guestId) {
-          syncGuestCartToUserCart.mutate();
+          syncGuestCartToUserCartMutation.mutate(guestId);
         }
       });
 
@@ -126,11 +126,11 @@ export function useCart(options?: UseCartOptions): UseCartResult {
 
   // Sync guest cart to user cart on login
   const syncGuestCartToUserCartMutation = useMutation({
-    mutationFn: async () => {
-      if (!guestId) {
+    mutationFn: async (guestIdParam: string) => {
+      if (!guestIdParam) {
         throw new Error('Cannot sync cart: missing guest ID');
       }
-      return syncGuestCartToUserCart(guestId);
+      return syncGuestCartToUserCart(guestIdParam);
     },
     onSuccess: () => {
       toast.success('Your cart has been synced to your account');
