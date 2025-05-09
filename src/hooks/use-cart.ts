@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 import { type Product } from '@/hooks/use-products';
 
 // Types moved to a separate file for better organization
@@ -15,11 +15,12 @@ import {
 // Helper utilities for cart operations
 import { 
   fetchCartData, 
-  syncGuestCartToUserCart as syncCart,
+  syncGuestCartToUserCart,
   addToCartOperation,
   removeFromCartOperation,
   updateQuantityOperation,
-  calculateCartTotal
+  calculateCartTotal,
+  getGuestId
 } from '@/utils/cart';
 
 export function useCart(options?: UseCartOptions): UseCartResult {
@@ -56,14 +57,8 @@ export function useCart(options?: UseCartOptions): UseCartResult {
 
   // Initialize guest ID from localStorage or create a new one
   useEffect(() => {
-    const storedGuestId = localStorage.getItem('guestCartId');
-    if (storedGuestId) {
-      setGuestId(storedGuestId);
-    } else {
-      const newGuestId = uuidv4();
-      localStorage.setItem('guestCartId', newGuestId);
-      setGuestId(newGuestId);
-    }
+    const storedGuestId = getGuestId();
+    setGuestId(storedGuestId);
   }, []);
 
   // Fetch cart data based on authentication status
@@ -130,12 +125,12 @@ export function useCart(options?: UseCartOptions): UseCartResult {
   });
 
   // Sync guest cart to user cart on login
-  const syncGuestCartToUserCart = useMutation({
+  const syncGuestCartToUserCartMutation = useMutation({
     mutationFn: async () => {
       if (!guestId) {
         throw new Error('Cannot sync cart: missing guest ID');
       }
-      return syncCart(guestId);
+      return syncGuestCartToUserCart(guestId);
     },
     onSuccess: () => {
       toast.success('Your cart has been synced to your account');
@@ -160,7 +155,7 @@ export function useCart(options?: UseCartOptions): UseCartResult {
     addToCart,
     removeFromCart,
     updateQuantity,
-    syncGuestCartToUserCart,
+    syncGuestCartToUserCart: syncGuestCartToUserCartMutation,
     cartCount,
     cartTotal,
     isAuthenticated,
