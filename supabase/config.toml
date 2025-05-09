@@ -12,3 +12,15 @@ verify_jwt = true
 
 [functions.secure-cart-ops]
 verify_jwt = true
+
+[functions.get-balance]
+verify_jwt = true
+
+[functions.top-up-balance]
+verify_jwt = true
+
+[functions.get-transactions]
+verify_jwt = true
+
+[functions.first-atlantic-webhook]
+verify_jwt = false

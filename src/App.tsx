@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -171,6 +170,9 @@ function App() {
                 <Route path="/streams/:streamId" element={<StreamDetailPage />} />
                 <Route path="/streams/new" element={<CreateStreamPage />} />
                 <Route path="/streams/studio/:streamId" element={<StreamStudioPage />} />
+                
+                {/* Balance Page */}
+                <Route path="/balance" element={<BalancePage />} />
               </Route>
               
               {/* Default redirect from root to landing or home */}
