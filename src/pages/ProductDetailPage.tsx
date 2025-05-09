@@ -20,7 +20,7 @@ import {
   ArrowLeft,
   Loader2,
   Image as ImageIcon,
-  Cube
+  Cuboid
 } from 'lucide-react';
 import CartDrawer from '@/components/shop/CartDrawer';
 import { Separator } from '@/components/ui/separator';
@@ -200,7 +200,7 @@ const ProductDetailPage = () => {
                         <span>Images</span>
                       </TabsTrigger>
                       <TabsTrigger value="3d" className="flex items-center gap-1">
-                        <Cube className="h-4 w-4" />
+                        <Cuboid className="h-4 w-4" />
                         <span>3D View</span>
                         {arSupported && (
                           <Badge variant="secondary" className="ml-1">AR</Badge>
@@ -324,7 +324,7 @@ const ProductDetailPage = () => {
               
               {has3DModel && (
                 <Badge className="bg-artijam-purple text-xs">
-                  <Cube className="h-3 w-3 mr-1" />
+                  <Cuboid className="h-3 w-3 mr-1" />
                   {arSupported ? 'AR Available' : '3D View'}
                 </Badge>
               )}
@@ -437,7 +437,7 @@ const ProductDetailPage = () => {
                   onClick={() => setViewMode('3d')}
                   className="mt-2"
                 >
-                  <Cube className="mr-2 h-5 w-5" />
+                  <Cuboid className="mr-2 h-5 w-5" />
                   View in 3D/AR
                 </Button>
               )}
