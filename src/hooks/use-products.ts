@@ -24,6 +24,11 @@ export type Product = {
     cart_adds: number;
     purchases: number;
   };
+  // Add the new fields for 3D models
+  model_url: string | null;
+  model_format: string | null;
+  has_ar_model: boolean | null;
+  currency: string | null;
 };
 
 export function useProducts(options?: { trending?: boolean; limit?: number; category?: string }) {

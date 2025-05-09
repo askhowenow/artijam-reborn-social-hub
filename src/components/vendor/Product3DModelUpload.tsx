@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { X, Upload3d, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
+import { Upload3d } from '@/components/icons/Upload3d';
 import { SUPPORTED_MODEL_FORMATS, MAX_MODEL_SIZE } from '@/utils/model-upload';
 
 interface Product3DModelUploadProps {
