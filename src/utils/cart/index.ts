@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { CartData, CartItem } from '@/types/cart';
 
@@ -238,6 +237,13 @@ export const syncGuestCartToUserCart = async (guestId: string): Promise<void> =>
     throw error;
   }
 };
+
+// Export cart operations
+export { 
+  addToCartOperation,
+  removeFromCartOperation,
+  updateQuantityOperation
+} from './cartOperations';
 
 // Export other cart operations
 export * from './cartOperations';
