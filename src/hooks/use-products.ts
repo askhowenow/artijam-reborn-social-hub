@@ -41,11 +41,10 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
         .select(`
           *,
           vendor:vendor_profiles(business_name, is_verified),
-          metrics:product_metrics(views, cart_adds, purchases)
+          metrics:product_metrics!product_metrics_product_id_fkey(views, cart_adds, purchases)
         `);
 
       // Only filter by is_available if specifically requested
-      // This ensures we show all products by default
       query = query.eq('is_available', true);
       
       if (category) {
@@ -54,12 +53,9 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
       }
 
       if (trending) {
-        // Join with metrics and order by engagement score
-        query = query
-          .order('metrics(views)', { ascending: false })
-          .order('metrics(cart_adds)', { ascending: false })
-          .order('metrics(purchases)', { ascending: false });
-        console.log("Ordering by trending metrics");
+        // Order by creation date as a fallback if metrics cannot be used for ordering
+        query = query.order('created_at', { ascending: false });
+        console.log("Ordering by creation date (trending fallback)");
       } else {
         // Default ordering by creation date
         query = query.order('created_at', { ascending: false });
@@ -78,13 +74,14 @@ export function useProducts(options?: { trending?: boolean; limit?: number; cate
       console.log(`Fetched ${data?.length || 0} products from database`);
       
       // Transform the data to match our Product type
-      // The metrics comes as an array from Supabase, but we want a single object
-      const transformedData = data.map(item => ({
-        ...item,
-        metrics: item.metrics && item.metrics.length > 0 
-          ? item.metrics[0] 
-          : { views: 0, cart_adds: 0, purchases: 0 }
-      })) as Product[];
+      const transformedData = data.map(item => {
+        return {
+          ...item,
+          metrics: item.metrics && item.metrics.length > 0 
+            ? item.metrics[0] 
+            : { views: 0, cart_adds: 0, purchases: 0 }
+        };
+      }) as Product[];
       
       return transformedData;
     },
@@ -110,7 +107,7 @@ export function useProductDetails(productId?: string) {
         .select(`
           *,
           vendor:vendor_profiles(business_name, is_verified),
-          metrics:product_metrics(views, cart_adds, purchases)
+          metrics:product_metrics!product_metrics_product_id_fkey(views, cart_adds, purchases)
         `)
         .eq('id', productId)
         .single();
@@ -127,11 +124,15 @@ export function useProductDetails(productId?: string) {
           : { views: 0, cart_adds: 0, purchases: 0 }
       } as Product;
 
-      // Increment view count
-      await supabase.rpc('increment_product_metric', {
-        product_id_param: productId,
-        metric_name: 'views'
-      });
+      // Increment view count - wrapped in try/catch to avoid breaking the page if it fails
+      try {
+        await supabase.rpc('increment_product_metric', {
+          product_id_param: productId,
+          metric_name: 'views'
+        });
+      } catch (metricError) {
+        console.error('Failed to increment product view metric:', metricError);
+      }
 
       return product;
     },

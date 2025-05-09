@@ -90,9 +90,6 @@ window.addEventListener('unhandledrejection', (event) => {
   console.log('Unhandled promise rejection:', event.reason);
 });
 
-// Delete the src/hooks/use-auth.tsx file since we're using AuthProvider from context/AuthProvider.tsx
-// This will resolve the conflict between the two auth providers
-
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <GlobalErrorBoundary>

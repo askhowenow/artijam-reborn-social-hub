@@ -1,128 +1,250 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { CartData, CartItem } from '@/types/cart';
-import { supabase } from "@/integrations/supabase/client";
-import { getUserCart } from './userCart';
-import { getGuestCart, addToGuestCart } from './guestCart';
-import { addToUserCart } from './userCart';
 
 // Fetch cart data based on authentication status
 export const fetchCartData = async (
   isAuthenticated: boolean,
   guestId: string | null
-): Promise<CartData> => {
-  if (isAuthenticated) {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      throw new Error('User session not found');
+): Promise<CartData | null> => {
+  try {
+    if (isAuthenticated) {
+      return await fetchUserCart();
+    } else if (guestId) {
+      return await fetchGuestCart(guestId);
     }
-    
+    return { cartId: '', items: [] };
+  } catch (error) {
+    console.error('Error fetching cart data:', error);
+    return { cartId: '', items: [] };
+  }
+};
+
+// Fetch user cart
+async function fetchUserCart(): Promise<CartData | null> {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session?.user) return null;
+
     const userId = session.session.user.id;
-    const items = await getUserCart(userId);
     
-    // Get or create user cart ID
-    let { data: userCart } = await supabase
+    // Get or create cart
+    let { data: cartData, error: cartError } = await supabase
       .from('user_carts')
       .select('id')
       .eq('user_id', userId)
-      .single();
-      
-    if (!userCart) {
-      const { data: newCart } = await supabase
-        .from('user_carts')
-        .insert({ user_id: userId })
-        .select('id')
-        .single();
-        
-      userCart = newCart;
+      .maybeSingle();
+    
+    if (cartError) {
+      throw cartError;
     }
     
+    // If no cart exists, create one
+    if (!cartData) {
+      const { data: newCart, error: createError } = await supabase
+        .from('user_carts')
+        .insert({ user_id: userId })
+        .select()
+        .single();
+      
+      if (createError) throw createError;
+      cartData = newCart;
+    }
+    
+    // Now get the cart items with product details
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('user_cart_items')
+      .select(`
+        id, 
+        quantity, 
+        product_id,
+        products!user_cart_items_product_id_fkey(
+          id, 
+          name, 
+          description, 
+          price, 
+          image_url, 
+          category,
+          currency,
+          stock_quantity,
+          is_available
+        )
+      `)
+      .eq('cart_id', cartData.id);
+    
+    if (itemsError) {
+      console.error('Error getting user cart:', itemsError);
+      return { cartId: cartData.id, items: [] };
+    }
+    
+    // Transform the data to match our CartItem type
+    const items = itemsData.map((item) => ({
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      product: item.products
+    })) as CartItem[];
+    
     return {
-      cartId: userCart?.id || '',
+      cartId: cartData.id,
       items
     };
-  } else if (guestId) {
-    const items = await getGuestCart(guestId);
-    
-    // Get or create guest cart ID
-    let { data: guestCart } = await supabase
+  } catch (error) {
+    console.error('Error getting user cart:', error);
+    return null;
+  }
+}
+
+// Fetch guest cart
+async function fetchGuestCart(guestId: string): Promise<CartData | null> {
+  try {
+    // Get or create cart
+    let { data: cartData, error: cartError } = await supabase
       .from('guest_carts')
       .select('id')
       .eq('guest_id', guestId)
-      .single();
-      
-    if (!guestCart) {
-      const { data: newCart } = await supabase
+      .maybeSingle();
+    
+    if (cartError) {
+      throw cartError;
+    }
+    
+    // If no cart exists, create one
+    if (!cartData) {
+      const { data: newCart, error: createError } = await supabase
         .from('guest_carts')
         .insert({ guest_id: guestId })
-        .select('id')
+        .select()
         .single();
-        
-      guestCart = newCart;
+      
+      if (createError) throw createError;
+      cartData = newCart;
     }
+    
+    // Now get the cart items with product details
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('guest_cart_items')
+      .select(`
+        id, 
+        quantity, 
+        product_id,
+        products!guest_cart_items_product_id_fkey(
+          id, 
+          name, 
+          description, 
+          price, 
+          image_url, 
+          category,
+          currency,
+          stock_quantity,
+          is_available
+        )
+      `)
+      .eq('cart_id', cartData.id);
+    
+    if (itemsError) {
+      console.error('Error getting guest cart:', itemsError);
+      return { cartId: cartData.id, items: [] };
+    }
+    
+    // Transform the data to match our CartItem type
+    const items = itemsData.map((item) => ({
+      id: item.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      product: item.products
+    })) as CartItem[];
     
     return {
-      cartId: guestCart?.id || '',
+      cartId: cartData.id,
       items
     };
+  } catch (error) {
+    console.error('Error getting guest cart:', error);
+    return null;
   }
-  
-  return {
-    cartId: '',
-    items: []
-  };
-};
+}
 
-// Add product to cart operation
-export const addToCartOperation = async (
-  productId: string,
-  quantity: number,
-  cartId: string,
-  isAuthenticated: boolean,
-  guestId: string | null
-): Promise<CartItem[]> => {
-  if (isAuthenticated) {
+// Sync guest cart to user cart
+export const syncGuestCartToUserCart = async (guestId: string): Promise<void> => {
+  try {
     const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      throw new Error('User session not found');
-    }
+    if (!session.session) throw new Error('User not authenticated');
     
     const userId = session.session.user.id;
-    return await addToUserCart(userId, productId, quantity);
-  } else if (guestId) {
-    return await addToGuestCart(guestId, productId, quantity);
+    
+    // Get guest cart
+    const guestCart = await fetchGuestCart(guestId);
+    if (!guestCart || guestCart.items.length === 0) return;
+    
+    // Get or create user cart
+    let { data: userCartData, error: userCartError } = await supabase
+      .from('user_carts')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (userCartError) throw userCartError;
+    
+    if (!userCartData) {
+      const { data: newCart, error: createError } = await supabase
+        .from('user_carts')
+        .insert({ user_id: userId })
+        .select()
+        .single();
+      
+      if (createError) throw createError;
+      userCartData = newCart;
+    }
+    
+    // Add guest cart items to user cart
+    for (const item of guestCart.items) {
+      // Check if product already exists in user cart
+      const { data: existingItem, error: findError } = await supabase
+        .from('user_cart_items')
+        .select('id, quantity')
+        .eq('cart_id', userCartData.id)
+        .eq('product_id', item.product_id)
+        .maybeSingle();
+      
+      if (findError) throw findError;
+      
+      if (existingItem) {
+        // Update quantity
+        await supabase
+          .from('user_cart_items')
+          .update({ quantity: existingItem.quantity + item.quantity })
+          .eq('id', existingItem.id);
+      } else {
+        // Insert new item
+        await supabase
+          .from('user_cart_items')
+          .insert({
+            cart_id: userCartData.id,
+            product_id: item.product_id,
+            quantity: item.quantity
+          });
+      }
+    }
+    
+    // Clear guest cart
+    await supabase
+      .from('guest_cart_items')
+      .delete()
+      .eq('cart_id', guestCart.cartId);
+      
+  } catch (error) {
+    console.error('Error syncing guest cart to user cart:', error);
+    throw error;
   }
-  
-  throw new Error('Authentication or guest ID required');
 };
 
-// Remove from cart operation
-export const removeFromCartOperation = async (
-  itemId: string,
-  isAuthenticated: boolean,
-  guestId: string | null
-): Promise<void> => {
-  if (!itemId) throw new Error('Item ID is required');
-  
-  const { removeCartItem } = await import('./cartOperations');
-  return await removeCartItem(itemId, isAuthenticated);
-};
+// Export other cart operations
+export * from './cartOperations';
 
-// Update quantity operation
-export const updateQuantityOperation = async (
-  itemId: string,
-  quantity: number,
-  isAuthenticated: boolean,
-  guestId: string | null
-): Promise<void> => {
-  if (!itemId) throw new Error('Item ID is required');
-  if (quantity < 1) throw new Error('Quantity must be at least 1');
-  
-  const { updateCartItemQuantity } = await import('./cartOperations');
-  return await updateCartItemQuantity(itemId, quantity, isAuthenticated);
+// Calculate cart total based on items
+export const calculateCartTotal = (items: CartItem[]): number => {
+  return items.reduce((total, item) => {
+    return total + (item.quantity * (item.product.price || 0));
+  }, 0);
 };
-
-// Re-export all the functions for backward compatibility
-export { getUserCart } from './userCart';
-export { getGuestCart, getGuestId } from './guestCart';
-export { calculateCartTotal, calculateCartCount } from './cartOperations';
-export { syncGuestCartToUserCart } from './userCart';

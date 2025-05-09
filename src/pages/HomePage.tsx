@@ -52,7 +52,7 @@ const HomePage = () => {
   console.log("HomePage: Rendering");
   const navigate = useNavigate();
   const { data: posts, isLoading: postsLoading, error: postsError } = usePosts();
-  const { data: trendingProducts, isLoading: productsLoading } = useProducts({ 
+  const { data: trendingProducts, isLoading: productsLoading, error: productsError } = useProducts({ 
     trending: true, 
     limit: 4 
   });
@@ -69,6 +69,7 @@ const HomePage = () => {
     postsLoading, 
     postsError: postsError ? String(postsError) : null,
     productsLoading,
+    productsError: productsError ? String(productsError) : null,
     postCount: posts?.length || 0,
     productCount: trendingProducts?.length || 0
   });
@@ -101,7 +102,7 @@ const HomePage = () => {
     );
   }
 
-  // Transform products for the banner
+  // Transform products for the banner - handle case where product metrics might be missing
   const bannerItems = trendingProducts?.map(product => ({
     id: product.id,
     type: 'product' as const,
@@ -146,6 +147,17 @@ const HomePage = () => {
                 {productsLoading ? (
                   <div className="flex justify-center py-4">
                     <Loader2 className="h-8 w-8 animate-spin text-artijam-purple" />
+                  </div>
+                ) : productsError ? (
+                  <div className="text-center py-4">
+                    <p className="text-red-500 mb-2">Couldn't load featured products</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/shop')}
+                    >
+                      Browse all products
+                    </Button>
                   </div>
                 ) : bannerItems && bannerItems.length > 0 ? (
                   <RunningBanner 

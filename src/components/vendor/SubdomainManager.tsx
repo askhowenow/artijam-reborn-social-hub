@@ -2,14 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { useVendorProfile } from "@/hooks/use-vendor-profile";
 import { useVendorSubdomain } from "@/hooks/use-vendor-subdomain";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Check, X, Loader2, Globe, Link } from "lucide-react";
+import { Check, X, Loader2, Globe, Link, HelpCircle, AlertCircle } from "lucide-react";
 import URLDisplay from "./URLDisplay";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SubdomainManagerProps {
   onUpdate?: () => void;
@@ -71,8 +73,10 @@ const SubdomainManager: React.FC<SubdomainManagerProps> = ({ onUpdate }) => {
       });
       
       if (onUpdate) onUpdate();
+      toast.success("Subdomain settings updated successfully");
     } catch (error) {
       console.error("Error updating subdomain settings:", error);
+      toast.error("Failed to update subdomain settings");
     } finally {
       setIsSaving(false);
     }
@@ -83,19 +87,49 @@ const SubdomainManager: React.FC<SubdomainManagerProps> = ({ onUpdate }) => {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center text-lg">
           <Globe className="mr-2 h-5 w-5" /> Subdomain Settings
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 ml-2">
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">
+                  Set up a custom subdomain for your ArtiJam store. This will allow customers to access your store via
+                  yourdomain.artijam.com instead of artijam.com/@your-slug
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardTitle>
         <CardDescription>
-          Set up a custom subdomain for your store
+          Create a custom web address for your store
         </CardDescription>
       </CardHeader>
       
       <CardContent>
+        <Alert className="mb-4 bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>How to set up your subdomain</AlertTitle>
+          <AlertDescription>
+            1. Enter your desired subdomain name below
+            <br />
+            2. Once available, enable the subdomain access
+            <br />
+            3. Save your settings
+          </AlertDescription>
+        </Alert>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="subdomain">
+            <Label htmlFor="subdomain" className="flex items-center">
               Subdomain 
               {isChecking && (
-                <span className="ml-2 text-sm text-gray-500">Checking...</span>
+                <span className="ml-2 text-sm text-gray-500 flex items-center">
+                  <Loader2 className="animate-spin h-3 w-3 mr-1" />
+                  Checking...
+                </span>
               )}
               {isAvailable === true && !isChecking && subdomain && (
                 <span className="ml-2 text-sm text-green-500 flex items-center">
@@ -137,7 +171,7 @@ const SubdomainManager: React.FC<SubdomainManagerProps> = ({ onUpdate }) => {
               id="uses-subdomain"
               checked={usesSubdomain}
               onCheckedChange={setUsesSubdomain}
-              disabled={!subdomain || isAvailable === false}
+              disabled={!subdomain || (isAvailable === false && subdomain !== vendorProfile?.subdomain)}
             />
             <Label htmlFor="uses-subdomain">Enable subdomain access</Label>
           </div>
@@ -159,7 +193,7 @@ const SubdomainManager: React.FC<SubdomainManagerProps> = ({ onUpdate }) => {
           <div className="pt-4">
             <Button 
               type="submit"
-              disabled={isSaving || (usesSubdomain && (!subdomain || isAvailable === false))}
+              disabled={isSaving || (usesSubdomain && (!subdomain || (isAvailable === false && subdomain !== vendorProfile?.subdomain)))}
               className="bg-artijam-purple hover:bg-artijam-purple/90"
             >
               {isSaving ? (
@@ -177,6 +211,10 @@ const SubdomainManager: React.FC<SubdomainManagerProps> = ({ onUpdate }) => {
           </div>
         </form>
       </CardContent>
+      
+      <CardFooter className="bg-gray-50 px-6 py-3 text-sm text-gray-600 border-t">
+        Already have a domain? Contact support to set up custom domain forwarding.
+      </CardFooter>
     </Card>
   );
 };
