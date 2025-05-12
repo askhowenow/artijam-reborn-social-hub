@@ -25,26 +25,10 @@ import BlogsPage from '@/pages/BlogsPage';
 import CoursesPage from '@/pages/CoursesPage';
 import ReelsPage from '@/pages/ReelsPage';
 import ApplicationsPage from '@/pages/ApplicationsPage';
+import DashboardPage from '@/pages/DashboardPage';
 
-// Auth provider context
-import { useAuth } from '@/context/AuthProvider';
-
-// Simple RequireAuth component
-const RequireAuth = ({ children, requiredRole }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (isLoading) return <div>Loading...</div>;
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (requiredRole && (!user.role || user.role !== requiredRole)) {
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
-};
+// Import RequireAuth component
+import RequireAuth from '@/components/auth/RequireAuth';
 
 const App: React.FC = () => {
   return (
@@ -125,6 +109,13 @@ const App: React.FC = () => {
         {/* Events routes */}
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
+        
+        {/* Dashboard route */}
+        <Route path="/dashboard" element={
+          <RequireAuth>
+            <DashboardPage />
+          </RequireAuth>
+        } />
         
         {/* Redirect /wallet to /balance */}
         <Route path="/wallet" element={<Navigate to="/balance" replace />} />
