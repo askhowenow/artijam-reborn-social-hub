@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthProvider';
 
 interface RequireAuthProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string; // Make the prop explicitly optional with ?
 }
 
 export const RequireAuth: React.FC<RequireAuthProps> = ({ 
