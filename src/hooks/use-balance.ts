@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthProvider';
+import { ExtendedSupabaseClient } from '@/types/supabase-extensions';
 
 export interface Balance {
   id: string;
@@ -51,6 +52,9 @@ export interface TransactionListResponse {
 export function useBalance() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Cast supabase client to our extended type
+  const extendedSupabase = supabase as unknown as ExtendedSupabaseClient;
 
   const fetchBalance = async (): Promise<Balance> => {
     if (!user) {

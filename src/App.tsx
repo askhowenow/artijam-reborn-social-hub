@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -35,6 +36,7 @@ import StreamsPage from "@/pages/StreamsPage";
 import StreamDetailPage from "@/pages/StreamDetailPage";
 import CreateStreamPage from "@/pages/CreateStreamPage";
 import StreamStudioPage from "@/pages/StreamStudioPage";
+import BalancePage from "@/pages/BalancePage";
 import { Toaster as SonnerToaster } from "sonner";
 
 // Create a client

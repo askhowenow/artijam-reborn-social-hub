@@ -1,8 +1,10 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthProvider';
 import { useUserRole } from '@/hooks/use-user-role';
+import { ExtendedSupabaseClient } from '@/types/supabase-extensions';
 
 export interface PaymentGatewaySettings {
   id: string;
@@ -18,13 +20,17 @@ export function usePaymentSettings() {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const queryClient = useQueryClient();
+  
+  // Cast supabase client to our extended type
+  const extendedSupabase = supabase as unknown as ExtendedSupabaseClient;
 
   const fetchPaymentSettings = async (): Promise<PaymentGatewaySettings[]> => {
     if (!user || !isAdmin()) {
       throw new Error("Unauthorized");
     }
     
-    const { data, error } = await supabase
+    // Access the payment_gateway_settings table with our extended client
+    const { data, error } = await extendedSupabase
       .from('payment_gateway_settings')
       .select('*');
     
@@ -43,7 +49,7 @@ export function usePaymentSettings() {
     
     // If there's an ID, update existing record
     if (settings.id) {
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('payment_gateway_settings')
         .update({
           gateway_name: settings.gateway_name,
@@ -65,7 +71,7 @@ export function usePaymentSettings() {
     } 
     // Otherwise, insert a new record
     else {
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('payment_gateway_settings')
         .insert({
           gateway_name: settings.gateway_name || 'first_atlantic',
