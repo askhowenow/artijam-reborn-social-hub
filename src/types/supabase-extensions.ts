@@ -3,7 +3,7 @@ import { Database } from "@/integrations/supabase/types";
 
 // Extend the Supabase Database types with our new tables
 export interface ExtendedDatabase extends Database {
-  Tables: Database["Tables"] & {
+  Tables: Database["public"]["Tables"] & {
     payment_gateway_settings: {
       Row: {
         id: string;
