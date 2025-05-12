@@ -11,7 +11,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  // Safely use the theme context with fallback values
+  let theme = "system";
+  let setTheme = (theme: string) => {
+    console.log("ThemeProvider not available, would set theme to:", theme);
+  };
+  
+  try {
+    const themeContext = useTheme();
+    theme = themeContext.theme;
+    setTheme = themeContext.setTheme;
+  } catch (error) {
+    console.log("Theme context not available");
+  }
 
   return (
     <DropdownMenu>

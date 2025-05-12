@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthProvider';
+import { ThemeProvider } from '@/context/ThemeProvider';
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient({
@@ -108,11 +109,13 @@ createRoot(document.getElementById("root")!).render(
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <HelmetProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </HelmetProvider>
+          <ThemeProvider defaultTheme="system" storageKey="artijam-theme">
+            <HelmetProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </HelmetProvider>
+          </ThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
