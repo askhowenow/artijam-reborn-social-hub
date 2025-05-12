@@ -101,9 +101,6 @@ export function useBalance() {
       throw new Error("User not authenticated");
     }
     
-    let url = `limit=${limit}&offset=${offset}`;
-    if (type) url += `&type=${type}`;
-    
     const { data, error } = await supabase.functions.invoke('get-transactions', {
       body: { limit, offset, type }
     });

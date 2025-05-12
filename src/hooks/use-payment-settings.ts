@@ -31,7 +31,7 @@ export function usePaymentSettings() {
     
     // Access the payment_gateway_settings table with our extended client
     const { data, error } = await extendedSupabase
-      .from('payment_gateway_settings')
+      .from('public.payment_gateway_settings')
       .select('*');
     
     if (error) {
@@ -50,7 +50,7 @@ export function usePaymentSettings() {
     // If there's an ID, update existing record
     if (settings.id) {
       const { data, error } = await extendedSupabase
-        .from('payment_gateway_settings')
+        .from('public.payment_gateway_settings')
         .update({
           gateway_name: settings.gateway_name,
           is_active: settings.is_active,
@@ -72,7 +72,7 @@ export function usePaymentSettings() {
     // Otherwise, insert a new record
     else {
       const { data, error } = await extendedSupabase
-        .from('payment_gateway_settings')
+        .from('public.payment_gateway_settings')
         .insert({
           gateway_name: settings.gateway_name || 'first_atlantic',
           is_active: settings.is_active !== undefined ? settings.is_active : false,

@@ -14,11 +14,6 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const limit = parseInt(url.searchParams.get('limit') || '10')
-    const offset = parseInt(url.searchParams.get('offset') || '0')
-    const type = url.searchParams.get('type') || undefined
-    
     // Create a Supabase client with the Auth context of the logged in user
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -39,22 +34,25 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
+    
+    // Get request parameters
+    const { limit = 10, offset = 0, type } = await req.json();
+    
     // Build query
     let query = supabaseClient
       .from('transactions')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limit - 1);
       
     // Add type filter if provided
     if (type) {
-      query = query.eq('type', type)
+      query = query.eq('type', type);
     }
-
-    // Execute query  
-    const { data, error, count } = await query
+    
+    // Execute query
+    const { data: transactions, error, count } = await query;
 
     if (error) {
       console.error('Error fetching transactions:', error)
@@ -64,19 +62,12 @@ serve(async (req) => {
       )
     }
 
-    // Get total count for pagination
-    const { count: totalCount } = await supabaseClient
-      .from('transactions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
-      .eq(type ? 'type' : 'user_id', type || session.user.id)
-
-    // Return the transactions
+    // Return transactions with pagination info
     return new Response(
       JSON.stringify({ 
-        transactions: data,
+        transactions: transactions || [],
         pagination: {
-          total: totalCount,
+          total: count || 0,
           limit,
           offset
         }

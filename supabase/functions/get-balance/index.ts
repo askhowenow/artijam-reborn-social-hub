@@ -35,18 +35,34 @@ serve(async (req) => {
       )
     }
 
-    // Get user's balance
+    // Get the user's balance
     const { data: balance, error } = await supabaseClient
       .from('balances')
       .select('*')
       .eq('id', session.user.id)
       .single()
 
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching balance:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to fetch balance' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // If no balance found, return a default balance
+    if (!balance) {
+      return new Response(
+        JSON.stringify({ 
+          balance: {
+            id: session.user.id,
+            balance: 0,
+            currency: 'USD',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          } 
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
