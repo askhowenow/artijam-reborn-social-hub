@@ -10,7 +10,16 @@ interface LogoProps {
 
 const Logo = ({ className = "", size = "md" }: LogoProps) => {
   const location = useLocation();
-  const { user } = useAuth();
+  
+  // Safely access the auth context, with fallback if used outside AuthProvider
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth?.user;
+  } catch (error) {
+    console.log("Auth context not available");
+  }
+  
   const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
   
   const sizeClasses = {
