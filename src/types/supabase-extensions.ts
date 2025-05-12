@@ -102,6 +102,10 @@ export interface ExtendedDatabase extends Database {
         };
       };
     };
+    Views: Database["public"]["Views"];
+    Functions: Database["public"]["Functions"];
+    Enums: Database["public"]["Enums"];
+    CompositeTypes: Database["public"]["CompositeTypes"];
   }
 }
 
