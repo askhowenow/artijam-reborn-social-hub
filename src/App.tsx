@@ -26,6 +26,13 @@ import CoursesPage from '@/pages/CoursesPage';
 import ReelsPage from '@/pages/ReelsPage';
 import ApplicationsPage from '@/pages/ApplicationsPage';
 import DashboardPage from '@/pages/DashboardPage';
+import MyPagesPage from '@/pages/MyPagesPage';
+import MyProductsPage from '@/pages/MyProductsPage';
+import PageViewPage from '@/pages/PageViewPage';
+import ProductPage from '@/pages/ProductPage';
+import ProductFormPage from '@/pages/ProductFormPage';
+import CreateStorefrontPage from '@/pages/CreateStorefrontPage';
+import StorefrontPage from '@/pages/StorefrontPage';
 
 // Import RequireAuth component
 import RequireAuth from '@/components/auth/RequireAuth';
@@ -116,6 +123,50 @@ const App: React.FC = () => {
             <DashboardPage />
           </RequireAuth>
         } />
+
+        {/* Pages routes - Adding missing routes */}
+        <Route path="/my-pages" element={
+          <RequireAuth>
+            <MyPagesPage />
+          </RequireAuth>
+        } />
+        <Route path="/page/:id/edit" element={
+          <RequireAuth>
+            <PageViewPage />
+          </RequireAuth>
+        } />
+        <Route path="/@:slug" element={<PageViewPage />} />
+
+        {/* Products/Vendor routes - Adding missing routes */}
+        <Route path="/my-products" element={
+          <RequireAuth>
+            <MyProductsPage />
+          </RequireAuth>
+        } />
+        <Route path="/vendor/products/new" element={
+          <RequireAuth>
+            <ProductFormPage />
+          </RequireAuth>
+        } />
+        <Route path="/vendor/products/:productId/edit" element={
+          <RequireAuth>
+            <ProductFormPage />
+          </RequireAuth>
+        } />
+        <Route path="/vendor/storefront" element={
+          <RequireAuth>
+            <CreateStorefrontPage />
+          </RequireAuth>
+        } />
+        <Route path="/vendor/dashboard" element={
+          <RequireAuth>
+            <MyProductsPage />
+          </RequireAuth>
+        } />
+
+        {/* Storefront routes */}
+        <Route path="/store/@:slug" element={<StorefrontPage />} />
+        <Route path="/store/@:slug/product/:productId" element={<ProductPage />} />
         
         {/* Redirect /wallet to /balance */}
         <Route path="/wallet" element={<Navigate to="/balance" replace />} />

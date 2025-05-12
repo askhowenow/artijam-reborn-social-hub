@@ -21,7 +21,7 @@ const GuestHeader = () => {
   }
 
   return (
-    <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
+    <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:px-8">
         {/* Use the Logo component for consistent logo display */}
         <Logo size="sm" />
@@ -33,7 +33,7 @@ const GuestHeader = () => {
               <input
                 type="text"
                 placeholder="Search products"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-artijam-purple focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-artijam-purple focus:border-transparent dark:bg-gray-800 dark:text-gray-200"
               />
             </div>
           </div>

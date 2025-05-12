@@ -29,7 +29,7 @@ const Logo = ({ className = "", size = "md" }: LogoProps) => {
   };
   
   // If user is on auth page and not logged in, link to home instead of dashboard
-  const linkPath = (isAuthPage && !user) ? "/" : "/";
+  const linkPath = (isAuthPage && !user) ? "/" : user ? "/dashboard" : "/";
 
   return (
     <Link to={linkPath} className={`flex items-center ${className}`}>
@@ -37,7 +37,7 @@ const Logo = ({ className = "", size = "md" }: LogoProps) => {
         <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} mr-1 text-artijam-purple`}>
           A
         </span>
-        <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} text-gray-800`}>
+        <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} text-gray-800 dark:text-white`}>
           rtijam
         </span>
       </div>
