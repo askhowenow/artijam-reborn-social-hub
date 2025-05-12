@@ -23,8 +23,10 @@ const GuestHeader = () => {
   return (
     <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:px-8">
-        {/* Use the Logo component for consistent logo display */}
-        <Logo size="sm" />
+        {/* Logo with slightly enhanced styling */}
+        <div className="flex-shrink-0">
+          <Logo size="md" className="hover:opacity-90 transition-opacity" />
+        </div>
 
         <div className="flex-1 hidden md:flex md:justify-center">
           <div className="max-w-md w-full">
