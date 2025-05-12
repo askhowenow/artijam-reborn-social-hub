@@ -1,54 +1,110 @@
 
 import React from 'react';
-import { useProducts } from '@/hooks/use-products';
-import ProductCard from '@/components/shop/ProductCard';
-import { Card } from '@/components/ui/card';
-import { 
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Product, useProducts } from '@/hooks/use-products';
+import ProductImage from './ProductImage';
 
 const TrendingProducts = () => {
-  // Fetch trending products for carousel
-  const { 
-    data: trendingProducts, 
-    isLoading: isTrendingLoading 
-  } = useProducts({ trending: true, limit: 10 });
+  const navigate = useNavigate();
+  const { data: products, isLoading, error } = useProducts({ trending: true, limit: 10 });
 
-  if (isTrendingLoading) {
+  const handleProductClick = (product: Product) => {
+    navigate(`/shop/product/${product.id}`);
+  };
+
+  if (isLoading) {
     return (
-      <Card className="w-full h-48 xs:h-64 flex items-center justify-center">
-        <Loader2 className="h-6 w-6 xs:h-8 xs:w-8 animate-spin text-artijam-purple" />
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <Carousel>
+          <CarouselContent>
+            {Array(3).fill(0).map((_, i) => (
+              <CarouselItem key={i} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/3">
+                <Card className="overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <CardContent className="p-4">
+                    <Skeleton className="h-5 w-4/5 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
     );
   }
 
-  if (!trendingProducts || trendingProducts.length === 0) {
-    return (
-      <Card className="w-full p-4 xs:p-8 text-center">
-        <p className="text-gray-500 text-sm xs:text-base">No trending products yet</p>
-      </Card>
-    );
+  if (error || !products || products.length === 0) {
+    return null;
   }
 
   return (
-    <Carousel className="w-full">
-      <CarouselContent>
-        {trendingProducts.map((product) => (
-          <CarouselItem key={product.id} className="basis-full xs:basis-1/2 sm:basis-1/2 lg:basis-1/3">
-            <div className="p-1">
-              <ProductCard product={product} />
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious className="left-0 sm:left-2 bg-white/80 backdrop-blur-sm h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10" />
-      <CarouselNext className="right-0 sm:right-2 bg-white/80 backdrop-blur-sm h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10" />
-    </Carousel>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Trending Products</h2>
+        <div 
+          className="text-sm text-artijam-purple cursor-pointer hover:underline"
+          onClick={() => navigate('/shop')}
+        >
+          View all
+        </div>
+      </div>
+      <Carousel className="w-full">
+        <CarouselContent>
+          {products.map((product) => (
+            <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/3 pl-4">
+              <Card 
+                className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleProductClick(product)}
+              >
+                <div className="relative h-48">
+                  <ProductImage
+                    imageUrl={product.image_url}
+                    productName={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {product.has_ar_model && (
+                    <Badge variant="secondary" className="absolute top-2 right-2 bg-artijam-purple text-white">
+                      AR
+                    </Badge>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-base line-clamp-1">{product.name}</h3>
+                  <div className="flex items-baseline justify-between mt-1">
+                    <div className="font-semibold">
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: product.currency || 'USD',
+                      }).format(product.price)}
+                    </div>
+                    {product.category && (
+                      <div className="text-xs text-gray-500">{product.category}</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="hidden sm:flex" />
+        <CarouselNext className="hidden sm:flex" />
+      </Carousel>
+    </div>
   );
 };
 

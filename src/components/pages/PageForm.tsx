@@ -1,11 +1,13 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, QrCode } from "lucide-react";
 import SlugInput from "./SlugInput";
+import QRCodeGenerator from "@/components/QRCodeGenerator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface PageFormProps {
   title: string;
@@ -34,6 +36,11 @@ const PageForm: React.FC<PageFormProps> = ({
   onSave,
   autoSlug,
 }) => {
+  const [showQRCode, setShowQRCode] = useState(false);
+  
+  // Generate the storefront URL in the format artijam.biz/<slug>
+  const storefrontUrl = `https://artijam.biz/${slug}`;
+  
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col space-y-4">
@@ -47,11 +54,50 @@ const PageForm: React.FC<PageFormProps> = ({
           />
         </div>
         
-        <SlugInput 
-          slug={slug} 
-          onChange={onSlugChange} 
-          autoSlug={autoSlug}
-        />
+        <div className="flex flex-col space-y-2">
+          <Label>Page URL</Label>
+          <div className="flex items-center">
+            <div className="bg-gray-100 px-3 py-2 rounded-l-md border border-r-0 text-gray-500 text-sm">
+              artijam.biz/
+            </div>
+            <Input
+              id="slug"
+              placeholder="my-awesome-page"
+              value={slug}
+              onChange={onSlugChange}
+              className="rounded-l-none"
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            This will be your public storefront URL: {storefrontUrl}
+          </p>
+          
+          {slug && (
+            <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-fit mt-2"
+                >
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Generate QR Code
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>QR Code for your page</DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-center py-4">
+                  <QRCodeGenerator 
+                    url={storefrontUrl} 
+                    title={title || 'My Artijam Page'}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
         
         <div className="flex items-center space-x-2">
           <Input
@@ -76,7 +122,22 @@ const PageForm: React.FC<PageFormProps> = ({
         />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 flex justify-between">
+        <div>
+          {slug && (
+            <p className="text-sm text-gray-500">
+              Your page will be available at:{" "}
+              <a 
+                href={storefrontUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-artijam-purple hover:underline"
+              >
+                {storefrontUrl}
+              </a>
+            </p>
+          )}
+        </div>
         <Button onClick={onSave} disabled={isSaving}>
           {isSaving ? (
             <>

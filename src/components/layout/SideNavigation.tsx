@@ -3,8 +3,8 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, ShoppingBag, Calendar, Settings, PlusCircle, Video, 
-  FileText, ShoppingCart, Briefcase, MessageSquare, User, Wallet, 
-  DollarSign, Book, LayoutDashboard, Users as UsersGroup, File
+  FileText, ShoppingCart, Briefcase, MessageSquare, User, DollarSign, 
+  Book, LayoutDashboard, Users as UsersGroup, File
 } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -214,18 +214,18 @@ const SideNavigation = () => {
           )}
         </div>
 
-        {/* Finance Section - New */}
+        {/* Finance Section - Changed from Wallet to Balance */}
         {user && (
           <div className="space-y-1">
             <h3 className="font-medium text-sm text-gray-500 px-3">Finance</h3>
             <Link
-              to="/wallet"
+              to="/balance"
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 ${
-                location.pathname === "/wallet" ? "text-artijam-purple font-medium" : ""
+                location.pathname === "/balance" ? "text-artijam-purple font-medium" : ""
               }`}
             >
-              <Wallet size={18} />
-              <span>Wallet</span>
+              <DollarSign size={18} />
+              <span>Balance</span>
             </Link>
             <Link
               to="/funding"

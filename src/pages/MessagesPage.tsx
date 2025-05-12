@@ -1,24 +1,31 @@
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React from "react";
+import { Helmet } from "react-helmet-async";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const MessagesPage: React.FC = () => {
+const MessagesPage = () => {
   return (
-    <div className="container max-w-7xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Messages</h1>
-        <p className="text-gray-600 mt-1">Your conversations with other users</p>
-      </div>
-
-      <div className="grid gap-6">
-        <Card className="bg-gray-50 dark:bg-gray-800 border border-dashed">
-          <CardContent className="flex flex-col items-center justify-center h-48 p-6">
-            <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">No messages yet</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
-              When you start conversations with other users, they will appear here.
-            </p>
-          </CardContent>
-        </Card>
+    <div className="container max-w-4xl mx-auto py-8">
+      <Helmet>
+        <title>Messages | Artijam</title>
+      </Helmet>
+      
+      <h1 className="text-3xl font-bold mb-6">Messages</h1>
+      
+      <Alert className="mb-6">
+        <AlertCircle className="h-4 w-4 mr-2" />
+        <AlertTitle>Coming Soon</AlertTitle>
+        <AlertDescription>
+          The Messaging feature is currently under development and will be available soon.
+        </AlertDescription>
+      </Alert>
+      
+      <div className="rounded-lg bg-gray-50 p-8 text-center">
+        <h2 className="text-xl font-semibold mb-2">Connect Through Private Messages</h2>
+        <p className="text-gray-600 mb-4">
+          Communicate directly with other artists, vendors, and customers.
+        </p>
       </div>
     </div>
   );

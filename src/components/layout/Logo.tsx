@@ -1,6 +1,7 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
 
 interface LogoProps {
   className?: string;
@@ -8,22 +9,27 @@ interface LogoProps {
 }
 
 const Logo = ({ className = "", size = "md" }: LogoProps) => {
+  const location = useLocation();
+  const { user } = useAuth();
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
+  
   const sizeClasses = {
     sm: "h-6",
     md: "h-8",
     lg: "h-10",
   };
+  
+  // If user is on auth page and not logged in, link to home instead of dashboard
+  const linkPath = (isAuthPage && !user) ? "/" : "/";
 
   return (
-    <Link to="/" className={`flex items-center ${className}`}>
+    <Link to={linkPath} className={`flex items-center ${className}`}>
       <div className="flex items-center">
-        <img
-          src="/lovable-uploads/b7e91f04-f838-4ada-bbfa-4d9e6af5067c.png"
-          alt="Artijam Logo"
-          className={`${sizeClasses[size]} mr-1`}
-        />
-        <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} text-artijam-purple`}>
-          Artijam
+        <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} mr-1 text-artijam-purple`}>
+          A
+        </span>
+        <span className={`font-bold ${size === "sm" ? "text-lg" : size === "md" ? "text-xl" : "text-2xl"} text-gray-800`}>
+          rtijam
         </span>
       </div>
     </Link>

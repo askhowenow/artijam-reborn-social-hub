@@ -1,24 +1,31 @@
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React from "react";
+import { Helmet } from "react-helmet-async";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const JobsPage: React.FC = () => {
+const JobsPage = () => {
   return (
-    <div className="container max-w-7xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Jobs</h1>
-        <p className="text-gray-600 mt-1">Browse available job opportunities</p>
-      </div>
-
-      <div className="grid gap-6">
-        <Card className="bg-gray-50 dark:bg-gray-800 border border-dashed">
-          <CardContent className="flex flex-col items-center justify-center h-48 p-6">
-            <p className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">No job listings yet</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
-              Job listings will be available soon. Check back for opportunities!
-            </p>
-          </CardContent>
-        </Card>
+    <div className="container max-w-4xl mx-auto py-8">
+      <Helmet>
+        <title>Jobs | Artijam</title>
+      </Helmet>
+      
+      <h1 className="text-3xl font-bold mb-6">Browse Jobs</h1>
+      
+      <Alert className="mb-6">
+        <AlertCircle className="h-4 w-4 mr-2" />
+        <AlertTitle>Coming Soon</AlertTitle>
+        <AlertDescription>
+          The Jobs feature is currently under development and will be available soon.
+        </AlertDescription>
+      </Alert>
+      
+      <div className="rounded-lg bg-gray-50 p-8 text-center">
+        <h2 className="text-xl font-semibold mb-2">Find Creative Opportunities</h2>
+        <p className="text-gray-600 mb-4">
+          Discover job opportunities in art, design, crafts, and more to showcase your talents.
+        </p>
       </div>
     </div>
   );
